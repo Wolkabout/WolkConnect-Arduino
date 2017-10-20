@@ -1,25 +1,16 @@
-
 #include "MQTTClient.h"
 #include <ESP8266WiFi.h>
 #include "WolkConn.h"
 
-
-
-
-
-
-// Update these with values suitable for your network and device.
-const char* ssid = "ssid";
-const char* password = "password";
-//const char* mqtt_server = "52.209.74.134";
-
+const char* ssid = "wifi_ssid";
+const char* password = "wifi_password";
+const char* mqtt_server = "integration.wolksense.com";
 
 const char *device_key = "device_key";
 const char *password_key = "password_key";
-//const char *hostname = "demo.wolkabout.com";
 int portno = 1883;
 const char *numeric_slider_reference = "SL";
-const char *bool_switch_refernece = "SW";
+const char *bool_switch_reference = "SW";
 
 char reference[32];
 char command [32];
@@ -27,7 +18,6 @@ char value[64];
 static wolk_ctx_t wolk;
 WiFiClient espClient;
 PubSubClient client(espClient);
-
 
 void setup_wifi() {
 
@@ -56,13 +46,14 @@ void setup() {
   setup_wifi();
 
   wolk_set_protocol(&wolk, PROTOCOL_TYPE_JSON);
+  
   wolk_connect(&wolk, &client, mqtt_server, portno, device_key, password_key);
 
-  wolk_set_actuator_references (&wolk, 2, numeric_slider_reference, bool_switch_refernece);
+  wolk_set_actuator_references (&wolk, 2, numeric_slider_reference, bool_switch_reference);
 
-  wolk_publish_num_actuator_status (&wolk, numeric_slider_reference, 80, ACTUATOR_STATUS_READY, 0);
+  wolk_publish_num_actuator_status (&wolk, numeric_slider_reference, 0, ACTUATOR_STATUS_READY, 0);
 
-  wolk_publish_bool_actuator_status (&wolk,bool_switch_refernece, true, ACTUATOR_STATUS_READY, 0);
+  wolk_publish_bool_actuator_status (&wolk,bool_switch_reference, true, ACTUATOR_STATUS_READY, 0);
 
   wolk_publish_single (&wolk, "TS", "Arduino", DATA_TYPE_STRING, 0);
   
@@ -82,8 +73,6 @@ void setup() {
   
 }
 
-
-  
 void loop() {
   memset (reference, 0, 32);
   memset (command, 0, 32);
@@ -99,11 +88,24 @@ void loop() {
     Serial.println(reference);
     Serial.print("Value:");
     Serial.println(value);
-  } else
+    if (strcmp(reference, numeric_slider_reference)==0)
+    {
+      int num_val = atoi(value);
+      wolk_publish_num_actuator_status (&wolk, numeric_slider_reference, num_val, ACTUATOR_STATUS_READY, 0);
+    } else if (strcmp(reference, bool_switch_reference)==0)
+    {
+      if (strcmp(value,"true")==0)
+      {
+        wolk_publish_bool_actuator_status (&wolk,bool_switch_reference, true, ACTUATOR_STATUS_READY, 0);
+      } else if (strcmp(value,"false")==0)
+      {
+        wolk_publish_bool_actuator_status (&wolk,bool_switch_reference, false, ACTUATOR_STATUS_READY, 0);
+      }
+      
+    }
+  } 
  
-
   delay(1000);
   
   
 }
-

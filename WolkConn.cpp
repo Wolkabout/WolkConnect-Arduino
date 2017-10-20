@@ -135,13 +135,6 @@ void callback(void *wolk, char* topic, byte* payload, unsigned int length) {
     char payload_str[STR_256];
     memset (reference, 0, STR_64);
     memset (payload_str, 0, STR_256);
-    Serial.print("Message arrived [");
-    Serial.print(topic);
-    Serial.print("] ");
-    for (int i = 0; i < length; i++) {
-        Serial.print((char)payload[i]);
-    }
-    Serial.println();
 
     memcpy(payload_str, payload, length);
 
@@ -154,37 +147,13 @@ void callback(void *wolk, char* topic, byte* payload, unsigned int length) {
         {
 
             strncpy(reference, start_ptr+1, strlen(topic)-(start_ptr-topic)-1);
-            Serial.print ("Reference:");
-            Serial.println(reference);
         }
     }
 
-
-    Serial.println(payload_str);
-    Serial.println(length);
     size_t num_deserialized_commands = parser_deserialize_commands(&ctx->wolk_parser, payload_str, length, &commands_buffer[0], 128);
-
-    Serial.println(num_deserialized_commands);
-
-
 
     for (i = 0; i < num_deserialized_commands; ++i) {
         actuator_command_t* command = &commands_buffer[i];
-
-
-        Serial.println("Debug:");
-        if (actuator_command_get_value(command))
-        {
-            Serial.println("true is good");
-        } else
-        {
-
-            Serial.println("false is bad");
-        }
-        Serial.println(command->argument);
-        Serial.println(SET_COMMAND);
-        Serial.println(reference);
-        Serial.println("###");
 
         switch(actuator_command_get_type(command))
         {
@@ -318,15 +287,12 @@ WOLK_ERR_T wolk_publish (wolk_ctx_t *ctx)
 
     if (ctx->parser_type == PARSER_TYPE_MQTT )
     {
-        //MQTTString topicString = MQTTString_initializer;
 
         char pub_topic[TOPIC_SIZE];
         memset (pub_topic, 0, TOPIC_SIZE);
 
         strcpy(pub_topic,SENSOR_PATH);
         strcat(pub_topic,ctx->serial);
-
-        //topicString.cstring = pub_topic;
 
         size_t serialized_readings = parser_serialize_readings(&ctx->wolk_parser, &ctx->readings[0], ctx->readings_index, readings_buffer, READINGS_BUFFER_SIZE);
 
@@ -373,7 +339,6 @@ WOLK_ERR_T wolk_publish_single (wolk_ctx_t *ctx,const char *reference,const char
     memset (buf, 0, READINGS_MQTT_SIZE);
     initialize_parser(&parser, ctx->parser_type);
 
-    //MQTTString topicString = MQTTString_initializer;
     char pub_topic[TOPIC_SIZE];
     memset (pub_topic, 0, TOPIC_SIZE);
 
@@ -389,8 +354,6 @@ WOLK_ERR_T wolk_publish_single (wolk_ctx_t *ctx,const char *reference,const char
         strcpy(pub_topic,SENSOR_PATH);
         strcat(pub_topic,ctx->serial);
     }
-
-    //topicString.cstring = pub_topic;
 
     if (type==DATA_TYPE_STRING)
     {
@@ -437,8 +400,6 @@ WOLK_ERR_T wolk_publish_num_actuator_status (wolk_ctx_t *ctx,const char *referen
     memset (buf, 0, READINGS_MQTT_SIZE);
     initialize_parser(&parser, ctx->parser_type);
 
-    //MQTTString topicString = MQTTString_initializer;
-
     char pub_topic[TOPIC_SIZE];
     memset (pub_topic, 0, TOPIC_SIZE);
 
@@ -454,8 +415,6 @@ WOLK_ERR_T wolk_publish_num_actuator_status (wolk_ctx_t *ctx,const char *referen
         strcpy(pub_topic,SENSOR_PATH);
         strcat(pub_topic,ctx->serial);
     }
-
-    //topicString.cstring = pub_topic;
 
     char value_str[STR_64];
     memset (value_str, 0, STR_64);
@@ -490,8 +449,6 @@ WOLK_ERR_T wolk_publish_bool_actuator_status (wolk_ctx_t *ctx,const char *refere
     memset (buf, 0, READINGS_MQTT_SIZE);
     initialize_parser(&parser, ctx->parser_type);
 
-   //MQTTString topicString = MQTTString_initializer;
-
     char pub_topic[TOPIC_SIZE];
     memset (pub_topic, 0, TOPIC_SIZE);
 
@@ -506,8 +463,6 @@ WOLK_ERR_T wolk_publish_bool_actuator_status (wolk_ctx_t *ctx,const char *refere
         strcpy(pub_topic,SENSOR_PATH);
         strcat(pub_topic,ctx->serial);
     }
-
-   // topicString.cstring = pub_topic;
 
     manifest_item_t bool_actuator;
     manifest_item_init(&bool_actuator, (char *)reference, READING_TYPE_ACTUATOR, DATA_TYPE_BOOLEAN);
