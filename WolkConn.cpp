@@ -1,3 +1,19 @@
+/*
+ * Copyright 2017 WolkAbout Technology s.r.o.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 #include <stdarg.h>
 #include <string.h>
 #include <unistd.h>
@@ -40,7 +56,7 @@ WOLK_ERR_T wolk_connect (wolk_ctx_t *ctx, PubSubClient *client, const char *serv
     char lastwill_topic[TOPIC_SIZE];
     char sub_topic[TOPIC_SIZE];
     char client_id[TOPIC_SIZE];
-    
+
     wolk_queue_init (&ctx->actuator_queue);
     wolk_queue_init (&ctx->config_queue);
     initialize_parser(&ctx->wolk_parser, ctx->parser_type);
@@ -53,7 +69,7 @@ WOLK_ERR_T wolk_connect (wolk_ctx_t *ctx, PubSubClient *client, const char *serv
 
     memset (ctx->serial, 0, SERIAL_SIZE);
     strcpy (ctx->serial, device_key);
-    
+
     memset (client_id, 0, TOPIC_SIZE);
     sprintf(client_id,"%s%d",device_key,rand() % 1000);
 
@@ -111,7 +127,7 @@ WOLK_ERR_T wolk_set_actuator_references (wolk_ctx_t *ctx, int num_of_items,  con
             strcat(pub_topic,"/");
             strcat(pub_topic,str);
 
-            
+
             if (_wolk_subscribe (ctx, pub_topic) != W_FALSE)
             {
                 return W_TRUE;
@@ -126,7 +142,7 @@ WOLK_ERR_T wolk_set_actuator_references (wolk_ctx_t *ctx, int num_of_items,  con
 }
 
 void callback(void *wolk, char* topic, byte* payload, unsigned int length) {
-    
+
     int i=0;
     int rc = -1;
     actuator_command_t commands_buffer[128];
@@ -141,7 +157,7 @@ void callback(void *wolk, char* topic, byte* payload, unsigned int length) {
 
     if (ctx->parser_type == PARSER_TYPE_JSON)
     {
-        
+
         char *start_ptr = strrchr(topic, '/');
         if (start_ptr != NULL)
         {
@@ -181,7 +197,7 @@ void callback(void *wolk, char* topic, byte* payload, unsigned int length) {
             break;
         }
     }
-    
+
 }
 
 
@@ -499,21 +515,21 @@ WOLK_ERR_T wolk_keep_alive (wolk_ctx_t *ctx)
 WOLK_ERR_T wolk_disconnect(wolk_ctx_t *ctx)
 {
     ctx->mqtt_client->disconnect();
-    
+
     return W_FALSE;
 }
 
 WOLK_ERR_T _wolk_publish (wolk_ctx_t *ctx, char *topic, char *readings)
 {
     ctx->mqtt_client->publish(topic, readings);
-    
+
     return W_FALSE;
 }
 
 WOLK_ERR_T _wolk_subscribe (wolk_ctx_t *ctx, const char *topic)
 {
     ctx->mqtt_client->subscribe(topic);
-   
+
     return W_FALSE;
 }
 
