@@ -18,14 +18,15 @@
 #define WOLK_H
 
 #include "MQTTClient.h"
+#include "utility/WolkQueue.h"
+#include "utility/parser.h"
+
+#include <stdbool.h>
+#include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include <stdbool.h>
-#include "utility/WolkQueue.h"
-
-#include "utility/parser.h"
 
 /**
  * @brief WOLK_ERR_T Boolean used for error handling in Wolk conenction module
@@ -71,8 +72,6 @@ typedef enum {
 
 typedef int (*send_func)(unsigned char *, unsigned int);
 typedef int (*recv_func)(unsigned char *, unsigned int);
-
-
 
 /** @brief Connect to WolkSense via mqtt
  *

@@ -62,9 +62,6 @@ QUEUE_ERR_T wolk_queue_clear (wolk_queue *ctx);
 QUEUE_ERR_T wolk_queue_push (wolk_queue *ctx, const char *reference, const char *command, const char *value);
 QUEUE_ERR_T wolk_queue_pop (wolk_queue *ctx, char *reference, char *command, char *value);
 
-
-
-
 #ifdef __cplusplus
 }
 #endif
