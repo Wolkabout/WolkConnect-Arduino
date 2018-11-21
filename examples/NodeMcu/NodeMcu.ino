@@ -1,21 +1,25 @@
-#include "MQTTClient.h"
 #include <ESP8266WiFi.h>
 #include "WolkConn.h"
+#include "MQTTClient.h"
 
 const char* ssid = "wifi_ssid";
-const char* password = "wifi_password";
-const char* mqtt_server = "api-demo.wolkabout.com";
+const char* wifi_pass = "wifi_password";
 
-const char *device_key = "device_key";
-const char *password_key = "password_key";
+const char *device_key = "9uj3a0z99xz0hvcw";
+const char *device_password = "6fe7d7aa-1807-4432-956d-561a17c9bdd9";
+const char* hostname = "api-demo.wolkabout.com";
 int portno = 1883;
+
+/* WolkConnect-C Connector context */
+static wolk_ctx_t wolk;
+
 const char *numeric_slider_reference = "SL";
 const char *bool_switch_reference = "SW";
 
 char reference[32];
 char command [32];
 char value[64];
-static wolk_ctx_t wolk;
+
 WiFiClient espClient;
 PubSubClient client(espClient);
 
@@ -26,7 +30,7 @@ void setup_wifi() {
   Serial.println();
   Serial.print("Connecting to ");
   Serial.println(ssid);
-  WiFi.begin(ssid, password);
+  WiFi.begin(ssid, wifi_pass);
 
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
@@ -44,16 +48,17 @@ void setup() {
   Serial.begin(9600);
 
   setup_wifi();
-
+//till the next comment encapsulate into wolk_init
   wolk_set_protocol(&wolk, PROTOCOL_TYPE_JSON);
 
-  wolk_connect(&wolk, &client, mqtt_server, portno, device_key, password_key);
+  wolk_connect(&wolk, &client, hostname, portno, device_key, device_password);
 
   wolk_set_actuator_references (&wolk, 2, numeric_slider_reference, bool_switch_reference);
 
   wolk_publish_num_actuator_status (&wolk, numeric_slider_reference, 0, ACTUATOR_STATUS_READY, 0);
 
   wolk_publish_bool_actuator_status (&wolk,bool_switch_reference, true, ACTUATOR_STATUS_READY, 0);
+//till here :)
 
   wolk_publish_single (&wolk, "TS", "Arduino", DATA_TYPE_STRING, 0);
 

@@ -22,8 +22,15 @@ extern "C" {
 #endif
 
 enum {
+    /* Maximum number of characters in device key string */
+    DEVICE_KEY_SIZE = 32,
+
+    /* Maximum number of characters in device password string */
+    DEVICE_PASSWORD_SIZE = 40,
+
     /* Maximum number of characters in reference string */
     MANIFEST_ITEM_REFERENCE_SIZE = 64,
+
     /* Maximum number of characters in reference string */
     MANIFEST_ITEM_DATA_DELIMITER_SIZE= 5,
 
@@ -37,11 +44,21 @@ enum {
 
     /* Maximum number of characters in configuration item name string */
     CONFIGURATION_ITEM_NAME_SIZE = MANIFEST_ITEM_REFERENCE_SIZE,
+    
     /* Maximum number of characters in configuration item value string */
     CONFIGURATION_ITEM_VALUE_SIZE = READING_SIZE,
 
     /* Parser internal buffer size, should be at least READING_SIZE  big */
-    PARSER_INTERNAL_BUFFER_SIZE = READING_SIZE
+    PARSER_INTERNAL_BUFFER_SIZE = READING_SIZE,
+
+    PAYLOAD_SIZE = 256,
+    TOPIC_SIZE = 64,
+    SERIAL_SIZE = 32,
+    READINGS_SIZE = 5,
+    READINGS_BUFFER_SIZE = 192,
+    READINGS_MQTT_SIZE = 256,
+    STR_64 = 64,
+    STR_256 = 256
 };
 
 #ifdef __cplusplus

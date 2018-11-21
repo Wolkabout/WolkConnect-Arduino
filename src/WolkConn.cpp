@@ -40,8 +40,8 @@
 #define ACTUATORS_STATUS_PATH "actuators/status/"
 #define ACTUATORS_COMMANDS "actuators/commands/"
 
-#define LASWILL_STRING "lastwill/"
-#define GONE_OFFLINE "Gone offline"
+#define LASTWILL_TOPIC "lastwill/"
+#define LASTWILL_MESSAGE "Gone offline"
 
 #define SET_COMMAND "SET"
 #define STATUS_COMMAND "STATUS"
@@ -50,6 +50,7 @@ static WOLK_ERR_T _wolk_subscribe (wolk_ctx_t *ctx, const char *topic);
 static WOLK_ERR_T _wolk_set_parser (wolk_ctx_t *ctx, parser_type_t parser_type);
 static WOLK_ERR_T _wolk_publish (wolk_ctx_t *ctx, char *topic, char *readings);
 static void callback(void *wolk, char* topic, byte* payload, unsigned int length);
+
 
 WOLK_ERR_T wolk_connect (wolk_ctx_t *ctx, PubSubClient *client, const char *server, int port, const char *device_key, const char *password)
 {
@@ -63,7 +64,7 @@ WOLK_ERR_T wolk_connect (wolk_ctx_t *ctx, PubSubClient *client, const char *serv
     ctx->readings_index = 0;
 
     memset (lastwill_topic, 0, TOPIC_SIZE);
-    strcpy (lastwill_topic, LASWILL_STRING);
+    strcpy (lastwill_topic, LASTWILL_TOPIC);
     strcat (lastwill_topic, device_key);
 
 
@@ -87,7 +88,7 @@ WOLK_ERR_T wolk_connect (wolk_ctx_t *ctx, PubSubClient *client, const char *serv
         strcpy (sub_topic, CONFIG_PATH);
         strcat (sub_topic, device_key);
         if (_wolk_subscribe (ctx, sub_topic) != W_FALSE)
-        {
+        {   
             return W_TRUE;
         }
     }
@@ -95,15 +96,10 @@ WOLK_ERR_T wolk_connect (wolk_ctx_t *ctx, PubSubClient *client, const char *serv
     return W_FALSE;
 }
 
-WOLK_ERR_T wolk_set_protocol (wolk_ctx_t *ctx, protocol_type_t protocol)
+WOLK_ERR_T wolk_set_protocol (wolk_ctx_t *ctx)
 {
-    if (protocol == PROTOCOL_TYPE_WOLKSENSOR)
-    {
-        _wolk_set_parser (ctx, PARSER_TYPE_MQTT);
-    } else if (protocol == PROTOCOL_TYPE_JSON)
-    {
-        _wolk_set_parser (ctx, PARSER_TYPE_JSON);
-    }
+
+    _wolk_set_parser (ctx, PARSER_TYPE_JSON);
 
     return W_FALSE;
 }
@@ -218,16 +214,8 @@ WOLK_ERR_T wolk_read_actuator (wolk_ctx_t *ctx, char *command, char *reference, 
     return W_FALSE;
 }
 
-WOLK_ERR_T wolk_read_config (wolk_ctx_t *ctx, char *command, char *reference, char *value)
-{
-    WOLK_UNUSED(ctx);
-    WOLK_UNUSED(command);
-    WOLK_UNUSED(reference);
-    WOLK_UNUSED(value);
-    return W_FALSE;
-}
 
-WOLK_ERR_T wolk_add_string_reading(wolk_ctx_t *ctx,const char *reference,const char *value, uint32_t utc_time)
+WOLK_ERR_T wolk_add_string_sensor_reading(wolk_ctx_t *ctx,const char *reference,const char *value, uint32_t utc_time)
 {
     manifest_item_t string_sensor;
     manifest_item_init(&string_sensor,(char *) reference, READING_TYPE_SENSOR, DATA_TYPE_STRING);
@@ -241,7 +229,7 @@ WOLK_ERR_T wolk_add_string_reading(wolk_ctx_t *ctx,const char *reference,const c
     return W_FALSE;
 }
 
-WOLK_ERR_T wolk_add_numeric_reading(wolk_ctx_t *ctx,const char *reference,double value, uint32_t utc_time)
+WOLK_ERR_T wolk_add_numeric_sensor_reading(wolk_ctx_t *ctx,const char *reference,double value, uint32_t utc_time)
 {
     manifest_item_t numeric_sensor;
     manifest_item_init(&numeric_sensor, (char *)reference, READING_TYPE_SENSOR, DATA_TYPE_NUMERIC);
@@ -259,7 +247,7 @@ WOLK_ERR_T wolk_add_numeric_reading(wolk_ctx_t *ctx,const char *reference,double
     return W_FALSE;
 }
 
-WOLK_ERR_T wolk_add_bool_reading(wolk_ctx_t *ctx,const char *reference,bool value, uint32_t utc_time)
+WOLK_ERR_T wolk_add_bool_sensor_reading(wolk_ctx_t *ctx,const char *reference,bool value, uint32_t utc_time)
 {
     manifest_item_t bool_sensor;
     manifest_item_init(&bool_sensor, (char *)reference, READING_TYPE_SENSOR, DATA_TYPE_BOOLEAN);
@@ -504,8 +492,16 @@ WOLK_ERR_T wolk_keep_alive (wolk_ctx_t *ctx)
 }
 
 
-WOLK_ERR_T wolk_disconnect(wolk_ctx_t *ctx)
+WOLK_ERR_T wolk_disconnect(wolk_ctx_t *ctx, const char *device_key)
 {
+
+    char lastwill_topic[TOPIC_SIZE];
+
+    memset (lastwill_topic, 0, TOPIC_SIZE);
+    strcpy (lastwill_topic, LASTWILL_TOPIC);
+    strcat (lastwill_topic, device_key);
+
+    ctx->mqtt_client->publish(lastwill_topic, LASTWILL_MESSAGE);
     ctx->mqtt_client->disconnect();
     return W_FALSE;
 }

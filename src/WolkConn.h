@@ -20,6 +20,10 @@
 #include "MQTTClient.h"
 #include "utility/WolkQueue.h"
 #include "utility/parser.h"
+#include "utility/size_definitions.h"
+
+#include "Arduino.h"
+#include "dtostrf_fix.h"
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -28,6 +32,11 @@
 extern "C" {
 #endif
 
+
+/**
+ * @brief Supported protocols, WolkConnect libararies currently support only PROTOCOL_JSON_SINGLE
+ */
+typedef enum { PROTOCOL_TYPE_JSON = 0 } protocol_type_t;
 /**
  * @brief WOLK_ERR_T Boolean used for error handling in Wolk conenction module
  */
@@ -36,42 +45,43 @@ typedef unsigned char WOLK_ERR_T;
  * @brief WOLK_ERR_T Boolean used in Wolk connection module
  */
 typedef unsigned char WOLK_BOOL_T;
-
-#define W_TRUE 1
-#define W_FALSE 0
-
-#define PAYLOAD_SIZE 256
-#define TOPIC_SIZE 64
-#define SERIAL_SIZE 32
-
-#define READINGS_SIZE 5
-#define READINGS_BUFFER_SIZE 192
-#define READINGS_MQTT_SIZE 256
-
-#define STR_64 64
-#define STR_256 256
+enum WOLK_BOOL_T_values { W_FALSE = 0, W_TRUE = 1 };
 
 typedef struct _wolk_ctx_t wolk_ctx_t;
 
 struct _wolk_ctx_t {
-    char serial[SERIAL_SIZE];
     int sock;
-    parser_t wolk_parser;
-    wolk_queue actuator_queue;
-    wolk_queue config_queue;
-    reading_t readings[READINGS_SIZE];
-    int readings_index;
-    parser_type_t parser_type;
+    char serial[SERIAL_SIZE];
     PubSubClient *mqtt_client;
-};
 
-typedef enum {
-    PROTOCOL_TYPE_WOLKSENSOR = 0,
-    PROTOCOL_TYPE_JSON
-} protocol_type_t;
+    wolk_queue actuator_queue;
+
+    wolk_queue config_queue;
+
+    char device_key[DEVICE_KEY_SIZE];                       /**<  Authentication parameters for WolkAbout IoT Platform. Obtained as a result of device creation on the platform.*/
+    char device_password[DEVICE_PASSWORD_SIZE];             /**<  Authentication parameters for WolkAbout IoT Platform. Obtained as a result of device creation on the platform.*/
+
+    reading_t readings[READINGS_SIZE];                      
+    int readings_index;
+
+    protocol_type_t protocol;                               /**<  Used protocol for communication with WolkAbout IoT Platform. @see protocol_type_t*/
+    parser_t wolk_parser;
+    parser_type_t parser_type;
+};
 
 typedef int (*send_func)(unsigned char *, unsigned int);
 typedef int (*recv_func)(unsigned char *, unsigned int);
+
+
+/**
+ * @brief Initializes WolkAbout IoT Platform connector context
+ *
+ *
+ * @return Error code
+ */
+/*WOLK_ERR_T wolk_init(wolk_ctx_t* ctx, const char* device_key,
+                     const char* device_password, protocol_t protocol, const char** actuator_references,
+                     uint32_t num_actuator_references, PubSubClient *client, const char *server, int port);*/
 
 /** @brief Connect to WolkSense via mqtt
  *
@@ -89,18 +99,16 @@ WOLK_ERR_T wolk_connect (wolk_ctx_t *ctx, PubSubClient *client, const char *serv
  *  @param ctx library context
  *  @return Error value is returned
  */
-WOLK_ERR_T wolk_disconnect (wolk_ctx_t *ctx);
+WOLK_ERR_T wolk_disconnect (wolk_ctx_t *ctx, const char* device_key);
 
-/** @brief Choos between JSON and WolkSense protocol
+/** @brief Choose a protocol
  *
- *  If you set protocol PROTOCOL_TYPE_WOLKSENSOR then old protocol that has been used on WolkSensor is used.
- *  If PROTOCOL_TYPE_JSON is used then new JSON protocol is used.
  *
  *  @param ctx library context
  *  @param protocol protocol that will be used
  *  @return Error value is returned
  */
-WOLK_ERR_T wolk_set_protocol (wolk_ctx_t *ctx, protocol_type_t protocol);
+WOLK_ERR_T wolk_set_protocol (wolk_ctx_t *ctx);
 
 /** @brief Set actuator references
  *
@@ -137,16 +145,6 @@ WOLK_ERR_T wolk_receive (wolk_ctx_t *ctx);
  */
 WOLK_ERR_T wolk_read_actuator (wolk_ctx_t *ctx, char *command, char *reference, char *value);
 
-/** @brief Under contruction
- *
- *  @param ctx library context
- *  @param command Command received
- *  @param reference Reference received received
- *  @param value Value received
- *  @return Error value is returned
- */
-WOLK_ERR_T wolk_read_config (wolk_ctx_t *ctx, char *command, char *reference, char *value);
-
 /** @brief Add string reading
  *
  *  @param ctx library context
@@ -155,7 +153,7 @@ WOLK_ERR_T wolk_read_config (wolk_ctx_t *ctx, char *command, char *reference, ch
  *  @param utc_time Parameter UTC time. If unable to retrieve UTC set 0
  *  @return Error value is returned
  */
-WOLK_ERR_T wolk_add_string_reading(wolk_ctx_t *ctx,const char *reference,const char *value, uint32_t utc_time);
+WOLK_ERR_T wolk_add_string_sensor_reading(wolk_ctx_t *ctx,const char *reference,const char *value, uint32_t utc_time);
 
 /** @brief Add numeric reading
  *
@@ -165,7 +163,7 @@ WOLK_ERR_T wolk_add_string_reading(wolk_ctx_t *ctx,const char *reference,const c
  *  @param utc_time Parameter UTC time. If unable to retrieve UTC set 0
  *  @return Error value is returned
  */
-WOLK_ERR_T wolk_add_numeric_reading(wolk_ctx_t *ctx,const char *reference,double value, uint32_t utc_time);
+WOLK_ERR_T wolk_add_numeric_sensor_reading(wolk_ctx_t *ctx,const char *reference,double value, uint32_t utc_time);
 
 /** @brief Add bool reading
  *
@@ -175,7 +173,7 @@ WOLK_ERR_T wolk_add_numeric_reading(wolk_ctx_t *ctx,const char *reference,double
  *  @param utc_time Parameter UTC time. If unable to retrieve UTC set 0
  *  @return Error value is returned
  */
-WOLK_ERR_T wolk_add_bool_reading(wolk_ctx_t *ctx,const char *reference,bool value, uint32_t utc_time);
+WOLK_ERR_T wolk_add_bool_sensor_reading(wolk_ctx_t *ctx,const char *reference,bool value, uint32_t utc_time);
 
 /** @brief Clear acumulated readings
  *
