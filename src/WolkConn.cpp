@@ -114,18 +114,16 @@ WOLK_ERR_T wolk_connect (wolk_ctx_t *ctx)
 }
 
 
-WOLK_ERR_T wolk_set_actuator_references (wolk_ctx_t *ctx, int num_of_items,  const char *item, ...)
+WOLK_ERR_T wolk_set_actuator_references (wolk_ctx_t *ctx, int num_of_items,  const char** item, ...)
 {
     va_list argptr;
     char pub_topic[TOPIC_SIZE];
     int i;
     if (ctx->parser_type == PARSER_TYPE_JSON)
     {
-        va_start( argptr, item );
-
-        const char* str = item;
         for (i=0;i<num_of_items;i++)
         {
+            const char* str = item[i];
             memset (pub_topic, 0, TOPIC_SIZE);
 
             strcpy(pub_topic,ACTUATORS_COMMANDS);
@@ -138,10 +136,7 @@ WOLK_ERR_T wolk_set_actuator_references (wolk_ctx_t *ctx, int num_of_items,  con
             {
                 return W_TRUE;
             }
-
-            str = va_arg( argptr, const char* );
         }
-        va_end( argptr );
     }
 
     return W_FALSE;

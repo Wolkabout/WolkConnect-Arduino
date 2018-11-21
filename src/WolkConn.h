@@ -115,7 +115,7 @@ WOLK_ERR_T wolk_disconnect (wolk_ctx_t *ctx);
  *  @param item actuator references
  *  @return Error value is returned
  */
-WOLK_ERR_T wolk_set_actuator_references (wolk_ctx_t *ctx, int num_of_items, const char *item, ...);
+WOLK_ERR_T wolk_set_actuator_references (wolk_ctx_t *ctx, int num_of_items, const char** item, ...);
 
 /** @brief Receive mqtt messages
  *
