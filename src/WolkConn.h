@@ -51,7 +51,6 @@ typedef struct _wolk_ctx_t wolk_ctx_t;
 
 struct _wolk_ctx_t {
     int sock;
-    char serial[SERIAL_SIZE];
     PubSubClient *mqtt_client;
 
     wolk_queue actuator_queue;
@@ -82,6 +81,11 @@ typedef int (*recv_func)(unsigned char *, unsigned int);
 /*WOLK_ERR_T wolk_init(wolk_ctx_t* ctx, const char* device_key,
                      const char* device_password, protocol_t protocol, const char** actuator_references,
                      uint32_t num_actuator_references, PubSubClient *client, const char *server, int port);*/
+WOLK_ERR_T wolk_init(wolk_ctx_t* ctx, const char* device_key,
+                     const char* device_password, PubSubClient *client, 
+                     const char *server, int port);
+
+//const char** actuator_references, uint32_t num_actuator_references
 
 /** @brief Connect to WolkSense via mqtt
  *
@@ -92,23 +96,14 @@ typedef int (*recv_func)(unsigned char *, unsigned int);
  *  @param password password acquired through device registration on WolkSense
  *  @return Error value is returned
  */
-WOLK_ERR_T wolk_connect (wolk_ctx_t *ctx, PubSubClient *client, const char *server, int port, const char *device_key, const char *password);
+WOLK_ERR_T wolk_connect (wolk_ctx_t *ctx);
 
 /** @brief Disconnect from WolkSense
  *
  *  @param ctx library context
  *  @return Error value is returned
  */
-WOLK_ERR_T wolk_disconnect (wolk_ctx_t *ctx, const char* device_key);
-
-/** @brief Choose a protocol
- *
- *
- *  @param ctx library context
- *  @param protocol protocol that will be used
- *  @return Error value is returned
- */
-WOLK_ERR_T wolk_set_protocol (wolk_ctx_t *ctx);
+WOLK_ERR_T wolk_disconnect (wolk_ctx_t *ctx);
 
 /** @brief Set actuator references
  *

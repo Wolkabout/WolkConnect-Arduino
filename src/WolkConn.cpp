@@ -51,42 +51,59 @@ static WOLK_ERR_T _wolk_set_parser (wolk_ctx_t *ctx, parser_type_t parser_type);
 static WOLK_ERR_T _wolk_publish (wolk_ctx_t *ctx, char *topic, char *readings);
 static void callback(void *wolk, char* topic, byte* payload, unsigned int length);
 
-
-WOLK_ERR_T wolk_connect (wolk_ctx_t *ctx, PubSubClient *client, const char *server, int port, const char *device_key, const char *password)
+WOLK_ERR_T wolk_init(wolk_ctx_t* ctx, const char* device_key,
+                     const char* device_password, PubSubClient *client, 
+                     const char *server, int port)
 {
-    char lastwill_topic[TOPIC_SIZE];
-    char sub_topic[TOPIC_SIZE];
-    char client_id[TOPIC_SIZE];
+    /* Sanity check */
+
+    WOLK_ASSERT(device_key != NULL);
+    WOLK_ASSERT(device_password != NULL);
+
+    WOLK_ASSERT(strlen(device_key) < DEVICE_KEY_SIZE);
+    WOLK_ASSERT(strlen(device_password) < DEVICE_PASSWORD_SIZE);
+
+    WOLK_ASSERT(protocol == PROTOCOL_TYPE_JSON);
+
+    _wolk_set_parser (ctx, PARSER_TYPE_JSON);
 
     wolk_queue_init (&ctx->actuator_queue);
     wolk_queue_init (&ctx->config_queue);
     initialize_parser(&ctx->wolk_parser, ctx->parser_type);
     ctx->readings_index = 0;
 
-    memset (lastwill_topic, 0, TOPIC_SIZE);
-    strcpy (lastwill_topic, LASTWILL_TOPIC);
-    strcat (lastwill_topic, device_key);
-
-
-    memset (ctx->serial, 0, SERIAL_SIZE);
-    strcpy (ctx->serial, device_key);
-
-    memset (client_id, 0, TOPIC_SIZE);
-    sprintf(client_id,"%s%d",device_key,rand() % 1000);
-
     ctx->mqtt_client = client;
-
-
     ctx->mqtt_client->setServer(server, port);
     ctx->mqtt_client->setCallback(callback);
 
-    ctx->mqtt_client->connect(client_id, ctx->serial, password);
+    memset (ctx->device_key, 0, DEVICE_KEY_SIZE);
+    strcpy (ctx->device_key, device_key);
+
+    memset (ctx->device_password, 0, DEVICE_PASSWORD_SIZE);
+    strcpy (ctx->device_password, device_password);
+
+}
+
+WOLK_ERR_T wolk_connect (wolk_ctx_t *ctx)
+{
+    char lastwill_topic[TOPIC_SIZE];
+    char sub_topic[TOPIC_SIZE];
+    char client_id[TOPIC_SIZE];
+
+    memset (lastwill_topic, 0, TOPIC_SIZE);
+    strcpy (lastwill_topic, LASTWILL_TOPIC);
+    strcat (lastwill_topic, ctx->device_key);
+
+    memset (client_id, 0, TOPIC_SIZE);
+    sprintf(client_id,"%s%d",ctx->device_key,rand() % 1000);
+
+    ctx->mqtt_client->connect(client_id, ctx->device_key, ctx->device_password);
 
     if (ctx->parser_type==PARSER_TYPE_MQTT)
     {
         memset (sub_topic, 0, TOPIC_SIZE);
         strcpy (sub_topic, CONFIG_PATH);
-        strcat (sub_topic, device_key);
+        strcat (sub_topic, ctx->device_key);
         if (_wolk_subscribe (ctx, sub_topic) != W_FALSE)
         {   
             return W_TRUE;
@@ -96,13 +113,6 @@ WOLK_ERR_T wolk_connect (wolk_ctx_t *ctx, PubSubClient *client, const char *serv
     return W_FALSE;
 }
 
-WOLK_ERR_T wolk_set_protocol (wolk_ctx_t *ctx)
-{
-
-    _wolk_set_parser (ctx, PARSER_TYPE_JSON);
-
-    return W_FALSE;
-}
 
 WOLK_ERR_T wolk_set_actuator_references (wolk_ctx_t *ctx, int num_of_items,  const char *item, ...)
 {
@@ -119,7 +129,7 @@ WOLK_ERR_T wolk_set_actuator_references (wolk_ctx_t *ctx, int num_of_items,  con
             memset (pub_topic, 0, TOPIC_SIZE);
 
             strcpy(pub_topic,ACTUATORS_COMMANDS);
-            strcat(pub_topic,ctx->serial);
+            strcat(pub_topic,ctx->device_key);
             strcat(pub_topic,"/");
             strcat(pub_topic,str);
 
@@ -291,7 +301,7 @@ WOLK_ERR_T wolk_publish (wolk_ctx_t *ctx)
         memset (pub_topic, 0, TOPIC_SIZE);
 
         strcpy(pub_topic,SENSOR_PATH);
-        strcat(pub_topic,ctx->serial);
+        strcat(pub_topic,ctx->device_key);
 
         size_t serialized_readings = parser_serialize_readings(&ctx->wolk_parser, &ctx->readings[0], ctx->readings_index, readings_buffer, READINGS_BUFFER_SIZE);
 
@@ -343,13 +353,13 @@ WOLK_ERR_T wolk_publish_single (wolk_ctx_t *ctx,const char *reference,const char
     if (ctx->parser_type == PARSER_TYPE_JSON)
     {
         strcpy(pub_topic,RADINGS_PATH);
-        strcat(pub_topic,ctx->serial);
+        strcat(pub_topic,ctx->device_key);
         strcat(pub_topic,"/");
         strcat(pub_topic,reference);
     } else if (ctx->parser_type == PARSER_TYPE_MQTT)
     {
         strcpy(pub_topic,SENSOR_PATH);
-        strcat(pub_topic,ctx->serial);
+        strcat(pub_topic,ctx->device_key);
     }
 
     if (type==DATA_TYPE_STRING)
@@ -403,13 +413,13 @@ WOLK_ERR_T wolk_publish_num_actuator_status (wolk_ctx_t *ctx,const char *referen
     if (ctx->parser_type==PARSER_TYPE_JSON)
     {
         strcpy(pub_topic,ACTUATORS_STATUS_PATH);
-        strcat(pub_topic,ctx->serial);
+        strcat(pub_topic,ctx->device_key);
         strcat(pub_topic,"/");
         strcat(pub_topic,reference);
     } else if (ctx->parser_type==PARSER_TYPE_MQTT)
     {
         strcpy(pub_topic,SENSOR_PATH);
-        strcat(pub_topic,ctx->serial);
+        strcat(pub_topic,ctx->device_key);
     }
 
     char value_str[STR_64];
@@ -450,13 +460,13 @@ WOLK_ERR_T wolk_publish_bool_actuator_status (wolk_ctx_t *ctx,const char *refere
     if (ctx->parser_type == PARSER_TYPE_JSON)
     {
         strcpy(pub_topic,ACTUATORS_STATUS_PATH);
-        strcat(pub_topic,ctx->serial);
+        strcat(pub_topic,ctx->device_key);
         strcat(pub_topic,"/");
         strcat(pub_topic,reference);
     } else if (ctx->parser_type == PARSER_TYPE_MQTT)
     {
         strcpy(pub_topic,SENSOR_PATH);
-        strcat(pub_topic,ctx->serial);
+        strcat(pub_topic,ctx->device_key);
     }
 
     manifest_item_t bool_actuator;
@@ -492,14 +502,14 @@ WOLK_ERR_T wolk_keep_alive (wolk_ctx_t *ctx)
 }
 
 
-WOLK_ERR_T wolk_disconnect(wolk_ctx_t *ctx, const char *device_key)
+WOLK_ERR_T wolk_disconnect(wolk_ctx_t *ctx)
 {
 
     char lastwill_topic[TOPIC_SIZE];
 
     memset (lastwill_topic, 0, TOPIC_SIZE);
     strcpy (lastwill_topic, LASTWILL_TOPIC);
-    strcat (lastwill_topic, device_key);
+    strcat (lastwill_topic, ctx->device_key);
 
     ctx->mqtt_client->publish(lastwill_topic, LASTWILL_MESSAGE);
     ctx->mqtt_client->disconnect();
