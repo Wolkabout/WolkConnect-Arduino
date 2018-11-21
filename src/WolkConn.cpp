@@ -53,7 +53,8 @@ static void callback(void *wolk, char* topic, byte* payload, unsigned int length
 
 WOLK_ERR_T wolk_init(wolk_ctx_t* ctx, const char* device_key,
                      const char* device_password, PubSubClient *client, 
-                     const char *server, int port)
+                     const char *server, int port, const char** actuator_references,
+                     uint32_t num_actuator_references)
 {
     /* Sanity check */
 
@@ -82,6 +83,11 @@ WOLK_ERR_T wolk_init(wolk_ctx_t* ctx, const char* device_key,
     memset (ctx->device_password, 0, DEVICE_PASSWORD_SIZE);
     strcpy (ctx->device_password, device_password);
 
+    ctx->actuator_references = actuator_references;
+    ctx->num_actuator_references = num_actuator_references;
+
+    return W_FALSE;
+
 }
 
 WOLK_ERR_T wolk_connect (wolk_ctx_t *ctx)
@@ -109,21 +115,14 @@ WOLK_ERR_T wolk_connect (wolk_ctx_t *ctx)
             return W_TRUE;
         }
     }
-
-    return W_FALSE;
-}
-
-
-WOLK_ERR_T wolk_set_actuator_references (wolk_ctx_t *ctx, int num_of_items,  const char** item, ...)
-{
-    va_list argptr;
+    //set actuator references
     char pub_topic[TOPIC_SIZE];
     int i;
     if (ctx->parser_type == PARSER_TYPE_JSON)
     {
-        for (i=0;i<num_of_items;i++)
+        for (i = 0; i < ctx->num_actuator_references ; i++)
         {
-            const char* str = item[i];
+            const char* str = ctx->actuator_references[i];
             memset (pub_topic, 0, TOPIC_SIZE);
 
             strcpy(pub_topic,ACTUATORS_COMMANDS);
@@ -141,6 +140,7 @@ WOLK_ERR_T wolk_set_actuator_references (wolk_ctx_t *ctx, int num_of_items,  con
 
     return W_FALSE;
 }
+
 
 void callback(void *wolk, char* topic, byte* payload, unsigned int length) {
 

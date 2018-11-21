@@ -66,6 +66,9 @@ struct _wolk_ctx_t {
     protocol_type_t protocol;                               /**<  Used protocol for communication with WolkAbout IoT Platform. @see protocol_type_t*/
     parser_t wolk_parser;
     parser_type_t parser_type;
+
+    const char** actuator_references;
+    uint32_t num_actuator_references;
 };
 
 typedef int (*send_func)(unsigned char *, unsigned int);
@@ -78,12 +81,10 @@ typedef int (*recv_func)(unsigned char *, unsigned int);
  *
  * @return Error code
  */
-/*WOLK_ERR_T wolk_init(wolk_ctx_t* ctx, const char* device_key,
-                     const char* device_password, protocol_t protocol, const char** actuator_references,
-                     uint32_t num_actuator_references, PubSubClient *client, const char *server, int port);*/
 WOLK_ERR_T wolk_init(wolk_ctx_t* ctx, const char* device_key,
                      const char* device_password, PubSubClient *client, 
-                     const char *server, int port);
+                     const char *server, int port, const char** actuator_references,
+                     uint32_t num_actuator_references);
 
 //const char** actuator_references, uint32_t num_actuator_references
 
@@ -104,18 +105,6 @@ WOLK_ERR_T wolk_connect (wolk_ctx_t *ctx);
  *  @return Error value is returned
  */
 WOLK_ERR_T wolk_disconnect (wolk_ctx_t *ctx);
-
-/** @brief Set actuator references
- *
- *  If JSON protocol is used, then all actuator references needs to be set so that library can receive actuation messages from those actuators.
- *  If WolkSensor protocol is used, then this function is not used.
- *
- *  @param ctx library context
- *  @param num_of_items Number of references that are being set
- *  @param item actuator references
- *  @return Error value is returned
- */
-WOLK_ERR_T wolk_set_actuator_references (wolk_ctx_t *ctx, int num_of_items, const char** item, ...);
 
 /** @brief Receive mqtt messages
  *
