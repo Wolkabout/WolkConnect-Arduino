@@ -19,6 +19,7 @@
 
 #include "size_definitions.h"
 #include "manifest_item.h"
+#include "actuator_status.h"
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -28,16 +29,16 @@
 extern "C" {
 #endif
 
-typedef enum {
+/*typedef enum {
     ACTUATOR_STATUS_READY = 0,
     ACTUATOR_STATUS_BUSY,
     ACTUATOR_STATUS_ERROR
-} actuator_status_t;
+} actuator_status_t;*/
 
 typedef struct {
     manifest_item_t manifest_item;
 
-    actuator_status_t actuator_status;
+    actuator_state_t actuator_state;
 
     char reading_data[READING_DIMENSIONS][READING_SIZE];
 
@@ -62,8 +63,8 @@ manifest_item_t* reading_get_manifest_item(reading_t* reading);
 void reading_set_rtc(reading_t* reading, uint32_t rtc);
 uint32_t reading_get_rtc(reading_t* reading);
 
-void reading_set_actuator_status(reading_t* reading, actuator_status_t actuator_status);
-actuator_status_t reading_get_actuator_status(reading_t* reading);
+void reading_set_actuator_state(reading_t* reading, actuator_state_t actuator_state);
+actuator_state_t reading_get_actuator_state(reading_t* reading);
 
 #ifdef __cplusplus
 }

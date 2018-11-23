@@ -24,7 +24,7 @@
 #include <stdio.h>
 #include <string.h>
 
-void manifest_item_init(manifest_item_t* item, char* reference, reading_type_t reading_type, data_type_t data_type)
+void manifest_item_init(manifest_item_t* item, const char* reference, reading_type_t reading_type, data_type_t data_type)
 {
     /* Sanity check*/
     WOLK_ASSERT(strlen(reference) <= MANIFEST_ITEM_REFERENCE_SIZE);

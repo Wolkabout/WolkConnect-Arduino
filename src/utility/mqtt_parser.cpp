@@ -46,20 +46,20 @@ static bool append_to_buffer(char* buffer, size_t buffer_size, char* apendee)
     return true;
 }
 
-static bool append_actuator_status(char* buffer, size_t buffer_size, actuator_status_t actuator_status)
+static bool append_actuator_status(char* buffer, size_t buffer_size, actuator_state_t actuator_state)
 {
     char reading_buffer[PARSER_INTERNAL_BUFFER_SIZE];
 
-    switch (actuator_status) {
-    case ACTUATOR_STATUS_READY:
+    switch (actuator_state) {
+    case ACTUATOR_STATE_READY:
         sprintf(reading_buffer, ":READY");
         break;
 
-    case ACTUATOR_STATUS_BUSY:
+    case ACTUATOR_STATE_BUSY:
         sprintf(reading_buffer, ":BUSY");
         break;
 
-    case ACTUATOR_STATUS_ERROR:
+    case ACTUATOR_STATE_ERROR:
         sprintf(reading_buffer, ":ERROR");
         break;
 
@@ -122,7 +122,7 @@ static bool serialize_reading(reading_t* reading, char* buffer, size_t buffer_si
     const uint8_t data_size = manifest_item_get_data_dimensions(manifest_item);
     if (data_size == 1) {
         if ((manifest_item_get_reading_type(reading_get_manifest_item(reading)) == READING_TYPE_ACTUATOR) &&
-             !append_actuator_status(reading_buffer, reading_buffer_size, reading_get_actuator_status(reading))) {
+             !append_actuator_status(reading_buffer, reading_buffer_size, reading_get_actuator_state(reading))) {
             return false;
         }
 
@@ -141,7 +141,7 @@ static bool serialize_reading(reading_t* reading, char* buffer, size_t buffer_si
     }
 
     if ((manifest_item_get_reading_type(reading_get_manifest_item(reading)) == READING_TYPE_ACTUATOR) &&
-         !append_actuator_status(reading_buffer, reading_buffer_size, reading_get_actuator_status(reading))) {
+         !append_actuator_status(reading_buffer, reading_buffer_size, reading_get_actuator_state(reading))) {
         return false;
     }
 

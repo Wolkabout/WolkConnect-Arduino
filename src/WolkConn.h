@@ -21,6 +21,7 @@
 #include "utility/WolkQueue.h"
 #include "utility/parser.h"
 #include "utility/size_definitions.h"
+#include "utility/actuator_status.h"
 
 #include "Arduino.h"
 #include "dtostrf_fix.h"
@@ -47,6 +48,29 @@ typedef unsigned char WOLK_ERR_T;
 typedef unsigned char WOLK_BOOL_T;
 enum WOLK_BOOL_T_values { W_FALSE = 0, W_TRUE = 1 };
 
+/**
+ * @brief Declaration of actuator handler.
+ * Actuator reference and value are the pairs of data on the same place in own arrays.
+ *
+ * @param reference actuator references defined in manifest on WolkAbout IoT Platform.
+ * @param value value received from WolkAbout IoT Platform.
+ */
+typedef void (*actuation_handler_t)(const char* reference, const char* value);
+/**
+ * @brief Declaration of actuator status
+ *
+ * @param reference actuator references define in manifest on WolkAbout IoT Platform
+ */
+typedef actuator_status_t (*actuator_status_provider_t)(const char* reference);
+
+/**
+ * @brief Declaration of configuration handler.
+ * Configuration reference and value are the pairs of data on the same place in own arrays.
+ *
+ * @param reference actuator references define in manifest on WolkAbout IoT Platform
+ * @param value actuator values received from WolkAbout IoT Platform.
+ * @param num_configuration_items number of used configuration parameters*/
+
 typedef struct _wolk_ctx_t wolk_ctx_t;
 
 struct _wolk_ctx_t {
@@ -54,6 +78,8 @@ struct _wolk_ctx_t {
     PubSubClient *mqtt_client;
 
     wolk_queue actuator_queue;
+    actuation_handler_t actuation_handler;
+    actuator_status_provider_t actuator_status_provider;
 
     wolk_queue config_queue;
 
@@ -77,8 +103,18 @@ typedef int (*recv_func)(unsigned char *, unsigned int);
 
 /**
  * @brief Initializes WolkAbout IoT Platform connector context
- *
- *
+ * @param ctx Context
+ * @param device_key Device key provided by WolkAbout IoT Platform upon device
+ * creation
+ * @param password Device password provided by WolkAbout IoT Platform device
+ * upon device creation
+ * @param client MQQT Client
+ * @param server MQQT Server
+ * @param actuator_references Array of strings containing references of
+ * actuators that device possess
+ * @param num_actuator_references Number of actuator references contained in
+ * actuator_references
+ * 
  * @return Error code
  */
 WOLK_ERR_T wolk_init(wolk_ctx_t* ctx, const char* device_key,
@@ -86,15 +122,9 @@ WOLK_ERR_T wolk_init(wolk_ctx_t* ctx, const char* device_key,
                      const char *server, int port, const char** actuator_references,
                      uint32_t num_actuator_references);
 
-//const char** actuator_references, uint32_t num_actuator_references
-
 /** @brief Connect to WolkSense via mqtt
  *
  *  @param ctx library context
- *  @param snd_func function callback that will handle outgoing traffic
- *  @param rcv_func function callback that will handle incoming traffic
- *  @param device_key device key acquired through device registration on WolkSense
- *  @param password password acquired through device registration on WolkSense
  *  @return Error value is returned
  */
 WOLK_ERR_T wolk_connect (wolk_ctx_t *ctx);
@@ -112,7 +142,6 @@ WOLK_ERR_T wolk_disconnect (wolk_ctx_t *ctx);
  *  All messages are stored into queues and they are later used with functions wolk_read_actuator and wolk_read_config.
  *
  *  @param ctx library context
- *  @param timeout read timeout
  *  @return Error value is returned
  */
 WOLK_ERR_T wolk_receive (wolk_ctx_t *ctx);
@@ -193,7 +222,8 @@ WOLK_ERR_T wolk_publish_single (wolk_ctx_t *ctx,const char *reference,const char
  *  @param utc_time Parameter UTC time. If unable to retrieve UTC set 0
  *  @return Error value is returned
  */
-WOLK_ERR_T wolk_publish_num_actuator_status (wolk_ctx_t *ctx,const char *reference,double value, actuator_status_t state, uint32_t utc_time);
+WOLK_ERR_T wolk_publish_num_actuator_status (wolk_ctx_t *ctx,const char *reference, double value, actuator_state_t state, uint32_t utc_time);
+/*TODO: only ctx and reference should be passed */
 
 /** @brief Publish Boolean actuator status
  *
@@ -204,7 +234,7 @@ WOLK_ERR_T wolk_publish_num_actuator_status (wolk_ctx_t *ctx,const char *referen
  *  @param utc_time Parameter UTC time. If unable to retrieve UTC set 0
  *  @return Error value is returned
  */
-WOLK_ERR_T wolk_publish_bool_actuator_status (wolk_ctx_t *ctx,const char *reference,bool value, actuator_status_t state, uint32_t utc_time);
+WOLK_ERR_T wolk_publish_bool_actuator_status (wolk_ctx_t *ctx,const char *reference, bool value, actuator_state_t state, uint32_t utc_time);
 
 /** @brief Keep alive message
  *

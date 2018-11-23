@@ -19,6 +19,7 @@
 #include "jsmn.h"
 #include "size_definitions.h"
 #include "wolk_utils.h"
+#include "actuator_status.h"
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -83,8 +84,8 @@ static bool serialize_actuator(reading_t* reading, char* buffer, size_t buffer_s
         return false;
     }
 
-    switch (reading_get_actuator_status(reading)) {
-    case ACTUATOR_STATUS_READY:
+    switch (reading_get_actuator_state(reading)) {
+    case ACTUATOR_STATE_READY:
         if (snprintf(buffer, buffer_size, "{\"status\":%s,\"value\":\"%s\"}",
                      "\"READY\"",
                      data_buffer) >= (int)buffer_size) {
@@ -92,7 +93,7 @@ static bool serialize_actuator(reading_t* reading, char* buffer, size_t buffer_s
         }
         break;
 
-    case ACTUATOR_STATUS_BUSY:
+    case ACTUATOR_STATE_BUSY:
         if (snprintf(buffer, buffer_size, "{\"status\":%s,\"value\":\"%s\"}",
                      "\"BUSY\"",
                      data_buffer) >= (int)buffer_size) {
@@ -100,7 +101,7 @@ static bool serialize_actuator(reading_t* reading, char* buffer, size_t buffer_s
         }
         break;
 
-    case ACTUATOR_STATUS_ERROR:
+    case ACTUATOR_STATE_ERROR:
         if (snprintf(buffer, buffer_size, "{\"status\":%s,\"value\":\"%s\"}",
                      "\"ERROR\"",
                      data_buffer) >= (int)buffer_size) {

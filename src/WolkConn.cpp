@@ -18,6 +18,7 @@
 #include "utility/parser.h"
 #include "MQTTClient.h"
 #include "utility/wolk_utils.h"
+#include "utility/outbound_message_factory.h"
 
 #include <stdarg.h>
 #include <string.h>
@@ -37,8 +38,10 @@
 
 #define RADINGS_PATH "readings/"
 
-#define ACTUATORS_STATUS_PATH "actuators/status/"
-#define ACTUATORS_COMMANDS "actuators/commands/"
+#define ACTUATORS_STATUS_TOPIC "actuators/status/"
+#define ACTUATORS_COMMANDS_TOPIC_JSON "actuators/commands/"
+
+#define CONFIGURATION_COMMANDS "configurations/commands/"
 
 #define LASTWILL_TOPIC "lastwill/"
 #define LASTWILL_MESSAGE "Gone offline"
@@ -125,7 +128,7 @@ WOLK_ERR_T wolk_connect (wolk_ctx_t *ctx)
             const char* str = ctx->actuator_references[i];
             memset (pub_topic, 0, TOPIC_SIZE);
 
-            strcpy(pub_topic,ACTUATORS_COMMANDS);
+            strcpy(pub_topic,ACTUATORS_COMMANDS_TOPIC_JSON);
             strcat(pub_topic,ctx->device_key);
             strcat(pub_topic,"/");
             strcat(pub_topic,str);
@@ -168,27 +171,38 @@ void callback(void *wolk, char* topic, byte* payload, unsigned int length) {
 
     for (i = 0; i < num_deserialized_commands; ++i) {
         actuator_command_t* command = &commands_buffer[i];
-
+//that's the one
         switch(actuator_command_get_type(command))
         {
             case ACTUATOR_COMMAND_TYPE_STATUS:
-            if (ctx->parser_type==PARSER_TYPE_MQTT)
-            {
-                wolk_queue_push(&ctx->actuator_queue, actuator_command_get_reference(command), STATUS_COMMAND, NON_EXISTING);
-            } else if (ctx->parser_type==PARSER_TYPE_JSON)
-            {
-                wolk_queue_push(&ctx->actuator_queue, reference, STATUS_COMMAND, NON_EXISTING);
-            }
+                if (ctx->parser_type==PARSER_TYPE_MQTT)
+                {
+                    wolk_queue_push(&ctx->actuator_queue, actuator_command_get_reference(command), STATUS_COMMAND, NON_EXISTING);
+                } else if (ctx->parser_type==PARSER_TYPE_JSON)
+                {
+                    wolk_queue_push(&ctx->actuator_queue, reference, STATUS_COMMAND, NON_EXISTING);
+                }
             break;
 
             case ACTUATOR_COMMAND_TYPE_SET:
-            if (ctx->parser_type==PARSER_TYPE_MQTT)
-            {
-                wolk_queue_push(&ctx->actuator_queue,  actuator_command_get_reference(command), SET_COMMAND, actuator_command_get_value(command));
-            } else if (ctx->parser_type==PARSER_TYPE_JSON)
-            {
-                wolk_queue_push(&ctx->actuator_queue,  reference, SET_COMMAND, actuator_command_get_value(command));
-            }
+                if(ctx->actuator_status_provider != NULL)
+                {
+                    actuator_status_t actuator_status = ctx->actuator_status_provider(reference);
+                    //generate outbound message
+                    outbound_message_t outbound_message;
+
+                }
+                else //this will be removed after actuator status provider is fully integrated
+                {
+                    if (ctx->parser_type==PARSER_TYPE_MQTT)
+                    {
+                        wolk_queue_push(&ctx->actuator_queue,  actuator_command_get_reference(command), SET_COMMAND, actuator_command_get_value(command));
+                    } else if (ctx->parser_type==PARSER_TYPE_JSON)
+                    {
+                        wolk_queue_push(&ctx->actuator_queue,  reference, SET_COMMAND, actuator_command_get_value(command));
+                    }
+                }
+
             break;
 
             case ACTUATOR_COMMAND_TYPE_UNKNOWN:
@@ -390,7 +404,7 @@ WOLK_ERR_T wolk_publish_single (wolk_ctx_t *ctx,const char *reference,const char
     return W_FALSE;
 }
 
-WOLK_ERR_T wolk_publish_num_actuator_status (wolk_ctx_t *ctx,const char *reference,double value, actuator_status_t status, uint32_t utc_time)
+WOLK_ERR_T wolk_publish_num_actuator_status (wolk_ctx_t *ctx,const char *reference, double value, actuator_state_t state, uint32_t utc_time)
 {
     unsigned char buf[READINGS_MQTT_SIZE];
     int len;
@@ -407,7 +421,7 @@ WOLK_ERR_T wolk_publish_num_actuator_status (wolk_ctx_t *ctx,const char *referen
 
     if (ctx->parser_type==PARSER_TYPE_JSON)
     {
-        strcpy(pub_topic,ACTUATORS_STATUS_PATH);
+        strcpy(pub_topic,ACTUATORS_STATUS_TOPIC);
         strcat(pub_topic,ctx->device_key);
         strcat(pub_topic,"/");
         strcat(pub_topic,reference);
@@ -427,7 +441,7 @@ WOLK_ERR_T wolk_publish_num_actuator_status (wolk_ctx_t *ctx,const char *referen
     reading_init(&readings, &numeric_actuator);
     reading_set_rtc(&readings, utc_time);
     reading_set_data(&readings, value_str);
-    reading_set_actuator_status(&readings, status);
+    reading_set_actuator_state(&readings, state);
 
     size_t serialized_readings = parser_serialize_readings(&parser, &readings, 1, readings_buffer, READINGS_BUFFER_SIZE);
 
@@ -439,7 +453,7 @@ WOLK_ERR_T wolk_publish_num_actuator_status (wolk_ctx_t *ctx,const char *referen
     return W_FALSE;
 }
 
-WOLK_ERR_T wolk_publish_bool_actuator_status (wolk_ctx_t *ctx,const char *reference,bool value, actuator_status_t status, uint32_t utc_time)
+WOLK_ERR_T wolk_publish_bool_actuator_status (wolk_ctx_t *ctx,const char *reference,bool value, actuator_state_t state, uint32_t utc_time)
 {
     unsigned char buf[READINGS_MQTT_SIZE];
     parser_t parser;
@@ -454,7 +468,7 @@ WOLK_ERR_T wolk_publish_bool_actuator_status (wolk_ctx_t *ctx,const char *refere
 
     if (ctx->parser_type == PARSER_TYPE_JSON)
     {
-        strcpy(pub_topic,ACTUATORS_STATUS_PATH);
+        strcpy(pub_topic,ACTUATORS_STATUS_TOPIC);
         strcat(pub_topic,ctx->device_key);
         strcat(pub_topic,"/");
         strcat(pub_topic,reference);
@@ -477,7 +491,7 @@ WOLK_ERR_T wolk_publish_bool_actuator_status (wolk_ctx_t *ctx,const char *refere
     {
         reading_set_data(&readings, BOOL_FALSE);
     }
-    reading_set_actuator_status(&readings, status);
+    reading_set_actuator_state(&readings, state);
 
     size_t serialized_readings = parser_serialize_readings(&parser, &readings, 1, readings_buffer, READINGS_BUFFER_SIZE);
 

@@ -30,7 +30,7 @@ void reading_init(reading_t* reading, manifest_item_t* item)
     uint8_t reading_dimensions = manifest_item_get_data_dimensions(item);
 
     memcpy(&reading->manifest_item, item, sizeof(reading->manifest_item));
-    reading->actuator_status = ACTUATOR_STATUS_READY;
+    reading->actuator_state = ACTUATOR_STATE_READY;
     reading->rtc = 0;
 
     for (i = 0; i < reading_dimensions; ++i) {
@@ -120,18 +120,18 @@ uint32_t reading_get_rtc(reading_t* reading)
     return reading->rtc;
 }
 
-void reading_set_actuator_status(reading_t* reading, actuator_status_t actuator_status)
+void reading_set_actuator_state(reading_t* reading, actuator_state_t actuator_state)
 {
     /* Sanity check */
     WOLK_ASSERT(manifest_item_get_reading_type(reading_get_manifest_item(reading)) & READING_TYPE_ACTUATOR);
 
-    reading->actuator_status = actuator_status;
+    reading->actuator_state = actuator_state;
 }
 
-actuator_status_t reading_get_actuator_status(reading_t* reading)
+actuator_state_t reading_get_actuator_state(reading_t* reading)
 {
     /* Sanity check */
     WOLK_ASSERT(manifest_item_get_reading_type(reading_get_manifest_item(reading)) & READING_TYPE_ACTUATOR);
 
-    return reading->actuator_status;
+    return reading->actuator_state;
 }

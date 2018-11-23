@@ -20,6 +20,7 @@
 #include "actuator_command.h"
 #include "configuration_item.h"
 #include "configuration_item_command.h"
+#include "actuator_status.h"
 #include "reading.h"
 
 #include <stdbool.h>

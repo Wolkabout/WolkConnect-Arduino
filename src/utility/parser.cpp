@@ -72,3 +72,22 @@ size_t parser_deserialize_configuration_items(parser_t* parser, char* buffer, si
 {
     return parser->deserialize_configuration_items(buffer, buffer_size, first_config_item, num_config_items);
 }
+
+bool parser_serialize_readings_topic(parser_t* parser, const char* device_key, reading_t* first_reading,
+                                     size_t num_readings, char* buffer, size_t buffer_size)
+{
+    /* Sanity check */
+    WOLK_ASSERT(parser);
+    WOLK_ASSERT(num_readings > 0);
+    WOLK_ASSERT(buffer_size >= TOPIC_SIZE);
+
+    return parser->serialize_readings_topic(first_reading, num_readings, device_key, buffer, buffer_size);
+}
+
+bool parser_serialize_keep_alive_message(parser_t* parser, const char* device_key, outbound_message_t* outbound_message)
+{
+    WOLK_ASSERT(parser);
+    WOLK_ASSERT(device_key);
+
+    return parser->serialize_keep_alive_message(device_key, outbound_message);
+}

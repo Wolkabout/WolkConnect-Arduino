@@ -18,6 +18,7 @@
 #include "manifest_item.h"
 #include "reading.h"
 #include "parser.h"
+#include "actuator_status.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -110,24 +111,24 @@ void parser_example(void)
     reading_init(&readings[6], &numeric_actuator);
     reading_set_rtc(&readings[6], 789789789);
     reading_set_data(&readings[6], "66785.4");
-    reading_set_actuator_status(&readings[6], ACTUATOR_STATUS_BUSY);
+    reading_set_actuator_state(&readings[6], ACTUATOR_STATE_BUSY);
 
     reading_init(&readings[7], &bool_actuator);
     reading_set_rtc(&readings[7], 987654321);
     reading_set_data(&readings[7], "false");
-    reading_set_actuator_status(&readings[7], ACTUATOR_STATUS_ERROR);
+    reading_set_actuator_state(&readings[7], ACTUATOR_STATE_ERROR);
 
     reading_init(&readings[8], &string_actuator);
     reading_set_rtc(&readings[8], 1111222333);
     reading_set_data(&readings[8], "string_actuator_value");
-    reading_set_actuator_status(&readings[8], ACTUATOR_STATUS_READY);
+    reading_set_actuator_state(&readings[8], ACTUATOR_STATE_READY);
 
     reading_init(&readings[9], &delimited_actuator);
     reading_set_rtc(&readings[9], 979835312);
     reading_set_data_at(&readings[9], "uno", 0);
     reading_set_data_at(&readings[9], "due", 1);
     reading_set_data_at(&readings[9], "tre", 2);
-    reading_set_actuator_status(&readings[9], ACTUATOR_STATUS_READY);
+    reading_set_actuator_state(&readings[9], ACTUATOR_STATE_READY);
 
     /* Serialize reading(s) */
     serialized_readings = parser_serialize_readings(&parser, &readings[0], 10, readings_buffer, readings_buffer_size);
