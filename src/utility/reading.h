@@ -17,9 +17,9 @@
 #ifndef READING_H
 #define READING_H
 
-#include "size_definitions.h"
-#include "manifest_item.h"
 #include "actuator_status.h"
+#include "manifest_item.h"
+#include "size_definitions.h"
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -28,12 +28,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-/*typedef enum {
-    ACTUATOR_STATUS_READY = 0,
-    ACTUATOR_STATUS_BUSY,
-    ACTUATOR_STATUS_ERROR
-} actuator_status_t;*/
 
 typedef struct {
     manifest_item_t manifest_item;

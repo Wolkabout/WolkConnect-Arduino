@@ -77,7 +77,6 @@ struct _wolk_ctx_t {
     int sock;
     PubSubClient *mqtt_client;
 
-    wolk_queue actuator_queue;
     actuation_handler_t actuation_handler;
     actuator_status_provider_t actuator_status_provider;
 
@@ -98,10 +97,6 @@ struct _wolk_ctx_t {
 
     bool is_initialized;
 };
-
-typedef int (*send_func)(unsigned char *, unsigned int);
-typedef int (*recv_func)(unsigned char *, unsigned int);
-
 
 /**
  * @brief Initializes WolkAbout IoT Platform connector context
@@ -146,19 +141,7 @@ WOLK_ERR_T wolk_disconnect (wolk_ctx_t *ctx);
  *  @param ctx library context
  *  @return Error value is returned
  */
-WOLK_ERR_T wolk_receive (wolk_ctx_t *ctx);
-
-/** @brief Extract actuation message from queue
- *
- *  Extract actuator message from queue. Messages is deleted after it is extracted.
- *
- *  @param ctx library context
- *  @param command Command received
- *  @param reference Reference received received
- *  @param value Value received
- *  @return Error value is returned
- */
-WOLK_ERR_T wolk_read_actuator (wolk_ctx_t *ctx, char *command, char *reference, char *value);
+WOLK_ERR_T wolk_process (wolk_ctx_t *ctx);
 
 /** @brief Add string reading
  *
@@ -215,28 +198,13 @@ WOLK_ERR_T wolk_publish (wolk_ctx_t *ctx);
  */
 WOLK_ERR_T wolk_publish_single (wolk_ctx_t *ctx,const char *reference,const char *value, data_type_t type, uint32_t utc_time);
 
-/** @brief Publish Numeric actuator status
+/** @brief Publish actuator status
  *
  *  @param ctx library context
  *  @param reference Parameter reference
- *  @param value Parameter value
- *  @param state Actuator state. Available states are: ACTUATOR_STATUS_READY, ACTUATOR_STATUS_BUSY, ACTUATOR_STATUS_ERROR
- *  @param utc_time Parameter UTC time. If unable to retrieve UTC set 0
  *  @return Error value is returned
  */
-WOLK_ERR_T wolk_publish_num_actuator_status (wolk_ctx_t *ctx,const char *reference, double value, actuator_state_t state, uint32_t utc_time);
-/*TODO: only ctx and reference should be passed */
-
-/** @brief Publish Boolean actuator status
- *
- *  @param ctx library context
- *  @param reference Parameter reference
- *  @param value Parameter value
- *  @param state Actuator state. Available states are: ACTUATOR_STATUS_READY, ACTUATOR_STATUS_BUSY, ACTUATOR_STATUS_ERROR
- *  @param utc_time Parameter UTC time. If unable to retrieve UTC set 0
- *  @return Error value is returned
- */
-WOLK_ERR_T wolk_publish_bool_actuator_status (wolk_ctx_t *ctx,const char *reference, bool value, actuator_state_t state, uint32_t utc_time);
+WOLK_ERR_T wolk_publish_actuator_status (wolk_ctx_t *ctx,const char *reference);
 
 /** @brief Keep alive message
  *
@@ -246,6 +214,9 @@ WOLK_ERR_T wolk_publish_bool_actuator_status (wolk_ctx_t *ctx,const char *refere
  *  @return Error value is returned
  */
 WOLK_ERR_T wolk_keep_alive (wolk_ctx_t *ctx);
+
+
+
 
 #ifdef __cplusplus
 }

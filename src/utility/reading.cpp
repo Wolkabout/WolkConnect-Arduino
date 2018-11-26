@@ -73,13 +73,15 @@ bool reading_get_delimited_data(reading_t* reading, char* buffer, size_t buffer_
     for (i = 0; i < data_dimensions; ++i) {
         if (i != 0) {
             size_t num_bytes_to_write = buffer_size - strlen(buffer);
-            if (snprintf(buffer + strlen(buffer), (int)num_bytes_to_write, "%s", data_delimiter) >= (int)num_bytes_to_write) {
+            if (snprintf(buffer + strlen(buffer), (int)num_bytes_to_write, "%s", data_delimiter) 
+                >= (int)num_bytes_to_write) {
                 return false;
             }
         }
 
         size_t num_bytes_to_write = buffer_size - strlen(buffer);
-        if (snprintf(buffer + strlen(buffer), (int)num_bytes_to_write, "%s", reading_get_data_at(reading, i)) >= (int)num_bytes_to_write) {
+        if (snprintf(buffer + strlen(buffer), (int)num_bytes_to_write, "%s", reading_get_data_at(reading, i)) 
+            >= (int)num_bytes_to_write) {
             return false;
         }
     }
@@ -94,7 +96,6 @@ void reading_set_data_at(reading_t* reading, char* data, size_t data_position)
     WOLK_ASSERT(data_position < READING_DIMENSIONS);
 
     strcpy(reading->reading_data[data_position], data);
-    reading->rtc = 0;
 }
 
 char* reading_get_data_at(reading_t* reading, size_t data_position)
