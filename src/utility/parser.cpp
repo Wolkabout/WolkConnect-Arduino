@@ -83,11 +83,3 @@ bool parser_serialize_readings_topic(parser_t* parser, const char* device_key, r
 
     return parser->serialize_readings_topic(first_reading, num_readings, device_key, buffer, buffer_size);
 }
-
-bool parser_serialize_keep_alive_message(parser_t* parser, const char* device_key, outbound_message_t* outbound_message)
-{
-    WOLK_ASSERT(parser);
-    WOLK_ASSERT(device_key);
-
-    return parser->serialize_keep_alive_message(device_key, outbound_message);
-}

@@ -21,7 +21,6 @@
 #include "configuration_item.h"
 #include "configuration_item_command.h"
 #include "reading.h"
-#include "outbound_message.h"
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -47,7 +46,6 @@ typedef struct {
 
     size_t (*serialize_configuration_items)(configuration_item_t* first_config_item, size_t num_config_items, char* buffer, size_t buffer_size);
     size_t (*deserialize_configuration_items)(char* buffer, size_t buffer_size, configuration_item_command_t* first_config_item, size_t num_config_items);
-    bool (*serialize_keep_alive_message)(const char* device_key, outbound_message_t* outbound_message);
 } parser_t;
 
 void initialize_parser(parser_t* parser, parser_type_t parser_type);
@@ -61,9 +59,6 @@ size_t parser_deserialize_commands(parser_t* parser, char* buffer, size_t buffer
 size_t parser_serialize_configuration_items(parser_t* parser, configuration_item_t* first_config_item, size_t num_config_items, char* buffer, size_t buffer_size);
 size_t parser_deserialize_configuration_items(parser_t* parser, char* buffer, size_t buffer_size, configuration_item_command_t* first_config_item, size_t num_config_items);
 
-
-bool parser_serialize_keep_alive_message(parser_t* parser, const char* device_key,
-                                         outbound_message_t* outbound_message);
 
 #ifdef __cplusplus
 }

@@ -18,7 +18,7 @@
 #include "utility/parser.h"
 #include "MQTTClient.h"
 #include "utility/wolk_utils.h"
-#include "utility/outbound_message_factory.h"
+//#include "utility/outbound_message_factory.h"
 
 #include <stdarg.h>
 #include <string.h>
@@ -50,14 +50,14 @@
 #define STATUS_COMMAND "STATUS"
 
 static WOLK_ERR_T _wolk_subscribe (wolk_ctx_t *ctx, const char *topic);
-static WOLK_ERR_T _wolk_set_parser (wolk_ctx_t *ctx, parser_type_t parser_type);
+static WOLK_ERR_T _parser_init (wolk_ctx_t *ctx, parser_type_t parser_type);
 static WOLK_ERR_T _wolk_publish (wolk_ctx_t *ctx, char *topic, char *readings);
 static void callback(void *wolk, char* topic, byte* payload, unsigned int length);
 
-WOLK_ERR_T wolk_init(wolk_ctx_t* ctx, const char* device_key,
-                     const char* device_password, PubSubClient *client, 
-                     const char *server, int port, const char** actuator_references,
-                     uint32_t num_actuator_references)
+WOLK_ERR_T wolk_init(wolk_ctx_t* ctx, actuation_handler_t actuation_handler, actuator_status_provider_t actuator_status_provider,
+                    const char* device_key, const char* device_password, PubSubClient *client, 
+                    const char *server, int port, const char** actuator_references,
+                    uint32_t num_actuator_references)
 {
     /* Sanity check */
 
@@ -69,7 +69,7 @@ WOLK_ERR_T wolk_init(wolk_ctx_t* ctx, const char* device_key,
 
     WOLK_ASSERT(protocol == PROTOCOL_TYPE_JSON);
 
-    _wolk_set_parser (ctx, PARSER_TYPE_JSON);
+    _parser_init (ctx, PARSER_TYPE_JSON);
 
     wolk_queue_init (&ctx->actuator_queue);
     wolk_queue_init (&ctx->config_queue);
@@ -89,12 +89,20 @@ WOLK_ERR_T wolk_init(wolk_ctx_t* ctx, const char* device_key,
     ctx->actuator_references = actuator_references;
     ctx->num_actuator_references = num_actuator_references;
 
+    ctx->actuation_handler = actuation_handler;
+    ctx->actuator_status_provider = actuator_status_provider;
+
+    ctx->is_initialized = true;
+
     return W_FALSE;
 
 }
 
 WOLK_ERR_T wolk_connect (wolk_ctx_t *ctx)
 {
+    /* Sanity check */
+    WOLK_ASSERT(ctx->is_initialized == true);
+
     char lastwill_topic[TOPIC_SIZE];
     char sub_topic[TOPIC_SIZE];
     char client_id[TOPIC_SIZE];
@@ -175,29 +183,36 @@ void callback(void *wolk, char* topic, byte* payload, unsigned int length) {
         switch(actuator_command_get_type(command))
         {
             case ACTUATOR_COMMAND_TYPE_STATUS:
-                if (ctx->parser_type==PARSER_TYPE_MQTT)
+                if(ctx->actuator_status_provider != NULL)
                 {
-                    wolk_queue_push(&ctx->actuator_queue, actuator_command_get_reference(command), STATUS_COMMAND, NON_EXISTING);
-                } else if (ctx->parser_type==PARSER_TYPE_JSON)
+                    actuator_status_t actuator_status = ctx->actuator_status_provider(reference);
+                    //TODO:generate outbound message and publish it
+                }
+                else
                 {
-                    wolk_queue_push(&ctx->actuator_queue, reference, STATUS_COMMAND, NON_EXISTING);
+                    if (ctx->parser_type==PARSER_TYPE_MQTT)
+                    {
+                        wolk_queue_push(&ctx->actuator_queue, actuator_command_get_reference(command), STATUS_COMMAND, NON_EXISTING);
+                    } 
+                    else if (ctx->parser_type==PARSER_TYPE_JSON)
+                    {
+                        wolk_queue_push(&ctx->actuator_queue, reference, STATUS_COMMAND, NON_EXISTING);
+                    }
                 }
             break;
 
             case ACTUATOR_COMMAND_TYPE_SET:
-                if(ctx->actuator_status_provider != NULL)
+                if(ctx->actuation_handler != NULL)
                 {
-                    actuator_status_t actuator_status = ctx->actuator_status_provider(reference);
-                    //generate outbound message
-                    outbound_message_t outbound_message;
-
+                        ctx->actuation_handler(reference, actuator_command_get_value(command));
                 }
                 else //this will be removed after actuator status provider is fully integrated
                 {
                     if (ctx->parser_type==PARSER_TYPE_MQTT)
                     {
                         wolk_queue_push(&ctx->actuator_queue,  actuator_command_get_reference(command), SET_COMMAND, actuator_command_get_value(command));
-                    } else if (ctx->parser_type==PARSER_TYPE_JSON)
+                    } 
+                    else if (ctx->parser_type==PARSER_TYPE_JSON)
                     {
                         wolk_queue_push(&ctx->actuator_queue,  reference, SET_COMMAND, actuator_command_get_value(command));
                     }
@@ -407,7 +422,6 @@ WOLK_ERR_T wolk_publish_single (wolk_ctx_t *ctx,const char *reference,const char
 WOLK_ERR_T wolk_publish_num_actuator_status (wolk_ctx_t *ctx,const char *reference, double value, actuator_state_t state, uint32_t utc_time)
 {
     unsigned char buf[READINGS_MQTT_SIZE];
-    int len;
     parser_t parser;
     reading_t readings;
     char readings_buffer[READINGS_BUFFER_SIZE];
@@ -539,7 +553,7 @@ WOLK_ERR_T _wolk_subscribe (wolk_ctx_t *ctx, const char *topic)
 
 
 
-WOLK_ERR_T _wolk_set_parser (wolk_ctx_t *ctx, parser_type_t parser_type)
+WOLK_ERR_T _parser_init (wolk_ctx_t *ctx, parser_type_t parser_type)
 {
     ctx->parser_type = parser_type;
     return W_FALSE;

@@ -95,6 +95,8 @@ struct _wolk_ctx_t {
 
     const char** actuator_references;
     uint32_t num_actuator_references;
+
+    bool is_initialized;
 };
 
 typedef int (*send_func)(unsigned char *, unsigned int);
@@ -117,10 +119,10 @@ typedef int (*recv_func)(unsigned char *, unsigned int);
  * 
  * @return Error code
  */
-WOLK_ERR_T wolk_init(wolk_ctx_t* ctx, const char* device_key,
-                     const char* device_password, PubSubClient *client, 
-                     const char *server, int port, const char** actuator_references,
-                     uint32_t num_actuator_references);
+WOLK_ERR_T wolk_init(wolk_ctx_t* ctx, actuation_handler_t actuation_handler, actuator_status_provider_t actuator_status_provider,
+                    const char* device_key, const char* device_password, PubSubClient *client, 
+                    const char *server, int port, const char** actuator_references,
+                    uint32_t num_actuator_references);
 
 /** @brief Connect to WolkSense via mqtt
  *
