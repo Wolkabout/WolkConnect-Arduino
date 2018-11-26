@@ -69,6 +69,11 @@ WOLK_ERR_T wolk_init(wolk_ctx_t* ctx, actuation_handler_t actuation_handler, act
 
     WOLK_ASSERT(protocol == PROTOCOL_TYPE_JSON);
 
+    if (num_actuator_references > 0 && (actuation_handler == NULL || actuator_status_provider == NULL)) {
+        WOLK_ASSERT(false);
+        return W_TRUE;
+    }
+
     _parser_init (ctx, PARSER_TYPE_JSON);
 
     initialize_parser(&ctx->wolk_parser, ctx->parser_type);
@@ -213,6 +218,9 @@ void callback(void *wolk, char* topic, byte* payload, unsigned int length) {
 
 WOLK_ERR_T wolk_process (wolk_ctx_t *ctx)
 {
+    /* Sanity check */
+    WOLK_ASSERT(ctx->is_initialized == true);
+
     if (ctx->mqtt_client->loop(ctx)==false)
     {
         return W_TRUE;
@@ -224,6 +232,9 @@ WOLK_ERR_T wolk_process (wolk_ctx_t *ctx)
 
 WOLK_ERR_T wolk_add_string_sensor_reading(wolk_ctx_t *ctx,const char *reference,const char *value, uint32_t utc_time)
 {
+    /* Sanity check */
+    WOLK_ASSERT(ctx->is_initialized == true);
+
     manifest_item_t string_sensor;
     manifest_item_init(&string_sensor,(char *) reference, READING_TYPE_SENSOR, DATA_TYPE_STRING);
 
@@ -238,6 +249,9 @@ WOLK_ERR_T wolk_add_string_sensor_reading(wolk_ctx_t *ctx,const char *reference,
 
 WOLK_ERR_T wolk_add_numeric_sensor_reading(wolk_ctx_t *ctx,const char *reference,double value, uint32_t utc_time)
 {
+    /* Sanity check */
+    WOLK_ASSERT(ctx->is_initialized == true);
+
     manifest_item_t numeric_sensor;
     manifest_item_init(&numeric_sensor, (char *)reference, READING_TYPE_SENSOR, DATA_TYPE_NUMERIC);
 
@@ -256,6 +270,9 @@ WOLK_ERR_T wolk_add_numeric_sensor_reading(wolk_ctx_t *ctx,const char *reference
 
 WOLK_ERR_T wolk_add_bool_sensor_reading(wolk_ctx_t *ctx,const char *reference,bool value, uint32_t utc_time)
 {
+    /* Sanity check */
+    WOLK_ASSERT(ctx->is_initialized == true);
+
     manifest_item_t bool_sensor;
     manifest_item_init(&bool_sensor, (char *)reference, READING_TYPE_SENSOR, DATA_TYPE_BOOLEAN);
 
@@ -277,6 +294,9 @@ WOLK_ERR_T wolk_add_bool_sensor_reading(wolk_ctx_t *ctx,const char *reference,bo
 
 WOLK_ERR_T wolk_clear_readings (wolk_ctx_t *ctx)
 {
+    /* Sanity check */
+    WOLK_ASSERT(ctx->is_initialized == true);
+
     reading_clear_array(ctx->readings, ctx->readings_index);
 
     ctx->readings_index = 0;
@@ -286,6 +306,10 @@ WOLK_ERR_T wolk_clear_readings (wolk_ctx_t *ctx)
 
 WOLK_ERR_T wolk_publish (wolk_ctx_t *ctx)
 {
+
+    /* Sanity check */
+    WOLK_ASSERT(ctx->is_initialized == true);
+
     unsigned char buf[READINGS_MQTT_SIZE];
     char readings_buffer[READINGS_BUFFER_SIZE];
     memset (readings_buffer, 0, READINGS_BUFFER_SIZE);
@@ -395,6 +419,9 @@ WOLK_ERR_T _publish_single (wolk_ctx_t *ctx,const char *reference,const char *va
 
 WOLK_ERR_T wolk_publish_actuator_status (wolk_ctx_t *ctx,const char *reference)
 {
+    /* Sanity check */
+    WOLK_ASSERT(ctx->is_initialized == true);
+
     unsigned char buf[READINGS_MQTT_SIZE];
     parser_t parser;
     reading_t readings;
@@ -449,6 +476,8 @@ WOLK_ERR_T wolk_keep_alive (wolk_ctx_t *ctx)
 
 WOLK_ERR_T wolk_disconnect(wolk_ctx_t *ctx)
 {
+    /* Sanity check */
+    WOLK_ASSERT(ctx->is_initialized == true);
 
     char lastwill_topic[TOPIC_SIZE];
 

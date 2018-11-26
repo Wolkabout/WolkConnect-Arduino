@@ -39,7 +39,7 @@ extern "C" {
  */
 typedef enum { PROTOCOL_TYPE_JSON = 0 } protocol_type_t;
 /**
- * @brief WOLK_ERR_T Boolean used for error handling in Wolk conenction module
+ * @brief WOLK_ERR_T Boolean used for error handling in Wolk connection module
  */
 typedef unsigned char WOLK_ERR_T;
 /**
@@ -62,14 +62,6 @@ typedef void (*actuation_handler_t)(const char* reference, const char* value);
  * @param reference actuator references define in manifest on WolkAbout IoT Platform
  */
 typedef actuator_status_t (*actuator_status_provider_t)(const char* reference);
-
-/**
- * @brief Declaration of configuration handler.
- * Configuration reference and value are the pairs of data on the same place in own arrays.
- *
- * @param reference actuator references define in manifest on WolkAbout IoT Platform
- * @param value actuator values received from WolkAbout IoT Platform.
- * @param num_configuration_items number of used configuration parameters*/
 
 typedef struct _wolk_ctx_t wolk_ctx_t;
 
