@@ -48,9 +48,10 @@
 #define SET_COMMAND "SET"
 #define STATUS_COMMAND "STATUS"
 
-static WOLK_ERR_T _wolk_subscribe (wolk_ctx_t *ctx, const char *topic);
+static WOLK_ERR_T _subscribe (wolk_ctx_t *ctx, const char *topic);
 static WOLK_ERR_T _parser_init (wolk_ctx_t *ctx, parser_type_t parser_type);
-static WOLK_ERR_T _wolk_publish (wolk_ctx_t *ctx, char *topic, char *readings);
+static WOLK_ERR_T _publish_single (wolk_ctx_t *ctx,const char *reference,const char *value, data_type_t type, uint32_t utc_time);
+static WOLK_ERR_T _publish (wolk_ctx_t *ctx, char *topic, char *readings);
 static void callback(void *wolk, char* topic, byte* payload, unsigned int length);
 
 WOLK_ERR_T wolk_init(wolk_ctx_t* ctx, actuation_handler_t actuation_handler, actuator_status_provider_t actuator_status_provider,
@@ -118,7 +119,7 @@ WOLK_ERR_T wolk_connect (wolk_ctx_t *ctx)
         memset (sub_topic, 0, TOPIC_SIZE);
         strcpy (sub_topic, CONFIG_PATH);
         strcat (sub_topic, ctx->device_key);
-        if (_wolk_subscribe (ctx, sub_topic) != W_FALSE)
+        if (_subscribe (ctx, sub_topic) != W_FALSE)
         {   
             return W_TRUE;
         }
@@ -139,7 +140,7 @@ WOLK_ERR_T wolk_connect (wolk_ctx_t *ctx)
             strcat(pub_topic,str);
 
 
-            if (_wolk_subscribe (ctx, pub_topic) != W_FALSE)
+            if (_subscribe (ctx, pub_topic) != W_FALSE)
             {
                 return W_TRUE;
             }
@@ -305,7 +306,7 @@ WOLK_ERR_T wolk_publish (wolk_ctx_t *ctx)
 
 
 
-        if (_wolk_publish (ctx, pub_topic, readings_buffer) != W_FALSE)
+        if (_publish (ctx, pub_topic, readings_buffer) != W_FALSE)
         {
             return W_TRUE;
         }
@@ -318,7 +319,7 @@ WOLK_ERR_T wolk_publish (wolk_ctx_t *ctx)
 
             char* value = reading_get_data(&ctx->readings[i]);
 
-            if (wolk_publish_single (ctx,ctx->readings[i].manifest_item.reference,value, ctx->readings[i].manifest_item.data_type, ctx->readings[i].rtc) != W_FALSE)
+            if (_publish_single (ctx,ctx->readings[i].manifest_item.reference,value, ctx->readings[i].manifest_item.data_type, ctx->readings[i].rtc) != W_FALSE)
             {
                 return W_TRUE;
             }
@@ -332,7 +333,7 @@ WOLK_ERR_T wolk_publish (wolk_ctx_t *ctx)
     return W_FALSE;
 }
 
-WOLK_ERR_T wolk_publish_single (wolk_ctx_t *ctx,const char *reference,const char *value, data_type_t type, uint32_t utc_time)
+WOLK_ERR_T _publish_single (wolk_ctx_t *ctx,const char *reference,const char *value, data_type_t type, uint32_t utc_time)
 {
     unsigned char buf[READINGS_MQTT_SIZE];
     parser_t parser;
@@ -383,7 +384,7 @@ WOLK_ERR_T wolk_publish_single (wolk_ctx_t *ctx,const char *reference,const char
     reading_set_rtc(&readings, utc_time);
 
     parser_serialize_readings(&parser, &readings, 1, readings_buffer, READINGS_BUFFER_SIZE);
-    if (_wolk_publish (ctx, pub_topic, readings_buffer) != W_FALSE)
+    if (_publish (ctx, pub_topic, readings_buffer) != W_FALSE)
     {
         return W_TRUE;
     }
@@ -431,7 +432,7 @@ WOLK_ERR_T wolk_publish_actuator_status (wolk_ctx_t *ctx,const char *reference)
 
     size_t serialized_readings = parser_serialize_readings(&parser, &readings, 1, readings_buffer, READINGS_BUFFER_SIZE);
 
-    if (_wolk_publish (ctx, pub_topic, readings_buffer) != W_FALSE)
+    if (_publish (ctx, pub_topic, readings_buffer) != W_FALSE)
     {
         return W_TRUE;
     }
@@ -460,13 +461,13 @@ WOLK_ERR_T wolk_disconnect(wolk_ctx_t *ctx)
     return W_FALSE;
 }
 
-WOLK_ERR_T _wolk_publish (wolk_ctx_t *ctx, char *topic, char *readings)
+WOLK_ERR_T _publish (wolk_ctx_t *ctx, char *topic, char *readings)
 {
     ctx->mqtt_client->publish(topic, readings);
     return W_FALSE;
 }
 
-WOLK_ERR_T _wolk_subscribe (wolk_ctx_t *ctx, const char *topic)
+WOLK_ERR_T _subscribe (wolk_ctx_t *ctx, const char *topic)
 {
     ctx->mqtt_client->subscribe(topic);
     return W_FALSE;

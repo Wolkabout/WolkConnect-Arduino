@@ -80,8 +80,6 @@ struct _wolk_ctx_t {
     actuation_handler_t actuation_handler;
     actuator_status_provider_t actuator_status_provider;
 
-    wolk_queue config_queue;
-
     char device_key[DEVICE_KEY_SIZE];                       /**<  Authentication parameters for WolkAbout IoT Platform. Obtained as a result of device creation on the platform.*/
     char device_password[DEVICE_PASSWORD_SIZE];             /**<  Authentication parameters for WolkAbout IoT Platform. Obtained as a result of device creation on the platform.*/
 
@@ -101,6 +99,10 @@ struct _wolk_ctx_t {
 /**
  * @brief Initializes WolkAbout IoT Platform connector context
  * @param ctx Context
+ *
+ * @param actuation_handler function pointer to 'actuation_handler_t' implementation
+ * @param actuator_status_provider function pointer to 'actuator_status_provider_t' implementation
+ *
  * @param device_key Device key provided by WolkAbout IoT Platform upon device
  * creation
  * @param password Device password provided by WolkAbout IoT Platform device
@@ -119,14 +121,19 @@ WOLK_ERR_T wolk_init(wolk_ctx_t* ctx, actuation_handler_t actuation_handler, act
                     const char *server, int port, const char** actuator_references,
                     uint32_t num_actuator_references);
 
-/** @brief Connect to WolkSense via mqtt
+/**
+ * @brief Connect to WolkAbout IoT Platform
  *
- *  @param ctx library context
- *  @return Error value is returned
+ * Prior to connecting, following must be performed:
+ *  - Context must be initialized via wolk_init()
+ *
+ * @param ctx Context
+ *
+ * @return Error code
  */
 WOLK_ERR_T wolk_connect (wolk_ctx_t *ctx);
 
-/** @brief Disconnect from WolkSense
+/** @brief Disconnect from WolkAbout IoT Platform
  *
  *  @param ctx library context
  *  @return Error value is returned
@@ -136,7 +143,6 @@ WOLK_ERR_T wolk_disconnect (wolk_ctx_t *ctx);
 /** @brief Receive mqtt messages
  *
  *  Receiving mqtt messages on actuator topics.
- *  All messages are stored into queues and they are later used with functions wolk_read_actuator and wolk_read_config.
  *
  *  @param ctx library context
  *  @return Error value is returned
@@ -146,9 +152,9 @@ WOLK_ERR_T wolk_process (wolk_ctx_t *ctx);
 /** @brief Add string reading
  *
  *  @param ctx library context
- *  @param reference Parameter reference
- *  @param value Parameter value
- *  @param utc_time Parameter UTC time. If unable to retrieve UTC set 0
+ *  @param reference Sensor reference
+ *  @param value Sensor value
+ *  @param utc_time UTC time. If unable to retrieve UTC set 0
  *  @return Error value is returned
  */
 WOLK_ERR_T wolk_add_string_sensor_reading(wolk_ctx_t *ctx,const char *reference,const char *value, uint32_t utc_time);
@@ -156,9 +162,9 @@ WOLK_ERR_T wolk_add_string_sensor_reading(wolk_ctx_t *ctx,const char *reference,
 /** @brief Add numeric reading
  *
  *  @param ctx library context
- *  @param reference Parameter reference
- *  @param value Parameter value
- *  @param utc_time Parameter UTC time. If unable to retrieve UTC set 0
+ *  @param reference Sensor reference
+ *  @param value Sensor value
+ *  @param utc_time UTC time. If unable to retrieve UTC set 0
  *  @return Error value is returned
  */
 WOLK_ERR_T wolk_add_numeric_sensor_reading(wolk_ctx_t *ctx,const char *reference,double value, uint32_t utc_time);
@@ -166,9 +172,9 @@ WOLK_ERR_T wolk_add_numeric_sensor_reading(wolk_ctx_t *ctx,const char *reference
 /** @brief Add bool reading
  *
  *  @param ctx library context
- *  @param reference Parameter reference
- *  @param value Parameter value
- *  @param utc_time Parameter UTC time. If unable to retrieve UTC set 0
+ *  @param reference Sensor reference
+ *  @param value Sensor value
+ *  @param utc_time UTC time. If unable to retrieve UTC set 0
  *  @return Error value is returned
  */
 WOLK_ERR_T wolk_add_bool_sensor_reading(wolk_ctx_t *ctx,const char *reference,bool value, uint32_t utc_time);
@@ -187,22 +193,14 @@ WOLK_ERR_T wolk_clear_readings (wolk_ctx_t *ctx);
  */
 WOLK_ERR_T wolk_publish (wolk_ctx_t *ctx);
 
-/** @brief Publish single reading
+/**
+ * @brief Obtains actuator status via actuator_status_provider_t and publishes
+ * it.
  *
- *  @param ctx library context
- *  @param reference Parameter reference
- *  @param value Parameter value
- *  @param type Parameter type. Available values are: DATA_TYPE_NUMERIC, DATA_TYPE_BOOLEAN, DATA_TYPE_STRING
- *  @param utc_time Parameter UTC time. If unable to retrieve UTC set 0
- *  @return Error value is returned
- */
-WOLK_ERR_T wolk_publish_single (wolk_ctx_t *ctx,const char *reference,const char *value, data_type_t type, uint32_t utc_time);
-
-/** @brief Publish actuator status
+ * @param ctx Context
+ * @param reference Actuator reference
  *
- *  @param ctx library context
- *  @param reference Parameter reference
- *  @return Error value is returned
+ * @return Error code
  */
 WOLK_ERR_T wolk_publish_actuator_status (wolk_ctx_t *ctx,const char *reference);
 
