@@ -26,4 +26,6 @@
 #  define NULL 0
 #endif
 
+#define BOOL_TO_STR(b) ((b) ? "true" : "false")
+
 #endif

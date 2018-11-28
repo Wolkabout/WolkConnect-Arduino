@@ -152,6 +152,10 @@ WOLK_ERR_T wolk_process (wolk_ctx_t *ctx);
  */
 WOLK_ERR_T wolk_add_string_sensor_reading(wolk_ctx_t *ctx,const char *reference,const char *value, uint32_t utc_time);
 
+/*UNTESTED*/
+WOLK_ERR_T wolk_add_multi_value_string_sensor_reading(wolk_ctx_t* ctx, const char* reference,
+                                                      const char (*values)[READING_SIZE], uint16_t values_size,
+                                                      uint32_t utc_time);
 /** @brief Add numeric reading
  *
  *  @param ctx library context
@@ -162,6 +166,8 @@ WOLK_ERR_T wolk_add_string_sensor_reading(wolk_ctx_t *ctx,const char *reference,
  */
 WOLK_ERR_T wolk_add_numeric_sensor_reading(wolk_ctx_t *ctx,const char *reference,double value, uint32_t utc_time);
 
+WOLK_ERR_T wolk_add_multi_value_numeric_sensor_reading(wolk_ctx_t* ctx, const char* reference, double* values,
+                                                       uint16_t values_size, uint32_t utc_time);
 /** @brief Add bool reading
  *
  *  @param ctx library context
@@ -171,6 +177,21 @@ WOLK_ERR_T wolk_add_numeric_sensor_reading(wolk_ctx_t *ctx,const char *reference
  *  @return Error value is returned
  */
 WOLK_ERR_T wolk_add_bool_sensor_reading(wolk_ctx_t *ctx,const char *reference,bool value, uint32_t utc_time);
+/*UNTESTED*/
+WOLK_ERR_T wolk_add_multi_value_bool_sensor_reading(wolk_ctx_t* ctx, const char* reference, bool* values,
+                                                    uint16_t values_size, uint32_t utc_time);
+
+/**
+ * @brief Add alarm
+ *
+ * @param ctx Context
+ * @param reference Alarm reference
+ * @param message Alarm message
+ * @param utc_time UTC time when alarm was risen [seconds]
+ *
+ * @return Error code
+ */
+WOLK_ERR_T wolk_add_alarm(wolk_ctx_t* ctx, const char* reference, bool state, uint32_t utc_time);
 
 /** @brief Clear acumulated readings
  *

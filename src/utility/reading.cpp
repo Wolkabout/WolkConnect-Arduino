@@ -53,7 +53,7 @@ void reading_clear_array(reading_t* first_reading, size_t readings_count)
     }
 }
 
-void reading_set_data(reading_t* reading, char* data)
+void reading_set_data(reading_t* reading, const char* data)
 {
     reading_set_data_at(reading, data, 0);
 }
@@ -89,7 +89,7 @@ bool reading_get_delimited_data(reading_t* reading, char* buffer, size_t buffer_
     return true;
 }
 
-void reading_set_data_at(reading_t* reading, char* data, size_t data_position)
+void reading_set_data_at(reading_t* reading, const char* data, size_t data_position)
 {
     /* Sanity check */
     WOLK_ASSERT(strlen(data) < READING_SIZE);

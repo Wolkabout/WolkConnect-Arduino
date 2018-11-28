@@ -52,7 +52,7 @@ typedef struct {
 } manifest_item_t;
 
 void manifest_item_init(manifest_item_t* item, const char* reference, reading_type_t reading_type, data_type_t data_type);
-void manifest_item_set_reading_dimensions_and_delimiter(manifest_item_t* item, size_t data_size, char* delimiter);
+void manifest_item_set_reading_dimensions_and_delimiter(manifest_item_t* item, size_t data_size, const char* delimiter);
 
 char* manifest_item_get_reference(manifest_item_t* item);
 

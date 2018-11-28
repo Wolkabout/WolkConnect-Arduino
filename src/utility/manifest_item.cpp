@@ -39,7 +39,7 @@ void manifest_item_init(manifest_item_t* item, const char* reference, reading_ty
     memset(item->data_delimiter, '\0', MANIFEST_ITEM_DATA_DELIMITER_SIZE);
 }
 
-void manifest_item_set_reading_dimensions_and_delimiter(manifest_item_t* item, size_t data_size, char* delimiter)
+void manifest_item_set_reading_dimensions_and_delimiter(manifest_item_t* item, size_t data_size, const char* delimiter)
 {
     /* Sanity check */
     WOLK_ASSERT(data_size > 1);

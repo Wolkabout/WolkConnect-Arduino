@@ -121,6 +121,25 @@ static bool serialize_actuator(reading_t* reading, char* buffer, size_t buffer_s
     return true;
 }
 
+static bool serialize_alarm(reading_t* reading, char* buffer, size_t buffer_size)
+{
+    char data_buffer[PARSER_INTERNAL_BUFFER_SIZE];
+    if (!reading_get_delimited_data(reading, data_buffer, PARSER_INTERNAL_BUFFER_SIZE)) {
+        return false;
+    }
+
+    if (reading_get_rtc(reading) > 0
+        && snprintf(buffer, buffer_size, "{\"utc\":%u,\"data\":\"%s\"}", reading_get_rtc(reading), data_buffer)
+               >= (int)buffer_size) {
+        return false;
+    } else if (reading_get_rtc(reading) == 0
+               && snprintf(buffer, buffer_size, "{\"data\":\"%s\"}", data_buffer) >= (int)buffer_size) {
+        return false;
+    }
+
+    return true;
+}
+
 static bool serialize_reading(reading_t* reading, char* buffer, size_t buffer_size)
 {
     switch(manifest_item_get_reading_type(reading_get_manifest_item(reading))) {
@@ -129,6 +148,9 @@ static bool serialize_reading(reading_t* reading, char* buffer, size_t buffer_si
 
     case READING_TYPE_ACTUATOR:
         return serialize_actuator(reading, buffer, buffer_size);
+
+    case READING_TYPE_ALARM:
+        return serialize_alarm(reading, buffer, buffer_size);
 
     default:
         /* Sanity check*/

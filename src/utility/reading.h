@@ -44,12 +44,12 @@ void reading_init(reading_t* reading, manifest_item_t* item);
 void reading_clear(reading_t* reading);
 void reading_clear_array(reading_t* first_reading, size_t readings_count);
 
-void reading_set_data(reading_t* reading, char* data);
+void reading_set_data(reading_t* reading, const char* data);
 char* reading_get_data(reading_t* reading);
 
 bool reading_get_delimited_data(reading_t* reading, char* buffer, size_t buffer_size);
 
-void reading_set_data_at(reading_t* reading, char* data, size_t data_position);
+void reading_set_data_at(reading_t* reading, const char* data, size_t data_position);
 char* reading_get_data_at(reading_t* reading, size_t data_position);
 
 manifest_item_t* reading_get_manifest_item(reading_t* reading);

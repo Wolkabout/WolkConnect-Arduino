@@ -243,7 +243,7 @@ WOLK_ERR_T wolk_add_string_sensor_reading(wolk_ctx_t *ctx,const char *reference,
 
     reading_t reading;
     reading_init(&reading, &string_sensor);
-    reading_set_data(&reading, (char *)value);
+    reading_set_data(&reading, value);
     reading_set_rtc(&reading, utc_time);
 
     outbound_message_t outbound_message;
@@ -257,6 +257,38 @@ WOLK_ERR_T wolk_add_string_sensor_reading(wolk_ctx_t *ctx,const char *reference,
 
     ctx->readings[ctx->readings_index] = reading;
     ctx->readings_index++;
+
+    return W_FALSE;
+}
+
+WOLK_ERR_T wolk_add_multi_value_string_sensor_reading(wolk_ctx_t* ctx, const char* reference,
+                                                      const char (*values)[READING_SIZE], uint16_t values_size,
+                                                      uint32_t utc_time)
+{
+    /* Sanity check */
+    WOLK_ASSERT(ctx->is_initialized == true);
+    WOLK_ASSERT(READING_DIMENSIONS > 1);
+
+    manifest_item_t string_sensor;
+    manifest_item_init(&string_sensor, reference, READING_TYPE_SENSOR, DATA_TYPE_STRING);
+    manifest_item_set_reading_dimensions_and_delimiter(&string_sensor, values_size, DATA_DELIMITER);
+
+    reading_t reading;
+    reading_init(&reading, &string_sensor);
+    reading_set_rtc(&reading, utc_time);
+
+    for (uint32_t i = 0; i < values_size; ++i) {
+        reading_set_data_at(&reading, values[i], i);
+    }
+
+    outbound_message_t outbound_message;
+    outbound_message_make_from_readings(&ctx->parser, ctx->device_key, &reading, 1, &outbound_message);
+
+    Serial.print("Outbound message topic, payload: ");
+    Serial.print(outbound_message.topic);
+    Serial.println(outbound_message.payload);
+
+    _publish(ctx, outbound_message.topic, outbound_message.payload);
 
     return W_FALSE;
 }
@@ -293,6 +325,40 @@ WOLK_ERR_T wolk_add_numeric_sensor_reading(wolk_ctx_t *ctx,const char *reference
     return W_FALSE;
 }
 
+WOLK_ERR_T wolk_add_multi_value_numeric_sensor_reading(wolk_ctx_t* ctx, const char* reference, double* values,
+                                                       uint16_t values_size, uint32_t utc_time)
+{
+    /* Sanity check */
+    WOLK_ASSERT(ctx->is_initialized == true);
+    WOLK_ASSERT(READING_DIMENSIONS > 1);
+
+    manifest_item_t numeric_sensor;
+    manifest_item_init(&numeric_sensor, reference, READING_TYPE_SENSOR, DATA_TYPE_NUMERIC);
+    manifest_item_set_reading_dimensions_and_delimiter(&numeric_sensor, values_size, DATA_DELIMITER);
+    
+    reading_t reading;
+    reading_init(&reading, &numeric_sensor);
+    reading_set_rtc(&reading, utc_time);
+
+    for(uint32_t i = 0; i < values_size; i++)
+    {
+        char value_str[STR_64];
+        memset (value_str, 0, STR_64);
+        dtostrf(values[i], 4, 2, value_str);
+
+        reading_set_data_at(&reading, value_str, i);
+    }
+
+    outbound_message_t outbound_message;
+    outbound_message_make_from_readings(&ctx->parser, ctx->device_key, &reading, 1, &outbound_message);
+    Serial.print("Outbound message topic, payload: ");
+    Serial.print(outbound_message.topic);
+    Serial.println(outbound_message.payload);
+
+    _publish(ctx, outbound_message.topic, outbound_message.payload);
+
+    return W_FALSE;
+}
 
 
 WOLK_ERR_T wolk_add_bool_sensor_reading(wolk_ctx_t *ctx,const char *reference,bool value, uint32_t utc_time)
@@ -325,6 +391,62 @@ WOLK_ERR_T wolk_add_bool_sensor_reading(wolk_ctx_t *ctx,const char *reference,bo
 
     ctx->readings[ctx->readings_index] = reading;
     ctx->readings_index++;
+
+    return W_FALSE;
+}
+
+WOLK_ERR_T wolk_add_multi_value_bool_sensor_reading(wolk_ctx_t* ctx, const char* reference, bool* values,
+                                                    uint16_t values_size, uint32_t utc_time)
+{
+    /* Sanity check */
+    WOLK_ASSERT(ctx->is_initialized == true);
+    WOLK_ASSERT(READING_DIMENSIONS > 1);
+
+    manifest_item_t string_sensor;
+    manifest_item_init(&string_sensor, reference, READING_TYPE_SENSOR, DATA_TYPE_STRING);
+    manifest_item_set_reading_dimensions_and_delimiter(&string_sensor, values_size, DATA_DELIMITER);
+
+    reading_t reading;
+    reading_init(&reading, &string_sensor);
+    reading_set_rtc(&reading, utc_time);
+
+    for (uint32_t i = 0; i < values_size; ++i) {
+        reading_set_data_at(&reading, BOOL_TO_STR(values[i]), i);
+    }
+
+    outbound_message_t outbound_message;
+    outbound_message_make_from_readings(&ctx->parser, ctx->device_key, &reading, 1, &outbound_message);
+    Serial.print("Outbound message topic, payload: ");
+    Serial.print(outbound_message.topic);
+    Serial.println(outbound_message.payload);
+
+    _publish(ctx, outbound_message.topic, outbound_message.payload);
+
+    return W_FALSE;
+}
+
+WOLK_ERR_T wolk_add_alarm(wolk_ctx_t* ctx, const char* reference, bool state, uint32_t utc_time)
+{
+    /* Sanity check */
+    WOLK_ASSERT(ctx->is_initialized == true);
+
+    manifest_item_t alarm;
+    manifest_item_init(&alarm, reference, READING_TYPE_ALARM, DATA_TYPE_STRING);
+
+    reading_t alarm_reading;
+    reading_init(&alarm_reading, &alarm);
+    reading_set_rtc(&alarm_reading, utc_time);
+    reading_set_data(&alarm_reading, (state==true ? "ON" : "OFF"));
+
+    outbound_message_t outbound_message;
+    outbound_message_make_from_readings(&ctx->parser, ctx->device_key, &alarm_reading, 1, &outbound_message);
+
+    Serial.print("Outbound message topic, payload: ");
+    Serial.print(outbound_message.topic);
+    Serial.print(", ");
+    Serial.println(outbound_message.payload);
+
+    _publish(ctx, outbound_message.topic, outbound_message.payload);
 
     return W_FALSE;
 }
