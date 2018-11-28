@@ -22,6 +22,8 @@
 #include "utility/parser.h"
 #include "utility/size_definitions.h"
 #include "utility/actuator_status.h"
+#include "utility/outbound_message.h"
+#include "utility/outbound_message_factory.h"
 
 #include "Arduino.h"
 #include "dtostrf_fix.h"
@@ -37,7 +39,7 @@ extern "C" {
 /**
  * @brief Supported protocols, WolkConnect libararies currently support only PROTOCOL_JSON_SINGLE
  */
-typedef enum { PROTOCOL_TYPE_JSON = 0 } protocol_type_t;
+typedef enum { PROTOCOL_TYPE_JSON = 0 } protocol_t;
 /**
  * @brief WOLK_ERR_T Boolean used for error handling in Wolk connection module
  */
@@ -78,9 +80,8 @@ struct _wolk_ctx_t {
     reading_t readings[READINGS_SIZE];                      
     int readings_index;
 
-    protocol_type_t protocol;                               /**<  Used protocol for communication with WolkAbout IoT Platform. @see protocol_type_t*/
-    parser_t wolk_parser;
-    parser_type_t parser_type;
+    protocol_t protocol;                               /**<  Used protocol for communication with WolkAbout IoT Platform. @see protocol_type_t*/
+    parser_t parser;
 
     const char** actuator_references;
     uint32_t num_actuator_references;
@@ -110,7 +111,7 @@ struct _wolk_ctx_t {
  */
 WOLK_ERR_T wolk_init(wolk_ctx_t* ctx, actuation_handler_t actuation_handler, actuator_status_provider_t actuator_status_provider,
                     const char* device_key, const char* device_password, PubSubClient *client, 
-                    const char *server, int port, const char** actuator_references,
+                    const char *server, int port, protocol_t protocol, const char** actuator_references,
                     uint32_t num_actuator_references);
 
 /**

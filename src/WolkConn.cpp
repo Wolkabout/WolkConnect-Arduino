@@ -49,14 +49,14 @@
 #define STATUS_COMMAND "STATUS"
 
 static WOLK_ERR_T _subscribe (wolk_ctx_t *ctx, const char *topic);
-static WOLK_ERR_T _parser_init (wolk_ctx_t *ctx, parser_type_t parser_type);
+static void _parser_init(wolk_ctx_t* ctx, protocol_t protocol);
 static WOLK_ERR_T _publish_single (wolk_ctx_t *ctx,const char *reference,const char *value, data_type_t type, uint32_t utc_time);
 static WOLK_ERR_T _publish (wolk_ctx_t *ctx, char *topic, char *readings);
 static void callback(void *wolk, char* topic, byte* payload, unsigned int length);
 
 WOLK_ERR_T wolk_init(wolk_ctx_t* ctx, actuation_handler_t actuation_handler, actuator_status_provider_t actuator_status_provider,
                     const char* device_key, const char* device_password, PubSubClient *client, 
-                    const char *server, int port, const char** actuator_references,
+                    const char *server, int port, protocol_t protocol, const char** actuator_references,
                     uint32_t num_actuator_references)
 {
     /* Sanity check */
@@ -74,9 +74,7 @@ WOLK_ERR_T wolk_init(wolk_ctx_t* ctx, actuation_handler_t actuation_handler, act
         return W_TRUE;
     }
 
-    _parser_init (ctx, PARSER_TYPE_JSON);
-
-    initialize_parser(&ctx->wolk_parser, ctx->parser_type);
+    //initialize_parser(&ctx->wolk_parser, ctx->parser.type);
     ctx->readings_index = 0;
 
     ctx->mqtt_client = client;
@@ -89,11 +87,14 @@ WOLK_ERR_T wolk_init(wolk_ctx_t* ctx, actuation_handler_t actuation_handler, act
     memset (ctx->device_password, 0, DEVICE_PASSWORD_SIZE);
     strcpy (ctx->device_password, device_password);
 
+    ctx->actuation_handler = actuation_handler;
+    ctx->actuator_status_provider = actuator_status_provider;
+
     ctx->actuator_references = actuator_references;
     ctx->num_actuator_references = num_actuator_references;
 
-    ctx->actuation_handler = actuation_handler;
-    ctx->actuator_status_provider = actuator_status_provider;
+    ctx->protocol = protocol;
+    _parser_init (ctx, protocol);
 
     ctx->is_initialized = true;
 
@@ -119,7 +120,7 @@ WOLK_ERR_T wolk_connect (wolk_ctx_t *ctx)
 
     ctx->mqtt_client->connect(client_id, ctx->device_key, ctx->device_password);
 
-    if (ctx->parser_type==PARSER_TYPE_MQTT)
+    if (ctx->parser.type==PARSER_TYPE_MQTT)
     {
         memset (sub_topic, 0, TOPIC_SIZE);
         strcpy (sub_topic, CONFIG_PATH);
@@ -132,7 +133,7 @@ WOLK_ERR_T wolk_connect (wolk_ctx_t *ctx)
 
     char pub_topic[TOPIC_SIZE];
     int i;
-    if (ctx->parser_type == PARSER_TYPE_JSON)
+    if (ctx->parser.type == PARSER_TYPE_JSON)
     {
         for (i = 0; i < ctx->num_actuator_references ; i++)
         {
@@ -175,7 +176,7 @@ void callback(void *wolk, char* topic, byte* payload, unsigned int length) {
 
     memcpy(payload_str, payload, length);
 
-    if (ctx->parser_type == PARSER_TYPE_JSON)
+    if (ctx->parser.type == PARSER_TYPE_JSON)
     {
         char *start_ptr = strrchr(topic, '/');
         if (start_ptr != NULL)
@@ -185,7 +186,7 @@ void callback(void *wolk, char* topic, byte* payload, unsigned int length) {
         }
     }
 
-    size_t num_deserialized_commands = parser_deserialize_commands(&ctx->wolk_parser, payload_str, length, &commands_buffer[0], 128);
+    size_t num_deserialized_commands = parser_deserialize_commands(&ctx->parser, payload_str, length, &commands_buffer[0], 128);
 
     for (i = 0; i < num_deserialized_commands; ++i) {
         actuator_command_t* command = &commands_buffer[i];
@@ -263,10 +264,16 @@ WOLK_ERR_T wolk_add_numeric_sensor_reading(wolk_ctx_t *ctx,const char *reference
     reading_set_data(&ctx->readings[ctx->readings_index], value_str);
     reading_set_rtc(&ctx->readings[ctx->readings_index], utc_time);
 
+//    outbound_message_t outbound_message;
+//    outbound_message_make_from_readings(&ctx->parser.type, ctx->device_key, &ctx->readings[ctx->readings_index],
+//        1, &outbound_message);
+
     ctx->readings_index++;
 
     return W_FALSE;
 }
+
+
 
 WOLK_ERR_T wolk_add_bool_sensor_reading(wolk_ctx_t *ctx,const char *reference,bool value, uint32_t utc_time)
 {
@@ -315,7 +322,7 @@ WOLK_ERR_T wolk_publish (wolk_ctx_t *ctx)
     memset (readings_buffer, 0, READINGS_BUFFER_SIZE);
     memset (buf, 0, READINGS_MQTT_SIZE);
 
-    if (ctx->parser_type == PARSER_TYPE_MQTT )
+    if (ctx->parser.type == PARSER_TYPE_MQTT )
     {
 
         char pub_topic[TOPIC_SIZE];
@@ -324,7 +331,7 @@ WOLK_ERR_T wolk_publish (wolk_ctx_t *ctx)
         strcpy(pub_topic,SENSOR_PATH);
         strcat(pub_topic,ctx->device_key);
 
-        size_t serialized_readings = parser_serialize_readings(&ctx->wolk_parser, &ctx->readings[0], ctx->readings_index, readings_buffer, READINGS_BUFFER_SIZE);
+        size_t serialized_readings = parser_serialize_readings(&ctx->parser, &ctx->readings[0], ctx->readings_index, readings_buffer, READINGS_BUFFER_SIZE);
 
         wolk_clear_readings (ctx);
 
@@ -335,7 +342,7 @@ WOLK_ERR_T wolk_publish (wolk_ctx_t *ctx)
             return W_TRUE;
         }
 
-    } else if (ctx->parser_type == PARSER_TYPE_JSON)
+    } else if (ctx->parser.type == PARSER_TYPE_JSON)
     {
         int i=0;
         for (i=0; i<ctx->readings_index; i++)
@@ -365,19 +372,19 @@ WOLK_ERR_T _publish_single (wolk_ctx_t *ctx,const char *reference,const char *va
     char readings_buffer[READINGS_BUFFER_SIZE];
     memset (readings_buffer, 0, READINGS_BUFFER_SIZE);
     memset (buf, 0, READINGS_MQTT_SIZE);
-    initialize_parser(&parser, ctx->parser_type);
+    initialize_parser(&parser, ctx->parser.type);
 
     char pub_topic[TOPIC_SIZE];
     memset (pub_topic, 0, TOPIC_SIZE);
 
 
-    if (ctx->parser_type == PARSER_TYPE_JSON)
+    if (ctx->parser.type == PARSER_TYPE_JSON)
     {
         strcpy(pub_topic,RADINGS_PATH);
         strcat(pub_topic,ctx->device_key);
         strcat(pub_topic,"/");
         strcat(pub_topic,reference);
-    } else if (ctx->parser_type == PARSER_TYPE_MQTT)
+    } else if (ctx->parser.type == PARSER_TYPE_MQTT)
     {
         strcpy(pub_topic,SENSOR_PATH);
         strcat(pub_topic,ctx->device_key);
@@ -428,7 +435,7 @@ WOLK_ERR_T wolk_publish_actuator_status (wolk_ctx_t *ctx,const char *reference)
     char readings_buffer[READINGS_BUFFER_SIZE];
     memset (readings_buffer, 0, READINGS_BUFFER_SIZE);
     memset (buf, 0, READINGS_MQTT_SIZE);
-    initialize_parser(&parser, ctx->parser_type);
+    initialize_parser(&parser, ctx->parser.type);
 
     char pub_topic[TOPIC_SIZE];
     memset (pub_topic, 0, TOPIC_SIZE);
@@ -437,13 +444,13 @@ WOLK_ERR_T wolk_publish_actuator_status (wolk_ctx_t *ctx,const char *reference)
     actuator_status_t actuator_status = ctx->actuator_status_provider(reference);
     
 
-    if (ctx->parser_type==PARSER_TYPE_JSON)
+    if (ctx->parser.type==PARSER_TYPE_JSON)
     {
         strcpy(pub_topic,ACTUATORS_STATUS_TOPIC);
         strcat(pub_topic,ctx->device_key);
         strcat(pub_topic,"/");
         strcat(pub_topic,reference);
-    } else if (ctx->parser_type==PARSER_TYPE_MQTT)
+    } else if (ctx->parser.type==PARSER_TYPE_MQTT)
     {
         strcpy(pub_topic,SENSOR_PATH);
         strcat(pub_topic,ctx->device_key);
@@ -503,10 +510,17 @@ WOLK_ERR_T _subscribe (wolk_ctx_t *ctx, const char *topic)
 }
 
 
-WOLK_ERR_T _parser_init (wolk_ctx_t *ctx, parser_type_t parser_type)
+static void _parser_init(wolk_ctx_t* ctx, protocol_t protocol)
 {
-    ctx->parser_type = parser_type;
-    return W_FALSE;
+    switch (protocol) {
+    case PROTOCOL_TYPE_JSON:
+        initialize_parser(&ctx->parser, PARSER_TYPE_JSON);
+        break;
+
+    default:
+        /* Sanity check */
+        WOLK_ASSERT(false);
+    }
 }
 
 
