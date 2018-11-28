@@ -77,8 +77,6 @@ WOLK_ERR_T wolk_init(wolk_ctx_t* ctx, actuation_handler_t actuation_handler, act
         return W_TRUE;
     }
 
-    ctx->readings_index = 0;
-
     ctx->mqtt_client = client;
     ctx->mqtt_client->setServer(server, port);
     ctx->mqtt_client->setCallback(callback);
@@ -255,9 +253,6 @@ WOLK_ERR_T wolk_add_string_sensor_reading(wolk_ctx_t *ctx,const char *reference,
 
     _publish(ctx, outbound_message.topic, outbound_message.payload);
 
-    ctx->readings[ctx->readings_index] = reading;
-    ctx->readings_index++;
-
     return W_FALSE;
 }
 
@@ -319,8 +314,6 @@ WOLK_ERR_T wolk_add_numeric_sensor_reading(wolk_ctx_t *ctx,const char *reference
 
     _publish(ctx, outbound_message.topic, outbound_message.payload);
 
-    ctx->readings[ctx->readings_index] = reading;
-    ctx->readings_index++;
 
     return W_FALSE;
 }
@@ -389,9 +382,6 @@ WOLK_ERR_T wolk_add_bool_sensor_reading(wolk_ctx_t *ctx,const char *reference,bo
 
     _publish(ctx, outbound_message.topic, outbound_message.payload);
 
-    ctx->readings[ctx->readings_index] = reading;
-    ctx->readings_index++;
-
     return W_FALSE;
 }
 
@@ -451,70 +441,6 @@ WOLK_ERR_T wolk_add_alarm(wolk_ctx_t* ctx, const char* reference, bool state, ui
     return W_FALSE;
 }
 
-WOLK_ERR_T wolk_clear_readings (wolk_ctx_t *ctx)
-{
-    /* Sanity check */
-    WOLK_ASSERT(ctx->is_initialized == true);
-
-    reading_clear_array(ctx->readings, ctx->readings_index);
-
-    ctx->readings_index = 0;
-
-    return W_FALSE;
-}
-
-WOLK_ERR_T wolk_publish (wolk_ctx_t *ctx)
-{
-
-    /* Sanity check */
-    WOLK_ASSERT(ctx->is_initialized == true);
-
-    unsigned char buf[READINGS_MQTT_SIZE];
-    char readings_buffer[READINGS_BUFFER_SIZE];
-    memset (readings_buffer, 0, READINGS_BUFFER_SIZE);
-    memset (buf, 0, READINGS_MQTT_SIZE);
-
-    if (ctx->parser.type == PARSER_TYPE_MQTT )
-    {
-
-        char pub_topic[TOPIC_SIZE];
-        memset (pub_topic, 0, TOPIC_SIZE);
-
-        strcpy(pub_topic,SENSOR_PATH);
-        strcat(pub_topic,ctx->device_key);
-
-        size_t serialized_readings = parser_serialize_readings(&ctx->parser, &ctx->readings[0], ctx->readings_index, readings_buffer, READINGS_BUFFER_SIZE);
-
-        wolk_clear_readings (ctx);
-
-
-
-        if (_publish (ctx, pub_topic, readings_buffer) != W_FALSE)
-        {
-            return W_TRUE;
-        }
-
-    } else if (ctx->parser.type == PARSER_TYPE_JSON)
-    {
-        int i=0;
-        for (i=0; i<ctx->readings_index; i++)
-        {
-
-            char* value = reading_get_data(&ctx->readings[i]);
-
-            if (_publish_single (ctx,ctx->readings[i].manifest_item.reference,value, ctx->readings[i].manifest_item.data_type, ctx->readings[i].rtc) != W_FALSE)
-            {
-                return W_TRUE;
-            }
-        }
-
-        wolk_clear_readings (ctx);
-
-
-    }
-
-    return W_FALSE;
-}
 
 WOLK_ERR_T _publish_single (wolk_ctx_t *ctx,const char *reference,const char *value, data_type_t type, uint32_t utc_time)
 {

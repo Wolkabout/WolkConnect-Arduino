@@ -3,11 +3,11 @@
 #include "WolkConn.h"
 #include "MQTTClient.h"
 
-const char* ssid = "wolkabout";
-const char* wifi_pass = "Walkm3int0";
+const char* ssid = "ssid";
+const char* wifi_pass = "wifi_password";
 
-const char *device_key = "8o78cqnpfg70hu5v";
-const char *device_password = "9363b99d-0165-461a-b521-c1e39a862061";
+const char *device_key = "device_key";
+const char *device_password = "device_password";
 const char* hostname = "api-demo.wolkabout.com";
 int portno = 1883;
 
@@ -78,19 +78,22 @@ void setup() {
 
   setup_wifi();
 
-  wolk_init(&wolk, actuation_handler, actuator_status_provider, device_key, device_password, &client, hostname, portno, actuator_refs, 2);
-
+  wolk_init(&wolk, actuation_handler, actuator_status_provider, device_key, device_password, &client, hostname, portno, PROTOCOL_TYPE_JSON, actuator_refs, 2);
+  
   wolk_connect(&wolk);
 
   delay (1000);
 
-  wolk_add_bool_sensor_reading(&wolk, "TB", false, 0);
+  wolk_add_bool_sensor_reading(&wolk, "B", true, 0);
 
-  wolk_add_string_sensor_reading(&wolk, "TS", "Miki", 0);
+  wolk_add_string_sensor_reading(&wolk, "S", "boza", 0);
 
-  wolk_add_numeric_sensor_reading(&wolk, "TN", 100, 0);
+  wolk_add_numeric_sensor_reading(&wolk, "T", 53, 0);
 
-  wolk_publish (&wolk);
+  double accl_readings[3] = {1, 3, 5};
+  wolk_add_multi_value_numeric_sensor_reading(&wolk, "ACL", accl_readings, 3, 0);
+
+  wolk_add_alarm(&wolk, "HOT", true, 0);
 
 }
 

@@ -77,9 +77,6 @@ struct _wolk_ctx_t {
     char device_key[DEVICE_KEY_SIZE];                       /**<  Authentication parameters for WolkAbout IoT Platform. Obtained as a result of device creation on the platform.*/
     char device_password[DEVICE_PASSWORD_SIZE];             /**<  Authentication parameters for WolkAbout IoT Platform. Obtained as a result of device creation on the platform.*/
 
-    reading_t readings[READINGS_SIZE];                      
-    int readings_index;
-
     protocol_t protocol;                               /**<  Used protocol for communication with WolkAbout IoT Platform. @see protocol_type_t*/
     parser_t parser;
 
@@ -193,12 +190,6 @@ WOLK_ERR_T wolk_add_multi_value_bool_sensor_reading(wolk_ctx_t* ctx, const char*
  */
 WOLK_ERR_T wolk_add_alarm(wolk_ctx_t* ctx, const char* reference, bool state, uint32_t utc_time);
 
-/** @brief Clear acumulated readings
- *
- *  @param ctx library context
- *  @return Error value is returned
- */
-WOLK_ERR_T wolk_clear_readings (wolk_ctx_t *ctx);
 
 /** @brief Publish accumulated readings
  *
