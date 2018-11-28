@@ -18,6 +18,8 @@
 #include "utility/parser.h"
 #include "MQTTClient.h"
 #include "utility/wolk_utils.h"
+#include "utility/outbound_message.h"
+#include "utility/outbound_message_factory.h"
 
 #include <stdarg.h>
 #include <string.h>
@@ -260,14 +262,20 @@ WOLK_ERR_T wolk_add_numeric_sensor_reading(wolk_ctx_t *ctx,const char *reference
     memset (value_str, 0, STR_64);
     dtostrf(value, 4, 2, value_str);
 
-    reading_init(&ctx->readings[ctx->readings_index], &numeric_sensor);
-    reading_set_data(&ctx->readings[ctx->readings_index], value_str);
-    reading_set_rtc(&ctx->readings[ctx->readings_index], utc_time);
+    reading_t reading;
+    reading_init(&reading, &numeric_sensor);
+    reading_set_data(&reading, value_str);
+    reading_set_rtc(&reading, utc_time);
 
-//    outbound_message_t outbound_message;
-//    outbound_message_make_from_readings(&ctx->parser.type, ctx->device_key, &ctx->readings[ctx->readings_index],
-//        1, &outbound_message);
+    outbound_message_t outbound_message;
+    outbound_message_make_from_readings(&ctx->parser, ctx->device_key, &reading, 1, &outbound_message);
+    
+    Serial.print("Outbound message topic, payload: ");
+    Serial.print(outbound_message.topic);
+    Serial.println(outbound_message.payload);
 
+
+    ctx->readings[ctx->readings_index] = reading;
     ctx->readings_index++;
 
     return W_FALSE;

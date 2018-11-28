@@ -20,6 +20,7 @@
 #include "actuator_command.h"
 #include "configuration_item.h"
 #include "configuration_item_command.h"
+#include "outbound_message.h"
 #include "reading.h"
 
 #include <stdbool.h>
@@ -38,6 +39,8 @@ size_t json_serialize_configuration_items(configuration_item_t* first_config_ite
 
 size_t json_deserialize_configuration_items(char* buffer, size_t buffer_size, configuration_item_command_t* commands_buffer, size_t commands_buffer_size);
 
+bool json_serialize_readings_topic(reading_t* first_Reading, size_t num_readings, const char* device_key, char* buffer,
+                                   size_t buffer_size);
 #ifdef __cplusplus
 }
 #endif

@@ -15,6 +15,7 @@
  */
 
 #include "parser.h"
+#include "actuator_command.h"
 #include "configuration_item.h"
 #include "mqtt_parser.h"
 #include "json_parser.h"
@@ -44,6 +45,7 @@ void initialize_parser(parser_t* parser, parser_type_t parser_type)
         parser->deserialize_commands = json_deserialize_commands;
         parser->serialize_configuration_items = json_serialize_configuration_items;
         parser->deserialize_configuration_items = json_deserialize_configuration_items;
+        parser->serialize_readings_topic = json_serialize_readings_topic;
         break;
 
     default:

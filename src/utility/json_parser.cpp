@@ -15,6 +15,7 @@
  */
 
 #include "json_parser.h"
+#include "actuator_command.h"
 #include "reading.h"
 #include "jsmn.h"
 #include "size_definitions.h"
@@ -27,6 +28,9 @@
 #include <stdio.h>
 #include <string.h>
 
+static const char* READINGS_TOPIC = "readings/";
+static const char* ACTUATORS_STATUS_TOPIC = "actuators/status/";
+static const char* EVENTS_TOPIC = "events/";
 
 enum {
     /* Maximum number of characters in command name */
@@ -351,4 +355,45 @@ size_t json_deserialize_configuration_items(char* buffer, size_t buffer_size, co
     }
 
     return num_deserialized_config_items;
+}
+
+bool json_serialize_readings_topic(reading_t* first_Reading, size_t num_readings, const char* device_key, char* buffer,
+                                   size_t buffer_size)
+{
+    WOLK_UNUSED(num_readings);
+
+    manifest_item_t* manifest_item = reading_get_manifest_item(first_Reading);
+    reading_type_t reading_type = manifest_item_get_reading_type(manifest_item);
+
+    memset(buffer, '\0', buffer_size);
+
+    switch (reading_type) {
+    case READING_TYPE_SENSOR:
+        strcpy(buffer, READINGS_TOPIC);
+        strcat(buffer, device_key);
+        strcat(buffer, "/");
+        strcat(buffer, manifest_item_get_reference(manifest_item));
+        break;
+
+    case READING_TYPE_ACTUATOR:
+        strcpy(buffer, ACTUATORS_STATUS_TOPIC);
+        strcat(buffer, device_key);
+        strcat(buffer, "/");
+        strcat(buffer, manifest_item_get_reference(manifest_item));
+        break;
+
+    case READING_TYPE_ALARM:
+        strcpy(buffer, EVENTS_TOPIC);
+        strcat(buffer, device_key);
+        strcat(buffer, "/");
+        strcat(buffer, manifest_item_get_reference(manifest_item));
+        break;
+
+    default:
+        /* Sanity check */
+        WOLK_ASSERT(false);
+        return false;
+    }
+
+    return true;
 }
