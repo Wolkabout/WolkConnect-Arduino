@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#include "utility/actuator_command.h"
 #include "WolkConn.h"
 #include "utility/parser.h"
 #include "MQTTClient.h"
@@ -76,7 +77,6 @@ WOLK_ERR_T wolk_init(wolk_ctx_t* ctx, actuation_handler_t actuation_handler, act
         return W_TRUE;
     }
 
-    //initialize_parser(&ctx->wolk_parser, ctx->parser.type);
     ctx->readings_index = 0;
 
     ctx->mqtt_client = client;
@@ -241,10 +241,21 @@ WOLK_ERR_T wolk_add_string_sensor_reading(wolk_ctx_t *ctx,const char *reference,
     manifest_item_t string_sensor;
     manifest_item_init(&string_sensor,(char *) reference, READING_TYPE_SENSOR, DATA_TYPE_STRING);
 
-    reading_init(&ctx->readings[ctx->readings_index], &string_sensor);
-    reading_set_data(&ctx->readings[ctx->readings_index], (char *)value);
-    reading_set_rtc(&ctx->readings[ctx->readings_index], utc_time);
+    reading_t reading;
+    reading_init(&reading, &string_sensor);
+    reading_set_data(&reading, (char *)value);
+    reading_set_rtc(&reading, utc_time);
 
+    outbound_message_t outbound_message;
+    outbound_message_make_from_readings(&ctx->parser, ctx->device_key, &reading, 1, &outbound_message);
+
+    Serial.print("Outbound message topic, payload: ");
+    Serial.print(outbound_message.topic);
+    Serial.println(outbound_message.payload);
+
+    _publish(ctx, outbound_message.topic, outbound_message.payload);
+
+    ctx->readings[ctx->readings_index] = reading;
     ctx->readings_index++;
 
     return W_FALSE;
@@ -274,6 +285,7 @@ WOLK_ERR_T wolk_add_numeric_sensor_reading(wolk_ctx_t *ctx,const char *reference
     Serial.print(outbound_message.topic);
     Serial.println(outbound_message.payload);
 
+    _publish(ctx, outbound_message.topic, outbound_message.payload);
 
     ctx->readings[ctx->readings_index] = reading;
     ctx->readings_index++;
@@ -291,17 +303,27 @@ WOLK_ERR_T wolk_add_bool_sensor_reading(wolk_ctx_t *ctx,const char *reference,bo
     manifest_item_t bool_sensor;
     manifest_item_init(&bool_sensor, (char *)reference, READING_TYPE_SENSOR, DATA_TYPE_BOOLEAN);
 
-
-    reading_init(&ctx->readings[ctx->readings_index], &bool_sensor);
+    reading_t reading;
+    reading_init(&reading, &bool_sensor);
     if (value == true)
     {
-        reading_set_data(&ctx->readings[ctx->readings_index], BOOL_TRUE);
+        reading_set_data(&reading, BOOL_TRUE);
     } else
     {
-        reading_set_data(&ctx->readings[ctx->readings_index], BOOL_FALSE);
+        reading_set_data(&reading, BOOL_FALSE);
     }
-    reading_set_rtc(&ctx->readings[ctx->readings_index], utc_time);
+    reading_set_rtc(&reading, utc_time);
 
+    outbound_message_t outbound_message;
+    outbound_message_make_from_readings(&ctx->parser, ctx->device_key, &reading, 1, &outbound_message);
+
+    Serial.print("Outbound message topic, payload: ");
+    Serial.print(outbound_message.topic);
+    Serial.println(outbound_message.payload);
+
+    _publish(ctx, outbound_message.topic, outbound_message.payload);
+
+    ctx->readings[ctx->readings_index] = reading;
     ctx->readings_index++;
 
     return W_FALSE;

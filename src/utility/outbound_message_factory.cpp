@@ -40,9 +40,9 @@ size_t outbound_message_make_from_readings(parser_t* parser, const char* device_
     memset(topic, '\0', sizeof(topic));
     memset(payload, '\0', sizeof(payload));
 
-   // if (!parser_serialize_readings_topic(parser, device_key, first_reading, num_readings, topic, sizeof(topic))) {
-   //     return num_serialized;
-   // }
+    if (!parser_serialize_readings_topic(parser, device_key, first_reading, num_readings, topic, sizeof(topic))) {
+        return num_serialized;
+    }
 
     num_serialized = parser_serialize_readings(parser, first_reading, num_readings, payload, sizeof(payload));
     outbound_message_init(outbound_message, topic, payload);
