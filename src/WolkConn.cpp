@@ -43,13 +43,17 @@
 #define ACTUATORS_STATUS_TOPIC "actuators/status/"
 #define ACTUATORS_COMMANDS_TOPIC_JSON "actuators/commands/"
 
-#define CONFIGURATION_COMMANDS "configurations/commands/"
-
 #define LASTWILL_TOPIC "lastwill/"
 #define LASTWILL_MESSAGE "Gone offline"
 
 #define SET_COMMAND "SET"
 #define STATUS_COMMAND "STATUS"
+
+#define PING_KEEP_ALIVE_INTERVAL (60*1000)
+
+static const char* CONFIGURATION_COMMANDS = "configurations/commands/";
+
+static WOLK_ERR_T _ping_keep_alive(wolk_ctx_t* ctx, uint32_t tick);
 
 static WOLK_ERR_T _subscribe (wolk_ctx_t *ctx, const char *topic);
 static void _parser_init(wolk_ctx_t* ctx, protocol_t protocol);
@@ -107,6 +111,9 @@ WOLK_ERR_T wolk_init(wolk_ctx_t* ctx, actuation_handler_t actuation_handler, act
 
     ctx->protocol = protocol;
     _parser_init (ctx, protocol);
+
+    ctx->is_keep_alive_enabled = true;
+    ctx->milliseconds_since_last_ping_keep_alive = PING_KEEP_ALIVE_INTERVAL;
 
     ctx->is_initialized = true;
 
@@ -244,16 +251,17 @@ void callback(void *wolk, char* topic, byte*payload, unsigned int length)
             }
         }
     }
-    /*else if (strstr(topic, CONFIGURATION_COMMANDS)) 
+    else if (strstr(topic, CONFIGURATION_COMMANDS)) 
     {
+        Serial.println("Hey, I've got some configurations here");
         configuration_command_t configuration_command;
         const size_t num_deserialized_commands = parser_deserialize_configuration_commands(
-        &ctx->parser, (char*)payload, (size_t)payload_len, &configuration_command, 1);
+        &ctx->parser, (char*)payload, (size_t)length, &configuration_command, 1);
         if (num_deserialized_commands != 0) 
         {
         _handle_configuration_command(ctx, &configuration_command);
         }
-    }*/
+    }
 }
 
 static void _handle_configuration_command(wolk_ctx_t* ctx, configuration_command_t* configuration_command)
@@ -286,6 +294,10 @@ static void _handle_configuration_command(wolk_ctx_t* ctx, configuration_command
                 return;
             }
 
+            Serial.print("Outbound message topic, payload: ");
+            Serial.print(outbound_message.topic);
+            Serial.println(outbound_message.payload);
+
             _publish(ctx, outbound_message.topic, outbound_message.payload);
                 
             
@@ -297,13 +309,17 @@ static void _handle_configuration_command(wolk_ctx_t* ctx, configuration_command
     }
 }
 
-WOLK_ERR_T wolk_process (wolk_ctx_t *ctx)
+WOLK_ERR_T wolk_process (wolk_ctx_t *ctx, uint32_t tick)
 {
     /* Sanity check */
     WOLK_ASSERT(ctx->is_initialized == true);
 
     if (ctx->mqtt_client->loop(ctx)==false)
     {
+        return W_TRUE;
+    }
+
+    if (_ping_keep_alive(ctx, tick) != W_FALSE) {
         return W_TRUE;
     }
 
@@ -667,6 +683,41 @@ WOLK_ERR_T _subscribe (wolk_ctx_t *ctx, const char *topic)
     return W_FALSE;
 }
 
+WOLK_ERR_T wolk_disable_keep_alive(wolk_ctx_t* ctx)
+{
+    /* Sanity check */
+    WOLK_ASSERT(ctx);
+
+    ctx->is_keep_alive_enabled = false;
+    return W_FALSE;
+}
+
+static WOLK_ERR_T _ping_keep_alive(wolk_ctx_t* ctx, uint32_t tick)
+{
+    if (!ctx->is_keep_alive_enabled) {
+        return W_FALSE;
+    }
+
+    if (ctx->milliseconds_since_last_ping_keep_alive < PING_KEEP_ALIVE_INTERVAL) {
+        ctx->milliseconds_since_last_ping_keep_alive += tick;
+        return W_FALSE;
+    }
+
+    outbound_message_t outbound_message;
+    outbound_message_make_from_keep_alive_message(&ctx->parser, ctx->device_key, &outbound_message);
+    
+    Serial.print("Outbound message topic, payload: ");
+    Serial.print(outbound_message.topic);
+    Serial.println(outbound_message.payload);
+
+    if (_publish(ctx, outbound_message.topic, outbound_message.payload) != W_FALSE) {
+        return W_TRUE;
+    }
+
+
+    ctx->milliseconds_since_last_ping_keep_alive = 0;
+    return W_FALSE;
+}
 
 static void _parser_init(wolk_ctx_t* ctx, protocol_t protocol)
 {

@@ -138,13 +138,13 @@ bool outbound_message_make_from_configuration(parser_t* parser, const char* devi
 //    return parser_serialize_firmware_update_version(parser, device_key, version, outbound_message);
 //}
 //
-//bool outbound_message_make_from_keep_alive_message(parser_t* parser, const char* device_key,
-//                                                   outbound_message_t* outbound_message)
-//{
-//    /* Sanity check */
-//    WOLK_ASSERT(parser);
-//    WOLK_ASSERT(device_key);
-//    WOLK_ASSERT(outbound_message);
-//
-//    return parser_serialize_keep_alive_message(parser, device_key, outbound_message);
-//}
+bool outbound_message_make_from_keep_alive_message(parser_t* parser, const char* device_key,
+                                                   outbound_message_t* outbound_message)
+{
+    /* Sanity check */
+    WOLK_ASSERT(parser);
+    WOLK_ASSERT(device_key);
+    WOLK_ASSERT(outbound_message);
+
+    return parser_serialize_keep_alive_message(parser, device_key, outbound_message);
+}

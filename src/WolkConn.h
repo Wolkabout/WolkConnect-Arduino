@@ -110,6 +110,9 @@ struct _wolk_ctx_t {
     const char** actuator_references;
     uint32_t num_actuator_references;
 
+    bool is_keep_alive_enabled;
+    uint32_t milliseconds_since_last_ping_keep_alive;
+
     bool is_initialized;
 };
 
@@ -170,7 +173,7 @@ WOLK_ERR_T wolk_disconnect (wolk_ctx_t *ctx);
  *  @param ctx library context
  *  @return Error value is returned
  */
-WOLK_ERR_T wolk_process (wolk_ctx_t *ctx);
+WOLK_ERR_T wolk_process (wolk_ctx_t *ctx, uint32_t tick);
 
 /** @brief Add string reading
  *
@@ -251,7 +254,7 @@ WOLK_ERR_T wolk_publish_actuator_status (wolk_ctx_t *ctx,const char *reference);
  */
 WOLK_ERR_T wolk_keep_alive (wolk_ctx_t *ctx);
 
-
+WOLK_ERR_T wolk_disable_keep_alive(wolk_ctx_t* ctx);
 
 
 #ifdef __cplusplus
