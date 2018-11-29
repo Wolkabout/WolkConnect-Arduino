@@ -85,21 +85,21 @@ bool outbound_message_make_from_actuator_status(parser_t* parser, const char* de
     return true;
 }
 
-//bool outbound_message_make_from_configuration(parser_t* parser, const char* device_key,
-//                                              char (*reference)[CONFIGURATION_REFERENCE_SIZE],
-//                                              char (*value)[CONFIGURATION_VALUE_SIZE], size_t num_configuration_items,
-//                                              outbound_message_t* outbound_message)
-//{
-//    /* Sanity check */
-//    WOLK_ASSERT(parser);
-//    WOLK_ASSERT(device_key);
-//    WOLK_ASSERT(reference);
-//    WOLK_ASSERT(value);
-//    WOLK_ASSERT(outbound_message);
-//
-//    return parser_serialize_configuration(parser, device_key, reference, value, num_configuration_items,
-//                                          outbound_message);
-//}
+bool outbound_message_make_from_configuration(parser_t* parser, const char* device_key,
+                                              char (*reference)[CONFIGURATION_REFERENCE_SIZE],
+                                              char (*value)[CONFIGURATION_VALUE_SIZE], size_t num_configuration_items,
+                                              outbound_message_t* outbound_message)
+{
+    /* Sanity check */
+    WOLK_ASSERT(parser);
+    WOLK_ASSERT(device_key);
+    WOLK_ASSERT(reference);
+    WOLK_ASSERT(value);
+    WOLK_ASSERT(outbound_message);
+
+    return parser_serialize_configuration(parser, device_key, reference, value, num_configuration_items,
+                                          outbound_message);
+}
 
 //bool outbound_message_make_from_firmware_update_status(parser_t* parser, const char* device_key,
 //                                                       firmware_update_status_t* firmware_update_status,

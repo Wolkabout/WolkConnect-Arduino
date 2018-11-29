@@ -36,16 +36,21 @@ void initialize_parser(parser_t* parser, parser_type_t parser_type)
     case PARSER_TYPE_MQTT:
         parser->serialize_readings = mqtt_serialize_readings;
         parser->deserialize_commands = mqtt_deserialize_commands;
-        parser->serialize_configuration_items = mqtt_serialize_configuration_items;
-        parser->deserialize_configuration_items = mqtt_deserialize_configuration_items;
+        //parser->serialize_configuration = mqtt_serialize_configuration_items;
+        //parser->deserialize_configuration_commands = mqtt_deserialize_configuration_items;
         break;
 
     case PARSER_TYPE_JSON:
         parser->serialize_readings = json_serialize_readings;
         parser->deserialize_commands = json_deserialize_commands;
-        parser->serialize_configuration_items = json_serialize_configuration_items;
-        parser->deserialize_configuration_items = json_deserialize_configuration_items;
+        parser->deserialize_actuator_commands = json_deserialize_actuator_commands;
+
         parser->serialize_readings_topic = json_serialize_readings_topic;
+
+        parser->serialize_configuration = json_serialize_configuration;
+        parser->deserialize_configuration_commands = json_deserialize_configuration_command;
+
+        parser->serialize_keep_alive_message = json_serialize_keep_alive_message;
         break;
 
     default:
@@ -65,14 +70,17 @@ size_t parser_deserialize_commands(parser_t* parser, char* buffer, size_t buffer
     return parser->deserialize_commands(buffer, buffer_size, commands_buffer, commands_buffer_size);
 }
 
-size_t parser_serialize_configuration_items(parser_t* parser, configuration_item_t* first_config_item, size_t num_config_items, char* buffer, size_t buffer_size)
+size_t parser_deserialize_actuator_commands(parser_t* parser, char* topic, size_t topic_size, char* buffer,
+                                            size_t buffer_size, actuator_command_t* commands_buffer,
+                                            size_t commands_buffer_size)
 {
-    return parser->serialize_configuration_items(first_config_item, num_config_items, buffer, buffer_size);
-}
+    /* Sanity check */
+    WOLK_ASSERT(parser);
+    WOLK_ASSERT(buffer_size < PAYLOAD_SIZE);
+    WOLK_ASSERT(commands_buffer_size > 0);
 
-size_t parser_deserialize_configuration_items(parser_t* parser, char* buffer, size_t buffer_size, configuration_item_command_t *first_config_item, size_t num_config_items)
-{
-    return parser->deserialize_configuration_items(buffer, buffer_size, first_config_item, num_config_items);
+    return parser->deserialize_actuator_commands(topic, topic_size, buffer, buffer_size, commands_buffer,
+                                                 commands_buffer_size);
 }
 
 bool parser_serialize_readings_topic(parser_t* parser, const char* device_key, reading_t* first_reading,
@@ -85,3 +93,53 @@ bool parser_serialize_readings_topic(parser_t* parser, const char* device_key, r
 
     return parser->serialize_readings_topic(first_reading, num_readings, device_key, buffer, buffer_size);
 }
+
+bool parser_serialize_configuration(parser_t* parser, const char* device_key,
+                                    char (*reference)[CONFIGURATION_REFERENCE_SIZE],
+                                    char (*value)[CONFIGURATION_VALUE_SIZE], size_t num_configuration_items,
+                                    outbound_message_t* outbound_message)
+{
+    /* Sanity check */
+    WOLK_ASSERT(parser);
+    WOLK_ASSERT(num_configuration_items > 0);
+
+    return parser->serialize_configuration(device_key, reference, value, num_configuration_items, outbound_message);
+}
+
+size_t parser_deserialize_configuration_commands(parser_t* parser, char* buffer, size_t buffer_size,
+                                                 configuration_command_t* first_configuration_command,
+                                                 size_t num_configuration_commands)
+{
+    /* Sanity check */
+    WOLK_ASSERT(parser);
+    WOLK_ASSERT(buffer_size < PAYLOAD_SIZE);
+    WOLK_ASSERT(num_configuration_commands > 0);
+
+    return parser->deserialize_configuration_commands(buffer, buffer_size, first_configuration_command,
+                                                      num_configuration_commands);
+}
+
+bool parser_serialize_keep_alive_message(parser_t* parser, const char* device_key, outbound_message_t* outbound_message)
+{
+    WOLK_ASSERT(parser);
+    WOLK_ASSERT(device_key);
+
+    return parser->serialize_keep_alive_message(device_key, outbound_message);
+}
+
+parser_type_t parser_get_type(parser_t* parser)
+{
+    /* Sanity check */
+    WOLK_ASSERT(parser);
+
+    return parser->type;
+}
+
+bool parser_is_initialized(parser_t* parser)
+{
+    /* Sanity check */
+    WOLK_ASSERT(parser);
+
+    return parser->is_initialized;
+}
+

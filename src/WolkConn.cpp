@@ -57,7 +57,11 @@ static WOLK_ERR_T _publish_single (wolk_ctx_t *ctx,const char *reference,const c
 static WOLK_ERR_T _publish (wolk_ctx_t *ctx, char *topic, char *readings);
 static void callback(void *wolk, char* topic, byte* payload, unsigned int length);
 
+static void _handle_actuator_command(wolk_ctx_t* ctx, actuator_command_t* actuator_command);
+static void _handle_configuration_command(wolk_ctx_t* ctx, configuration_command_t* configuration_command);
+
 WOLK_ERR_T wolk_init(wolk_ctx_t* ctx, actuation_handler_t actuation_handler, actuator_status_provider_t actuator_status_provider,
+                    configuration_handler_t configuration_handler, configuration_provider_t configuration_provider,
                     const char* device_key, const char* device_password, PubSubClient *client, 
                     const char *server, int port, protocol_t protocol, const char** actuator_references,
                     uint32_t num_actuator_references)
@@ -76,6 +80,11 @@ WOLK_ERR_T wolk_init(wolk_ctx_t* ctx, actuation_handler_t actuation_handler, act
         WOLK_ASSERT(false);
         return W_TRUE;
     }
+    if ((configuration_handler != NULL && configuration_provider == NULL)
+        || (configuration_handler == NULL && configuration_provider != NULL)) {
+        WOLK_ASSERT(false);
+        return W_TRUE;
+    }
 
     ctx->mqtt_client = client;
     ctx->mqtt_client->setServer(server, port);
@@ -89,6 +98,9 @@ WOLK_ERR_T wolk_init(wolk_ctx_t* ctx, actuation_handler_t actuation_handler, act
 
     ctx->actuation_handler = actuation_handler;
     ctx->actuator_status_provider = actuator_status_provider;
+
+    ctx->configuration_handler = configuration_handler;
+    ctx->configuration_provider = configuration_provider;
 
     ctx->actuator_references = actuator_references;
     ctx->num_actuator_references = num_actuator_references;
@@ -153,6 +165,16 @@ WOLK_ERR_T wolk_connect (wolk_ctx_t *ctx)
         }
     }
 
+    char topic_buf[TOPIC_SIZE];
+
+    memset(topic_buf, '\0', TOPIC_SIZE);
+    strcpy(&topic_buf[0], CONFIGURATION_COMMANDS);
+    strcat(&topic_buf[0], ctx->device_key);
+
+    if (_subscribe(ctx, topic_buf) != W_FALSE) {
+        return W_TRUE;
+    }
+
     for (i = 0; i < ctx->num_actuator_references; ++i) {
         const char* reference = ctx->actuator_references[i];
 
@@ -160,13 +182,18 @@ WOLK_ERR_T wolk_connect (wolk_ctx_t *ctx)
 
     }
 
+
+
     return W_FALSE;
+
+    configuration_command_t configuration_command;
+    configuration_command_init(&configuration_command, CONFIGURATION_COMMAND_TYPE_CURRENT);
+    _handle_configuration_command(ctx, &configuration_command);
 }
 
-
-void callback(void *wolk, char* topic, byte* payload, unsigned int length) {
-
-    int i=0;
+void callback(void *wolk, char* topic, byte*payload, unsigned int length)
+{
+    int i = 0;
     actuator_command_t commands_buffer[128];
     wolk_ctx_t *ctx = (wolk_ctx_t *)wolk;
     char reference[STR_64];
@@ -186,36 +213,89 @@ void callback(void *wolk, char* topic, byte* payload, unsigned int length) {
         }
     }
 
-    size_t num_deserialized_commands = parser_deserialize_commands(&ctx->parser, payload_str, length, &commands_buffer[0], 128);
+    if (strstr(topic, ACTUATORS_COMMANDS_TOPIC_JSON) != NULL)
+    {
+        size_t num_deserialized_commands = parser_deserialize_commands(&ctx->parser, payload_str, length, &commands_buffer[0], 128);
 
-    for (i = 0; i < num_deserialized_commands; ++i) {
-        actuator_command_t* command = &commands_buffer[i];
-
-        switch(actuator_command_get_type(command))
+        for (i = 0; i < num_deserialized_commands; ++i) 
         {
-            case ACTUATOR_COMMAND_TYPE_SET:
-                if(ctx->actuation_handler != NULL)
-                {
-                        ctx->actuation_handler(reference, actuator_command_get_value(command));
-                }
+            actuator_command_t* command = &commands_buffer[i];
+    
+            switch(actuator_command_get_type(command))
+            {
+                case ACTUATOR_COMMAND_TYPE_SET:
+                    if(ctx->actuation_handler != NULL)
+                    {
+                            ctx->actuation_handler(reference, actuator_command_get_value(command));
+                    }
+    
+            /* Fallthrough */
+            /* break; */
+                case ACTUATOR_COMMAND_TYPE_STATUS:
+                    if(ctx->actuator_status_provider != NULL)
+                    {
+                        wolk_publish_actuator_status(ctx, reference);
+                    }
+    
+                break;
+    
+                case ACTUATOR_COMMAND_TYPE_UNKNOWN:
+                break;
+            }
+        }
+    }
+    /*else if (strstr(topic, CONFIGURATION_COMMANDS)) 
+    {
+        configuration_command_t configuration_command;
+        const size_t num_deserialized_commands = parser_deserialize_configuration_commands(
+        &ctx->parser, (char*)payload, (size_t)payload_len, &configuration_command, 1);
+        if (num_deserialized_commands != 0) 
+        {
+        _handle_configuration_command(ctx, &configuration_command);
+        }
+    }*/
+}
+
+static void _handle_configuration_command(wolk_ctx_t* ctx, configuration_command_t* configuration_command)
+{
+    switch (configuration_command_get_type(configuration_command)) {
+    case CONFIGURATION_COMMAND_TYPE_SET:
+        if (ctx->configuration_handler != NULL) {
+            ctx->configuration_handler(configuration_command_get_references(configuration_command),
+                                       configuration_command_get_values(configuration_command),
+                                       configuration_command_get_number_of_items(configuration_command));
+        }
 
         /* Fallthrough */
         /* break; */
-            case ACTUATOR_COMMAND_TYPE_STATUS:
-                if(ctx->actuator_status_provider != NULL)
-                {
-                    wolk_publish_actuator_status(ctx, reference);
-                }
 
-            break;
+    case CONFIGURATION_COMMAND_TYPE_CURRENT:
+        if (ctx->configuration_provider != NULL) {
+            char references[CONFIGURATION_ITEMS_SIZE][CONFIGURATION_REFERENCE_SIZE];
+            char values[CONFIGURATION_ITEMS_SIZE][CONFIGURATION_VALUE_SIZE];
 
-            case ACTUATOR_COMMAND_TYPE_UNKNOWN:
-            break;
+            const size_t num_configuration_items =
+                ctx->configuration_provider(&references[0], &values[0], CONFIGURATION_ITEMS_SIZE);
+            if (num_configuration_items == 0) {
+                return;
+            }
+
+            outbound_message_t outbound_message;
+            if (!outbound_message_make_from_configuration(&ctx->parser, ctx->device_key, references, values,
+                                                          num_configuration_items, &outbound_message)) {
+                return;
+            }
+
+            _publish(ctx, outbound_message.topic, outbound_message.payload);
+                
+            
         }
+        break;
+
+    case CONFIGURATION_COMMAND_TYPE_UNKNOWN:
+        break;
     }
-
 }
-
 
 WOLK_ERR_T wolk_process (wolk_ctx_t *ctx)
 {

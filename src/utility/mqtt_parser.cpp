@@ -29,9 +29,6 @@
 
 
 enum {
-    /* Maximum number of characters in command name */
-    COMMAND_MAX_SIZE = 10,
-
     /* Maximum number of characters in command argument */
     COMMAND_MAX_ARGUMENT_PART_SIZE = MANIFEST_ITEM_REFERENCE_SIZE + 1 + READING_DIMENSIONS /* +1 for ':' delimiter */
 };
@@ -288,7 +285,7 @@ size_t mqtt_serialize_configuration_items(configuration_item_t* first_config_ite
     return 0;
 }
 
-size_t mqtt_deserialize_configuration_items(char* buffer, size_t buffer_size, configuration_item_command_t* commands_buffer, size_t commands_buffer_size)
+size_t mqtt_deserialize_configuration_items(char* buffer, size_t buffer_size, configuration_command_t* commands_buffer, size_t commands_buffer_size)
 {
     WOLK_UNUSED(buffer);
     WOLK_UNUSED(buffer_size);

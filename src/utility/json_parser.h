@@ -19,7 +19,7 @@
 
 #include "actuator_command.h"
 #include "configuration_item.h"
-#include "configuration_item_command.h"
+#include "configuration_command.h"
 #include "outbound_message.h"
 #include "reading.h"
 
@@ -33,14 +33,22 @@ extern "C" {
 
 size_t json_serialize_readings(reading_t* first_reading, size_t num_readings, char* buffer, size_t buffer_size);
 
+size_t json_deserialize_actuator_commands(char* topic, size_t topic_size, char* buffer, size_t buffer_size,
+                                          actuator_command_t* commands_buffer, size_t commands_buffer_size);
 size_t json_deserialize_commands(char* buffer, size_t buffer_size, actuator_command_t* commands_buffer, size_t commands_buffer_size);
-
-size_t json_serialize_configuration_items(configuration_item_t* first_config_item, size_t num_config_items, char* buffer, size_t buffer_size);
-
-size_t json_deserialize_configuration_items(char* buffer, size_t buffer_size, configuration_item_command_t* commands_buffer, size_t commands_buffer_size);
 
 bool json_serialize_readings_topic(reading_t* first_Reading, size_t num_readings, const char* device_key, char* buffer,
                                    size_t buffer_size);
+
+size_t json_serialize_configuration(const char* device_key, char (*reference)[CONFIGURATION_REFERENCE_SIZE],
+                                    char (*value)[CONFIGURATION_VALUE_SIZE], size_t num_configuration_items,
+                                    outbound_message_t* outbound_message);
+
+size_t json_deserialize_configuration_command(char* buffer, size_t buffer_size,
+                                              configuration_command_t* commands_buffer, size_t commands_buffer_size);
+
+bool json_serialize_keep_alive_message(const char* device_key, outbound_message_t* outbound_message);
+
 #ifdef __cplusplus
 }
 #endif

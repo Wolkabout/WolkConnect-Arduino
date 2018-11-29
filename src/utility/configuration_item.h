@@ -27,8 +27,8 @@ extern "C" {
 #include <stdbool.h>
 
 typedef struct {
-    char name[CONFIGURATION_ITEM_NAME_SIZE];
-    char value[CONFIGURATION_ITEM_VALUE_SIZE];
+    char name[CONFIGURATION_REFERENCE_SIZE];
+    char value[CONFIGURATION_VALUE_SIZE];
 } configuration_item_t;
 
 void configuration_item_init(configuration_item_t* configuration_item, char* name, char* value);

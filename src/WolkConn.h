@@ -65,6 +65,30 @@ typedef void (*actuation_handler_t)(const char* reference, const char* value);
  */
 typedef actuator_status_t (*actuator_status_provider_t)(const char* reference);
 
+/**
+ * @brief Declaration of configuration handler.
+ * Configuration reference and value are the pairs of data on the same place in own arrays.
+ *
+ * @param reference actuator references define in manifest on WolkAbout IoT Platform
+ * @param value actuator values received from WolkAbout IoT Platform.
+ * @param num_configuration_items number of used configuration parameters
+ */
+typedef void (*configuration_handler_t)(char (*reference)[CONFIGURATION_REFERENCE_SIZE],
+                                        char (*value)[CONFIGURATION_VALUE_SIZE], size_t num_configuration_items);
+/**
+ * @brief Declaration of configuration provider
+ *
+ * @param reference configuration references define in manifest on WolkAbout IoT Platform
+ * @param value configuration values received from WolkAbout IoT Platform
+ * @param num_configuration_items number of used configuration parameters
+ */
+typedef size_t (*configuration_provider_t)(char (*reference)[CONFIGURATION_REFERENCE_SIZE],
+                                           char (*value)[CONFIGURATION_VALUE_SIZE], size_t max_num_configuration_items);
+/**
+ * @brief  WolkAbout IoT Platform connector context.
+ * Most of the parameters are used to initialize WolkConnect library forwarding to wolk_init().
+ */
+
 typedef struct _wolk_ctx_t wolk_ctx_t;
 
 struct _wolk_ctx_t {
@@ -73,6 +97,9 @@ struct _wolk_ctx_t {
 
     actuation_handler_t actuation_handler;
     actuator_status_provider_t actuator_status_provider;
+
+    configuration_handler_t configuration_handler;          /**< Callback for handling received configuration from WolkAbout IoT Platform. @see configuration_handler_t*/
+    configuration_provider_t configuration_provider;        /**< Callback for providing the current configuration status to WolkAbout IoT Platform. @see configuration_provider_t*/
 
     char device_key[DEVICE_KEY_SIZE];                       /**<  Authentication parameters for WolkAbout IoT Platform. Obtained as a result of device creation on the platform.*/
     char device_password[DEVICE_PASSWORD_SIZE];             /**<  Authentication parameters for WolkAbout IoT Platform. Obtained as a result of device creation on the platform.*/
@@ -93,12 +120,17 @@ struct _wolk_ctx_t {
  * @param actuation_handler function pointer to 'actuation_handler_t' implementation
  * @param actuator_status_provider function pointer to 'actuator_status_provider_t' implementation
  *
+ * @param configuration_handler function pointer to 'configuration_handler_t' implementation
+ * @param configuration_provider function pointer to 'configuration_provider_t' implementation
+ *
  * @param device_key Device key provided by WolkAbout IoT Platform upon device
  * creation
  * @param password Device password provided by WolkAbout IoT Platform device
  * upon device creation
  * @param client MQQT Client
  * @param server MQQT Server
+ * @param port Port to connect to
+ * @param protocol Protocol specified for device
  * @param actuator_references Array of strings containing references of
  * actuators that device possess
  * @param num_actuator_references Number of actuator references contained in
@@ -107,6 +139,7 @@ struct _wolk_ctx_t {
  * @return Error code
  */
 WOLK_ERR_T wolk_init(wolk_ctx_t* ctx, actuation_handler_t actuation_handler, actuator_status_provider_t actuator_status_provider,
+                    configuration_handler_t configuration_handler, configuration_provider_t configuration_provider,
                     const char* device_key, const char* device_password, PubSubClient *client, 
                     const char *server, int port, protocol_t protocol, const char** actuator_references,
                     uint32_t num_actuator_references);

@@ -38,10 +38,10 @@ bool outbound_message_make_from_actuator_status(parser_t* parser, const char* de
                                                 actuator_status_t* actuator_status, const char* reference,
                                                 outbound_message_t* outbound_message);
 
-/*bool outbound_message_make_from_configuration(parser_t* parser, const char* device_key,
+bool outbound_message_make_from_configuration(parser_t* parser, const char* device_key,
                                               char (*reference)[CONFIGURATION_REFERENCE_SIZE],
                                               char (*value)[CONFIGURATION_VALUE_SIZE], size_t num_configuration_items,
-                                              outbound_message_t* outbound_message);*/
+                                              outbound_message_t* outbound_message);
 
 /*bool outbound_message_make_from_firmware_update_status(parser_t* parser, const char* device_key,
                                                        firmware_update_status_t* firmware_update_status,
