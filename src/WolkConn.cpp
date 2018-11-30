@@ -48,8 +48,8 @@
 
 #define SET_COMMAND "SET"
 #define STATUS_COMMAND "STATUS"
-
-#define PING_KEEP_ALIVE_INTERVAL (60*1000)
+/*ping keep alive every 60 seconds*/
+#define PING_KEEP_ALIVE_INTERVAL (300)
 
 static const char* CONFIGURATION_COMMANDS = "configurations/commands/";
 
