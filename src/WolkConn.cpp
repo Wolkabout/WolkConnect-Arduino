@@ -27,16 +27,8 @@
 #include <unistd.h>
 #include <stdio.h>
 
-#define TIMEOUT_STEP 500000*2
-
-#define NON_EXISTING "N/A"
-
 #define BOOL_FALSE "false"
 #define BOOL_TRUE "true"
-
-#define KEEPALIVE_INTERVAL 60
-#define CONFIG_PATH "config/"
-#define SENSOR_PATH "sensors/"
 
 #define RADINGS_PATH "readings/"
 
@@ -46,10 +38,8 @@
 #define LASTWILL_TOPIC "lastwill/"
 #define LASTWILL_MESSAGE "Gone offline"
 
-#define SET_COMMAND "SET"
-#define STATUS_COMMAND "STATUS"
 /*ping keep alive every 60 seconds*/
-#define PING_KEEP_ALIVE_INTERVAL (300)
+#define PING_KEEP_ALIVE_INTERVAL 300
 
 static const char* CONFIGURATION_COMMANDS = "configurations/commands/";
 
@@ -57,7 +47,6 @@ static WOLK_ERR_T _ping_keep_alive(wolk_ctx_t* ctx, uint32_t tick);
 
 static WOLK_ERR_T _subscribe (wolk_ctx_t *ctx, const char *topic);
 static void _parser_init(wolk_ctx_t* ctx, protocol_t protocol);
-static WOLK_ERR_T _publish_single (wolk_ctx_t *ctx,const char *reference,const char *value, data_type_t type, uint32_t utc_time);
 static WOLK_ERR_T _publish (wolk_ctx_t *ctx, char *topic, char *readings);
 static void callback(void *wolk, char* topic, byte* payload, unsigned int length);
 
@@ -138,17 +127,6 @@ WOLK_ERR_T wolk_connect (wolk_ctx_t *ctx)
     sprintf(client_id,"%s%d",ctx->device_key,rand() % 1000);
 
     ctx->mqtt_client->connect(client_id, ctx->device_key, ctx->device_password);
-
-    if (ctx->parser.type==PARSER_TYPE_MQTT)
-    {
-        memset (sub_topic, 0, TOPIC_SIZE);
-        strcpy (sub_topic, CONFIG_PATH);
-        strcat (sub_topic, ctx->device_key);
-        if (_subscribe (ctx, sub_topic) != W_FALSE)
-        {   
-            return W_TRUE;
-        }
-    }
 
     char pub_topic[TOPIC_SIZE];
     int i;
@@ -322,6 +300,8 @@ WOLK_ERR_T wolk_process (wolk_ctx_t *ctx, uint32_t tick)
     if (_ping_keep_alive(ctx, tick) != W_FALSE) {
         return W_TRUE;
     }
+    Serial.print("MQTT Client State: ");
+    Serial.println(ctx->mqtt_client->state());
 
     return W_FALSE;
 }
@@ -537,67 +517,6 @@ WOLK_ERR_T wolk_add_alarm(wolk_ctx_t* ctx, const char* reference, bool state, ui
     return W_FALSE;
 }
 
-
-WOLK_ERR_T _publish_single (wolk_ctx_t *ctx,const char *reference,const char *value, data_type_t type, uint32_t utc_time)
-{
-    unsigned char buf[READINGS_MQTT_SIZE];
-    parser_t parser;
-    reading_t readings;
-    char readings_buffer[READINGS_BUFFER_SIZE];
-    memset (readings_buffer, 0, READINGS_BUFFER_SIZE);
-    memset (buf, 0, READINGS_MQTT_SIZE);
-    initialize_parser(&parser, ctx->parser.type);
-
-    char pub_topic[TOPIC_SIZE];
-    memset (pub_topic, 0, TOPIC_SIZE);
-
-
-    if (ctx->parser.type == PARSER_TYPE_JSON)
-    {
-        strcpy(pub_topic,RADINGS_PATH);
-        strcat(pub_topic,ctx->device_key);
-        strcat(pub_topic,"/");
-        strcat(pub_topic,reference);
-    } else if (ctx->parser.type == PARSER_TYPE_MQTT)
-    {
-        strcpy(pub_topic,SENSOR_PATH);
-        strcat(pub_topic,ctx->device_key);
-    }
-
-    if (type==DATA_TYPE_STRING)
-    {
-        manifest_item_t string_sensor;
-        manifest_item_init(&string_sensor, (char *)reference, READING_TYPE_SENSOR, DATA_TYPE_STRING);
-
-        reading_init(&readings, &string_sensor);
-        reading_set_data(&readings, (char *)value);
-
-    } else if (type==DATA_TYPE_BOOLEAN)
-    {
-        manifest_item_t bool_sensor;
-        manifest_item_init(&bool_sensor, (char *)reference, READING_TYPE_SENSOR, DATA_TYPE_BOOLEAN);
-        reading_init(&readings, &bool_sensor);
-        reading_set_data(&readings, (char *)value);
-    } else if (type==DATA_TYPE_NUMERIC)
-    {
-        manifest_item_t numeric_sensor;
-        manifest_item_init(&numeric_sensor, (char *)reference, READING_TYPE_SENSOR, DATA_TYPE_NUMERIC);
-        reading_init(&readings, &numeric_sensor);
-        reading_set_data(&readings, (char *)value);
-    }
-
-    reading_set_rtc(&readings, utc_time);
-
-    parser_serialize_readings(&parser, &readings, 1, readings_buffer, READINGS_BUFFER_SIZE);
-    if (_publish (ctx, pub_topic, readings_buffer) != W_FALSE)
-    {
-        return W_TRUE;
-    }
-
-    return W_FALSE;
-}
-
-
 WOLK_ERR_T wolk_publish_actuator_status (wolk_ctx_t *ctx,const char *reference)
 {
     /* Sanity check */
@@ -624,10 +543,6 @@ WOLK_ERR_T wolk_publish_actuator_status (wolk_ctx_t *ctx,const char *reference)
         strcat(pub_topic,ctx->device_key);
         strcat(pub_topic,"/");
         strcat(pub_topic,reference);
-    } else if (ctx->parser.type==PARSER_TYPE_MQTT)
-    {
-        strcpy(pub_topic,SENSOR_PATH);
-        strcat(pub_topic,ctx->device_key);
     }
 
     manifest_item_t manifest_item;
@@ -640,7 +555,15 @@ WOLK_ERR_T wolk_publish_actuator_status (wolk_ctx_t *ctx,const char *reference)
 
     size_t serialized_readings = parser_serialize_readings(&parser, &readings, 1, readings_buffer, READINGS_BUFFER_SIZE);
 
-    if (_publish (ctx, pub_topic, readings_buffer) != W_FALSE)
+    outbound_message_t outbound_message;
+
+    outbound_message_init(&outbound_message, pub_topic, readings_buffer);
+    Serial.print("Outbound message topic, payload: ");
+    Serial.print(outbound_message.topic);
+    Serial.print(", ");
+    Serial.println(outbound_message.payload);
+
+    if (_publish (ctx, outbound_message.topic, outbound_message.payload) != W_FALSE)
     {
         return W_TRUE;
     }

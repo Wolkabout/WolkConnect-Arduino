@@ -226,14 +226,6 @@ WOLK_ERR_T wolk_add_multi_value_bool_sensor_reading(wolk_ctx_t* ctx, const char*
  */
 WOLK_ERR_T wolk_add_alarm(wolk_ctx_t* ctx, const char* reference, bool state, uint32_t utc_time);
 
-
-/** @brief Publish accumulated readings
- *
- *  @param ctx library context
- *  @return Error value is returned
- */
-WOLK_ERR_T wolk_publish (wolk_ctx_t *ctx);
-
 /**
  * @brief Obtains actuator status via actuator_status_provider_t and publishes
  * it.
