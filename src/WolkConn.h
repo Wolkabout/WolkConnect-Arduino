@@ -95,8 +95,8 @@ struct _wolk_ctx_t {
     int sock;
     PubSubClient *mqtt_client;
 
-    actuation_handler_t actuation_handler;
-    actuator_status_provider_t actuator_status_provider;
+    actuation_handler_t actuation_handler;                  /**< Callback for handling received actuation from WolkAbout IoT Platform. @see actuation_handler_t*/
+    actuator_status_provider_t actuator_status_provider;    /**< Callback for providing the current actuator status to WolkAbout IoT Platform. @see actuator_status_provider_t*/
 
     configuration_handler_t configuration_handler;          /**< Callback for handling received configuration from WolkAbout IoT Platform. @see configuration_handler_t*/
     configuration_provider_t configuration_provider;        /**< Callback for providing the current configuration status to WolkAbout IoT Platform. @see configuration_provider_t*/
@@ -166,12 +166,14 @@ WOLK_ERR_T wolk_connect (wolk_ctx_t *ctx);
  */
 WOLK_ERR_T wolk_disconnect (wolk_ctx_t *ctx);
 
-/** @brief Receive mqtt messages
+/**
+ * @brief Must be called periodically to keep alive connection to WolkAbout IoT
+ * platform, obtain and perform actuation requests
  *
- *  Receiving mqtt messages on actuator topics.
+ * @param ctx Context
+ * @param tick Perid at which wolk_process is called
  *
- *  @param ctx library context
- *  @return Error value is returned
+ * @return Error code
  */
 WOLK_ERR_T wolk_process (wolk_ctx_t *ctx, uint32_t tick);
 
@@ -185,7 +187,16 @@ WOLK_ERR_T wolk_process (wolk_ctx_t *ctx, uint32_t tick);
  */
 WOLK_ERR_T wolk_add_string_sensor_reading(wolk_ctx_t *ctx,const char *reference,const char *value, uint32_t utc_time);
 
-/*UNTESTED*/
+/** @brief Add multi-value string reading
+ *
+ *  @param ctx Context
+ *  @param reference Sensor reference
+ *  @param values Sensor values
+ *  @param values_size Number of sensor dimensions
+ *  @param utc_time UTC time of sensor value acquisition [seconds]
+ *
+ *  @return Error code
+ */
 WOLK_ERR_T wolk_add_multi_value_string_sensor_reading(wolk_ctx_t* ctx, const char* reference,
                                                       const char (*values)[READING_SIZE], uint16_t values_size,
                                                       uint32_t utc_time);
@@ -199,6 +210,17 @@ WOLK_ERR_T wolk_add_multi_value_string_sensor_reading(wolk_ctx_t* ctx, const cha
  */
 WOLK_ERR_T wolk_add_numeric_sensor_reading(wolk_ctx_t *ctx,const char *reference,double value, uint32_t utc_time);
 
+/**
+ * @brief Add multi-value numeric reading
+ *
+ * @param ctx Context
+ * @param reference Sensor reference
+ * @param values Sensor values
+ * @param values_size Number of sensor dimensions
+ * @param utc_time UTC time of sensor value acquisition [seconds]
+ *
+ * @return Error code
+ */
 WOLK_ERR_T wolk_add_multi_value_numeric_sensor_reading(wolk_ctx_t* ctx, const char* reference, double* values,
                                                        uint16_t values_size, uint32_t utc_time);
 /** @brief Add bool reading
@@ -210,7 +232,18 @@ WOLK_ERR_T wolk_add_multi_value_numeric_sensor_reading(wolk_ctx_t* ctx, const ch
  *  @return Error value is returned
  */
 WOLK_ERR_T wolk_add_bool_sensor_reading(wolk_ctx_t *ctx,const char *reference,bool value, uint32_t utc_time);
-/*UNTESTED*/
+
+/**
+ * @brief Add multi-value bool reading
+ *
+ * @param ctx Context
+ * @param reference Sensor reference
+ * @param values Sensor values
+ * @param values_size Number of sensor dimensions
+ * @param utc_time UTC time of sensor value acquisition [seconds]
+ *
+ * @return Error code
+ */
 WOLK_ERR_T wolk_add_multi_value_bool_sensor_reading(wolk_ctx_t* ctx, const char* reference, bool* values,
                                                     uint16_t values_size, uint32_t utc_time);
 
