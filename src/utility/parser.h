@@ -32,7 +32,6 @@ extern "C" {
 #endif
 
 typedef enum {
-    PARSER_TYPE_MQTT = 0,
     PARSER_TYPE_JSON
 } parser_type_t;
 

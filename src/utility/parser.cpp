@@ -17,7 +17,6 @@
 #include "parser.h"
 #include "actuator_command.h"
 #include "configuration_item.h"
-#include "mqtt_parser.h"
 #include "json_parser.h"
 #include "wolk_utils.h"
 
@@ -33,13 +32,6 @@ void initialize_parser(parser_t* parser, parser_type_t parser_type)
 
     switch(parser->type)
     {
-    case PARSER_TYPE_MQTT:
-        parser->serialize_readings = mqtt_serialize_readings;
-        parser->deserialize_commands = mqtt_deserialize_commands;
-        //parser->serialize_configuration = mqtt_serialize_configuration_items;
-        //parser->deserialize_configuration_commands = mqtt_deserialize_configuration_items;
-        break;
-
     case PARSER_TYPE_JSON:
         parser->serialize_readings = json_serialize_readings;
         parser->deserialize_commands = json_deserialize_commands;
