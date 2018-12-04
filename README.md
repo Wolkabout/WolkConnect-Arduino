@@ -5,9 +5,20 @@ WolkConnect-Arduino is transportation layer agnostic which means it is up to the
 open socket to WolkAbout IoT platform, configure SSL if desired, and forward read/write implementation to WolkConnect-Arduino.
 
 WolkConnect-Arduino is compatible with all hardware supported by [PubSubClient](https://pubsubclient.knolleary.net/) Arduino library.
+Provided example is made for Genuino MKR1000.
+Supported protocol(s):
+* JSON single
 
 ## Library usage
+
+#### Prerequisite
+
+	Provided example uses WiFi101 module.
+
 #### Setup
+
+Create a device on WolkAbout IoT platform by importing the provided manifest .json file located in the 'examples' folder. This manifest fits the example and demonstrates the sending of sensor readings, actuation and configuration.
+
 Edit device information and connection parameters
 
 ```
@@ -17,10 +28,9 @@ static const char* password = "wifi_password";
 static const char *device_key = "device_key";
 static const char *password_key = "password_key";
 
-static const char* server_uri = "WOLKABOUT_IOT_PLATFORM_SERVER_URI";
+static const char* hostname = "api-demo.wolkabout.com";
 static int portno = 1883;
 
-/* Provided example uses ESP8266 WiFi module */
 WiFiClient espClient;
 PubSubClient client(espClient);
 ```
@@ -30,60 +40,56 @@ Establish WiFi connection
 WiFi.begin(ssid, password);
 ```
 
-Set desired protocol
-
+Initialize the context
 ```
-wolk_set_protocol (wolk_ctx_t *ctx, protocol_type_t protocol);
+wolk_init(wolk_ctx_t* ctx, actuation_handler_t actuation_handler, actuator_status_provider_t actuator_status_provider,
+                    configuration_handler_t configuration_handler, configuration_provider_t configuration_provider,
+                    const char* device_key, const char* device_password, PubSubClient *client, 
+                    const char *server, int port, protocol_t protocol, const char** actuator_references,
+                    uint32_t num_actuator_references)
 ```
-
 Connect to server
 
 ```
-wolk_connect (wolk_ctx_t *ctx, PubSubClient *client, const char *server, int port, const char *device_key, const char *password);
+wolk_connect(wolk_ctx_t *ctx);
 ```
 
-Set actuator references
-
-```
-wolk_set_actuator_references (wolk_ctx_t *ctx, int num_of_items, const char *item, ...);
-```
-
-When actuators are present, send initial actuator status to WolkAbout IoT platform
-Depending on the actuator type following functions can be used:
-
-```
-wolk_publish_num_actuator_status (wolk_ctx_t *ctx,const char *reference,double value, actuator_status_t state, uint32_t utc_time);
-```
-```
-wolk_publish_bool_actuator_status (wolk_ctx_t *ctx,const char *reference,bool value, actuator_status_t state, uint32_t utc_time);
-```
 
 #### Publishing data
 
-Single readings
-```
-wolk_publish_single (wolk_ctx_t *ctx,const char *reference,const char *value, data_type_t type, uint32_t utc_time)
-```
-
-Aggregate readings
-```
-wolk_add_string_reading(wolk_ctx_t *ctx,const char *reference,const char *value, uint32_t utc_time);
-wolk_add_numeric_reading(wolk_ctx_t *ctx,const char *reference,double value, uint32_t utc_time);
-wolk_add_bool_reading(wolk_ctx_t *ctx,const char *reference,bool value, uint32_t utc_time);
-wolk_publish (wolk_ctx_t *ctx);
-```
+As it is right now, the platform publishes data within the set sensor reading function.
 
 #### Actuation
 
-First process received commands with
+Process receives actuation commands from the platform when wolk_process is called.
 ```
-wolk_receive (wolk_ctx_t *ctx, unsigned int timeout);
+wolk_process (wolk_ctx_t *ctx, unsigned int timeout)
 ```
-Then read actuation request
+Actuation handler and actuator status provider functions must be implemented by the user.
+Definition is included in the full example.
 ```
-wolk_read_actuator (wolk_ctx_t *ctx, char *command, char *reference, char *value);
+static void actuation_handler(const char* reference, const char* value)
+
+static actuator_status_t actuator_status_provider(const char* reference)
 ```
 
+###Configuration
+
+Process receives configuration commands from the platform when wolk_proceess is called.
+```
+wolk_process (wolk_ctx_t *ctx, unsigned int timeout);
+```
+Configuration handler and configuration provider functions must be implemented by the user.
+Definition is included in the full example.
+```
+static void configuration_handler(char (*reference)[CONFIGURATION_REFERENCE_SIZE],
+                                  char (*value)[CONFIGURATION_VALUE_SIZE],
+                                  size_t num_configuration_items)
+
+static size_t configuration_provider(char (*reference)[CONFIGURATION_REFERENCE_SIZE],
+                                     char (*value)[CONFIGURATION_VALUE_SIZE],
+                                     size_t max_num_configuration_items)
+```
 ## Example
 #### Setup connection
 ```
@@ -93,7 +99,7 @@ static const char* password = "wifi_password";
 static const char *device_key = "device_key";
 static const char *password_key = "password_key";
 
-static const char* server_uri = "WOLKABOUT_IOT_PLATFORM_SERVER_URI";
+static const char* server_uri = "api-demo.wolkabout.com";
 static int portno = 1883;
 
 static const char *numeric_slider_reference = "SL";
@@ -178,15 +184,3 @@ void loop() {
 }
 
 ```
-#### Publish data
-```
-wolk_publish_single (&wolk, "reference", "23.2", DATA_TYPE_NUMERIC, 0);
-```
-
-#### Actuation
-```
-wolk_receive (&wolk, timeout);
-wolk_read_actuator (&wolk, command, reference, value);
-```
-
-**Note:** Example application contained in 'examples' folder is compatible with ESP8266 WiFi module.

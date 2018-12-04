@@ -126,7 +126,25 @@ WOLK_ERR_T wolk_connect (wolk_ctx_t *ctx)
     memset (client_id, 0, TOPIC_SIZE);
     sprintf(client_id,"%s%d",ctx->device_key,rand() % 1000);
 
-    ctx->mqtt_client->connect(client_id, ctx->device_key, ctx->device_password);
+    //ctx->mqtt_client->connect(client_id, ctx->device_key, ctx->device_password);
+
+    while (!ctx->mqtt_client->connected()) 
+    {
+        Serial.print("Attempting MQTT connection...");
+        // Attempt to connect
+        if (ctx->mqtt_client->connect(client_id, ctx->device_key, ctx->device_password)) 
+        {
+            Serial.println("connected");
+        } 
+        else 
+        {
+            Serial.print("failed, rc=");
+            Serial.print(ctx->mqtt_client->state());
+            Serial.println(" try again in 5 seconds");
+            // Wait 5 seconds before retrying
+            delay(5000);
+        }
+    }
 
     char pub_topic[TOPIC_SIZE];
     int i;
@@ -294,14 +312,17 @@ WOLK_ERR_T wolk_process (wolk_ctx_t *ctx, uint32_t tick)
 
     if (ctx->mqtt_client->loop(ctx)==false)
     {
+        Serial.println("Disconnected, attempting to reconnect");
+        wolk_connect(ctx);
         return W_TRUE;
     }
 
     if (_ping_keep_alive(ctx, tick) != W_FALSE) {
+        Serial.println("Ping keep alive failed");
         return W_TRUE;
     }
-    Serial.print("MQTT Client State: ");
-    Serial.println(ctx->mqtt_client->state());
+    //Serial.print("MQTT Client State: ");
+    //Serial.println(ctx->mqtt_client->state());
 
     return W_FALSE;
 }
@@ -654,5 +675,4 @@ static void _parser_init(wolk_ctx_t* ctx, protocol_t protocol)
         WOLK_ASSERT(false);
     }
 }
-
 
