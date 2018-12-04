@@ -93,94 +93,76 @@ static size_t configuration_provider(char (*reference)[CONFIGURATION_REFERENCE_S
 ## Example
 #### Setup connection
 ```
-static const char* ssid = "wifi_ssid";
-static const char* password = "wifi_password";
+#include <WiFi101.h>
 
-static const char *device_key = "device_key";
-static const char *password_key = "password_key";
+#include "WolkConn.h"
+#include "MQTTClient.h"
 
-static const char* server_uri = "api-demo.wolkabout.com";
-static int portno = 1883;
+const char* ssid = "wifi_ssid";
+const char* wifi_pass = "wifi_password";
 
-static const char *numeric_slider_reference = "SL";
-static const char *bool_switch_reference = "SW";
+const char *device_key = "device_key";
+const char *device_password = "device_password";
+const char* hostname = "api-demo.wolkabout.com";
+int portno = 1883;
 
-static char reference[32];
-static char command [32];
-static char value[64];
-static static wolk_ctx_t wolk;
-static WiFiClient espClient;
-static PubSubClient client(espClient);
+/* WolkConnect-C Connector context */
+static wolk_ctx_t wolk;
 
-/* Provided example uses ESP8266 WiFi module */
-static WiFiClient espClient;
-static PubSubClient client(espClient);
+WiFiClient espClient;
+PubSubClient client(espClient);
+
+void setup_wifi() {
+
+  delay(10);
+  // We start by connecting to a WiFi network
+  Serial.println();
+  Serial.print("Connecting to ");
+  Serial.println(ssid);
+  WiFi.begin(ssid, wifi_pass);
+
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+
+  Serial.println("");
+  Serial.println("WiFi connected");
+  Serial.println("IP address: ");
+  Serial.println(WiFi.localIP());
+}
 
 void setup() {
-	delay(10);
-	WiFi.begin(ssid, password);
-	
-	while (WiFi.status() != WL_CONNECTED) {
-	    delay(100);
-	}
-	wolk_set_protocol(&wolk, PROTOCOL_TYPE_JSON);
+  Serial.begin(9600);
+
+  setup_wifi();
+
+  wolk_init(&wolk, NULL, NULL, NULL, NULL,
+            device_key, device_password, &client, hostname, portno, PROTOCOL_TYPE_JSON, NULL, NULL);
+
+  wolk_connect(&wolk);
+
+  delay (1000);
   
-	wolk_connect(&wolk, &client, mqtt_server, portno, device_key, password_key);
-	
-	wolk_set_actuator_references (&wolk, 2, numeric_slider_reference, bool_switch_reference);
-	
-	wolk_publish_num_actuator_status (&wolk, numeric_slider_reference, 0, ACTUATOR_STATUS_READY, 0);
-	
-	wolk_publish_bool_actuator_status (&wolk,bool_switch_reference, true, ACTUATOR_STATUS_READY, 0);
-	
-	wolk_publish_single (&wolk, "TS", "Arduino", DATA_TYPE_STRING, 0);
-	
-	wolk_publish_single (&wolk, "TN", "30", DATA_TYPE_NUMERIC, 0);
-	
-	wolk_publish_single (&wolk, "TB", "true", DATA_TYPE_BOOLEAN, 0);
-	
-	delay (10000);
-	
-	wolk_add_bool_reading(&wolk, "TB", false, 0);
-	
-	wolk_add_string_reading(&wolk, "TS", "Example_String_Reading", 0);
-	
-	wolk_add_numeric_reading(&wolk, "TN", 100, 0);
-	
-	wolk_publish (&wolk);
+  wolk_add_numeric_sensor_reading(&wolk, "T", 53, 0);
+
 }
 
 void loop() {
-	memset (reference, 0, 32);
-	memset (command, 0, 32);
-	memset (value, 0, 64);
-	
-	wolk_receive (&wolk);
-	if  (wolk_read_actuator (&wolk, command, reference, value)!= W_TRUE)
-	{
-		Serial.println("Wolk client - Received:");
-		Serial.print("Command: ");
-		Serial.println(command);
-		Serial.print("Actuator reference:");
-		Serial.println(reference);
-		Serial.print("Value:");
-		Serial.println(value);
-		if (strcmp(reference, numeric_slider_reference)==0)
-		{
-			int num_val = atoi(value);
-			wolk_publish_num_actuator_status (&wolk, numeric_slider_reference, num_val, ACTUATOR_STATUS_READY, 0);
-		} else if (strcmp(reference, bool_switch_reference)==0)
-		{
-			if (strcmp(value,"true")==0)
-			{
-				wolk_publish_bool_actuator_status (&wolk,bool_switch_reference, true, ACTUATOR_STATUS_READY, 0);
-			} else if (strcmp(value,"false")==0)
-			{
-				wolk_publish_bool_actuator_status (&wolk,bool_switch_reference, false, ACTUATOR_STATUS_READY, 0);
-			}
-		}
-	}
-	delay(1000);
+
+  if (Serial.available() > 0)
+  {
+    wolk_disconnect(&wolk);
+    Serial.println("Disconnected!");
+    while (true)
+    {
+      delay(10000);
+    };
+  }
+  wolk_process (&wolk, 5);
+
+  delay(1000);
 }
+
 
 ```

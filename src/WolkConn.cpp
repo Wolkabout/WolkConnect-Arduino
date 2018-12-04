@@ -126,8 +126,6 @@ WOLK_ERR_T wolk_connect (wolk_ctx_t *ctx)
     memset (client_id, 0, TOPIC_SIZE);
     sprintf(client_id,"%s%d",ctx->device_key,rand() % 1000);
 
-    //ctx->mqtt_client->connect(client_id, ctx->device_key, ctx->device_password);
-
     while (!ctx->mqtt_client->connected()) 
     {
         Serial.print("Attempting MQTT connection...");
@@ -321,8 +319,6 @@ WOLK_ERR_T wolk_process (wolk_ctx_t *ctx, uint32_t tick)
         Serial.println("Ping keep alive failed");
         return W_TRUE;
     }
-    //Serial.print("MQTT Client State: ");
-    //Serial.println(ctx->mqtt_client->state());
 
     return W_FALSE;
 }
