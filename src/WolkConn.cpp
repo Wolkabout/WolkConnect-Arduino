@@ -247,20 +247,9 @@ void callback(void *wolk, char* topic, byte*payload, unsigned int length)
     }
     else if (strstr(topic, CONFIGURATION_COMMANDS)) 
     {
-        Serial.println("Configurations received!");
         configuration_command_t configuration_command;
-        //Serial.println(topic);
-        Serial.println(payload_str);
         const size_t num_deserialized_commands = parser_deserialize_configuration_commands(&ctx->parser, (char*)payload_str, (size_t)length, &configuration_command, 1);
-        Serial.println("Deserialized commands(reference, value)");
-        for(i = 0; i < 4; i++)
-        {
-            Serial.print(i);
-            Serial.println(". configuration:");
-            Serial.print(configuration_command.reference[i]);
-            Serial.print(" ");
-            Serial.println(configuration_command.value[i]);
-        }
+        
         if (num_deserialized_commands != 0) 
         {
         _handle_configuration_command(ctx, &configuration_command);
@@ -297,10 +286,6 @@ static void _handle_configuration_command(wolk_ctx_t* ctx, configuration_command
                                                           num_configuration_items, &outbound_message)) {
                 return;
             }
-
-            Serial.print("Outbound message topic, payload: ");
-            Serial.print(outbound_message.topic);
-            Serial.println(outbound_message.payload);
 
             _publish(ctx, outbound_message.topic, outbound_message.payload);
                 
@@ -350,10 +335,6 @@ WOLK_ERR_T wolk_add_string_sensor_reading(wolk_ctx_t *ctx,const char *reference,
     outbound_message_t outbound_message;
     outbound_message_make_from_readings(&ctx->parser, ctx->device_key, &reading, 1, &outbound_message);
 
-    Serial.print("Outbound message topic, payload: ");
-    Serial.print(outbound_message.topic);
-    Serial.println(outbound_message.payload);
-
     _publish(ctx, outbound_message.topic, outbound_message.payload);
 
     return W_FALSE;
@@ -382,10 +363,6 @@ WOLK_ERR_T wolk_add_multi_value_string_sensor_reading(wolk_ctx_t* ctx, const cha
     outbound_message_t outbound_message;
     outbound_message_make_from_readings(&ctx->parser, ctx->device_key, &reading, 1, &outbound_message);
 
-    Serial.print("Outbound message topic, payload: ");
-    Serial.print(outbound_message.topic);
-    Serial.println(outbound_message.payload);
-
     _publish(ctx, outbound_message.topic, outbound_message.payload);
 
     return W_FALSE;
@@ -410,10 +387,6 @@ WOLK_ERR_T wolk_add_numeric_sensor_reading(wolk_ctx_t *ctx,const char *reference
 
     outbound_message_t outbound_message;
     outbound_message_make_from_readings(&ctx->parser, ctx->device_key, &reading, 1, &outbound_message);
-    
-    Serial.print("Outbound message topic, payload: ");
-    Serial.print(outbound_message.topic);
-    Serial.println(outbound_message.payload);
 
     _publish(ctx, outbound_message.topic, outbound_message.payload);
 
@@ -447,9 +420,6 @@ WOLK_ERR_T wolk_add_multi_value_numeric_sensor_reading(wolk_ctx_t* ctx, const ch
 
     outbound_message_t outbound_message;
     outbound_message_make_from_readings(&ctx->parser, ctx->device_key, &reading, 1, &outbound_message);
-    Serial.print("Outbound message topic, payload: ");
-    Serial.print(outbound_message.topic);
-    Serial.println(outbound_message.payload);
 
     _publish(ctx, outbound_message.topic, outbound_message.payload);
 
@@ -479,10 +449,6 @@ WOLK_ERR_T wolk_add_bool_sensor_reading(wolk_ctx_t *ctx,const char *reference,bo
     outbound_message_t outbound_message;
     outbound_message_make_from_readings(&ctx->parser, ctx->device_key, &reading, 1, &outbound_message);
 
-    Serial.print("Outbound message topic, payload: ");
-    Serial.print(outbound_message.topic);
-    Serial.println(outbound_message.payload);
-
     _publish(ctx, outbound_message.topic, outbound_message.payload);
 
     return W_FALSE;
@@ -509,9 +475,6 @@ WOLK_ERR_T wolk_add_multi_value_bool_sensor_reading(wolk_ctx_t* ctx, const char*
 
     outbound_message_t outbound_message;
     outbound_message_make_from_readings(&ctx->parser, ctx->device_key, &reading, 1, &outbound_message);
-    Serial.print("Outbound message topic, payload: ");
-    Serial.print(outbound_message.topic);
-    Serial.println(outbound_message.payload);
 
     _publish(ctx, outbound_message.topic, outbound_message.payload);
 
@@ -533,11 +496,6 @@ WOLK_ERR_T wolk_add_alarm(wolk_ctx_t* ctx, const char* reference, bool state, ui
 
     outbound_message_t outbound_message;
     outbound_message_make_from_readings(&ctx->parser, ctx->device_key, &alarm_reading, 1, &outbound_message);
-
-    Serial.print("Outbound message topic, payload: ");
-    Serial.print(outbound_message.topic);
-    Serial.print(", ");
-    Serial.println(outbound_message.payload);
 
     _publish(ctx, outbound_message.topic, outbound_message.payload);
 
@@ -583,10 +541,6 @@ WOLK_ERR_T wolk_publish_actuator_status (wolk_ctx_t *ctx,const char *reference)
     outbound_message_t outbound_message;
 
     outbound_message_init(&outbound_message, pub_topic, readings_buffer);
-    Serial.print("Outbound message topic, payload: ");
-    Serial.print(outbound_message.topic);
-    Serial.print(", ");
-    Serial.println(outbound_message.payload);
 
     if (_publish (ctx, outbound_message.topic, outbound_message.payload) != W_FALSE)
     {
@@ -653,10 +607,6 @@ static WOLK_ERR_T _ping_keep_alive(wolk_ctx_t* ctx, uint32_t tick)
 
     outbound_message_t outbound_message;
     outbound_message_make_from_keep_alive_message(&ctx->parser, ctx->device_key, &outbound_message);
-    
-    Serial.print("Outbound message topic, payload: ");
-    Serial.print(outbound_message.topic);
-    Serial.println(outbound_message.payload);
 
     if (_publish(ctx, outbound_message.topic, outbound_message.payload) != W_FALSE) {
         return W_TRUE;
