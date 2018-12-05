@@ -247,7 +247,7 @@ void callback(void *wolk, char* topic, byte*payload, unsigned int length)
     }
     else if (strstr(topic, CONFIGURATION_COMMANDS)) 
     {
-        Serial.println("Hey, I've got some configurations here");
+        Serial.println("Configurations received!");
         configuration_command_t configuration_command;
         //Serial.println(topic);
         Serial.println(payload_str);
@@ -258,6 +258,7 @@ void callback(void *wolk, char* topic, byte*payload, unsigned int length)
             Serial.print(i);
             Serial.println(". configuration:");
             Serial.print(configuration_command.reference[i]);
+            Serial.print(" ");
             Serial.println(configuration_command.value[i]);
         }
         if (num_deserialized_commands != 0) 

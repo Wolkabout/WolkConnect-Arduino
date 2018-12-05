@@ -60,9 +60,8 @@ enum {
     PARSER_INTERNAL_BUFFER_SIZE = READING_SIZE,
 
     /*used in publish actuator status*/
-    READINGS_BUFFER_SIZE = 192,
+    READINGS_BUFFER_SIZE = 192
 
-    STR_64 = 64,
 };
 
 #ifdef __cplusplus
