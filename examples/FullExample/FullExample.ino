@@ -19,7 +19,6 @@ const char* actuator_refs[] = {"SL", "SW"};
 
 static char actuator_value[READING_SIZE] = {"0"};
 
-bool bool_value = true;
 double accl_readings[3] = {1, 3, 5};
 
 WiFiClient espClient;

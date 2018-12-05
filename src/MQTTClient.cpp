@@ -284,7 +284,6 @@ boolean PubSubClient::loop(void *wolk) {
         unsigned long t = millis();
         if ((t - lastInActivity > MQTT_KEEPALIVE*1000UL) || (t - lastOutActivity > MQTT_KEEPALIVE*1000UL)) {
             if (pingOutstanding) {
-                Serial.println("Loop:Connection timeout");
                 this->_state = MQTT_CONNECTION_TIMEOUT;
                 _client->stop();
                 return false;

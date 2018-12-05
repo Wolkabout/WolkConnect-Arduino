@@ -40,7 +40,7 @@ typedef struct {
     bool is_initialized;
 
     size_t (*serialize_readings)(reading_t* first_reading, size_t num_readings, char* buffer, size_t buffer_size);
-    //called deserialize actuator commands and a diff def
+
     size_t (*deserialize_commands)(char* buffer, size_t buffer_size, actuator_command_t* commands_buffer, size_t commands_buffer_size);
     size_t (*deserialize_actuator_commands)(char* topic, size_t topic_size, char* buffer, size_t buffer_size,
                                             actuator_command_t* commands_buffer, size_t commands_buffer_size);

@@ -18,7 +18,6 @@
 #define OUTBOUND_MESSAGE_FACTORY_H
 
 #include "actuator_status.h"
-//#include "firmware_update_status.h"
 #include "outbound_message.h"
 #include "parser.h"
 #include "reading.h"
@@ -42,17 +41,6 @@ bool outbound_message_make_from_configuration(parser_t* parser, const char* devi
                                               char (*reference)[CONFIGURATION_REFERENCE_SIZE],
                                               char (*value)[CONFIGURATION_VALUE_SIZE], size_t num_configuration_items,
                                               outbound_message_t* outbound_message);
-
-/*bool outbound_message_make_from_firmware_update_status(parser_t* parser, const char* device_key,
-                                                       firmware_update_status_t* firmware_update_status,
-                                                       outbound_message_t* outbound_message);*/
-
-/*bool outbound_message_make_from_firmware_update_packet_request(
-    parser_t* parser, const char* device_key, firmware_update_packet_request_t* firmware_update_packet_request,
-    outbound_message_t* outbound_message);*/
-
-/*bool outbound_message_make_from_firmware_version(parser_t* parser, const char* device_key, const char* version,
-                                                 outbound_message_t* outbound_message);*/
 
 bool outbound_message_make_from_keep_alive_message(parser_t* parser, const char* device_key,
                                                    outbound_message_t* outbound_message);
