@@ -28,6 +28,11 @@ enum {
     /* Maximum number of characters in device password string */
     DEVICE_PASSWORD_SIZE = 40,
 
+    /* Maximum number of characters in topic string */
+    TOPIC_SIZE = 64,
+    /* Maximum number of bytes in payload string */
+    PAYLOAD_SIZE = 256,
+
     /* Maximum number of characters in reference string */
     MANIFEST_ITEM_REFERENCE_SIZE = 64,
 
@@ -47,21 +52,17 @@ enum {
     /* Maximum number of characters in configuration item name string */
     CONFIGURATION_REFERENCE_SIZE = MANIFEST_ITEM_REFERENCE_SIZE,
     /* Maximum number of characters in configuration item value string */
-    CONFIGURATION_VALUE_SIZE = READING_SIZE,
+    CONFIGURATION_VALUE_SIZE = 128,
     /* Maximum number of configuration items for device */
     CONFIGURATION_ITEMS_SIZE = 4,
 
     /* Parser internal buffer size, should be at least READING_SIZE  big */
     PARSER_INTERNAL_BUFFER_SIZE = READING_SIZE,
 
-    PAYLOAD_SIZE = 256,
-    TOPIC_SIZE = 64,
-    SERIAL_SIZE = 32,
-    READINGS_SIZE = 5,
+    /*used in publish actuator status*/
     READINGS_BUFFER_SIZE = 192,
-    READINGS_MQTT_SIZE = 256,
+
     STR_64 = 64,
-    STR_256 = 256
 };
 
 #ifdef __cplusplus

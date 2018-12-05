@@ -197,10 +197,10 @@ void callback(void *wolk, char* topic, byte*payload, unsigned int length)
     int i = 0;
     actuator_command_t commands_buffer[128];
     wolk_ctx_t *ctx = (wolk_ctx_t *)wolk;
-    char reference[STR_64];
-    char payload_str[STR_256];
-    memset (reference, 0, STR_64);
-    memset (payload_str, 0, STR_256);
+    char reference[MANIFEST_ITEM_REFERENCE_SIZE];
+    char payload_str[PAYLOAD_SIZE];
+    memset (reference, 0, MANIFEST_ITEM_REFERENCE_SIZE);
+    memset (payload_str, 0, PAYLOAD_SIZE);
 
     memcpy(payload_str, payload, length);
 
@@ -249,8 +249,17 @@ void callback(void *wolk, char* topic, byte*payload, unsigned int length)
     {
         Serial.println("Hey, I've got some configurations here");
         configuration_command_t configuration_command;
-        const size_t num_deserialized_commands = parser_deserialize_configuration_commands(
-        &ctx->parser, (char*)payload, (size_t)length, &configuration_command, 1);
+        //Serial.println(topic);
+        Serial.println(payload_str);
+        const size_t num_deserialized_commands = parser_deserialize_configuration_commands(&ctx->parser, (char*)payload_str, (size_t)length, &configuration_command, 1);
+        Serial.println("Deserialized commands(reference, value)");
+        for(i = 0; i < 4; i++)
+        {
+            Serial.print(i);
+            Serial.println(". configuration:");
+            Serial.print(configuration_command.reference[i]);
+            Serial.println(configuration_command.value[i]);
+        }
         if (num_deserialized_commands != 0) 
         {
         _handle_configuration_command(ctx, &configuration_command);
@@ -389,8 +398,8 @@ WOLK_ERR_T wolk_add_numeric_sensor_reading(wolk_ctx_t *ctx,const char *reference
     manifest_item_t numeric_sensor;
     manifest_item_init(&numeric_sensor, (char *)reference, READING_TYPE_SENSOR, DATA_TYPE_NUMERIC);
 
-    char value_str[STR_64];
-    memset (value_str, 0, STR_64);
+    char value_str[PAYLOAD_SIZE];
+    memset (value_str, 0, PAYLOAD_SIZE);
     dtostrf(value, 4, 2, value_str);
 
     reading_t reading;
@@ -428,8 +437,8 @@ WOLK_ERR_T wolk_add_multi_value_numeric_sensor_reading(wolk_ctx_t* ctx, const ch
 
     for(uint32_t i = 0; i < values_size; i++)
     {
-        char value_str[STR_64];
-        memset (value_str, 0, STR_64);
+        char value_str[PAYLOAD_SIZE];
+        memset (value_str, 0, PAYLOAD_SIZE);
         dtostrf(values[i], 4, 2, value_str);
 
         reading_set_data_at(&reading, value_str, i);
@@ -539,12 +548,10 @@ WOLK_ERR_T wolk_publish_actuator_status (wolk_ctx_t *ctx,const char *reference)
     /* Sanity check */
     WOLK_ASSERT(ctx->is_initialized == true);
 
-    unsigned char buf[READINGS_MQTT_SIZE];
     parser_t parser;
     reading_t readings;
     char readings_buffer[READINGS_BUFFER_SIZE];
     memset (readings_buffer, 0, READINGS_BUFFER_SIZE);
-    memset (buf, 0, READINGS_MQTT_SIZE);
     initialize_parser(&parser, ctx->parser.type);
 
     char pub_topic[TOPIC_SIZE];
