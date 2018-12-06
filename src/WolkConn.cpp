@@ -192,56 +192,21 @@ WOLK_ERR_T wolk_connect (wolk_ctx_t *ctx)
 
 void callback(void *wolk, char* topic, byte*payload, unsigned int length)
 {
-    int i = 0;
-    actuator_command_t commands_buffer[128];
     wolk_ctx_t *ctx = (wolk_ctx_t *)wolk;
-    char reference[MANIFEST_ITEM_REFERENCE_SIZE];
     char payload_str[PAYLOAD_SIZE];
-    memset (reference, 0, MANIFEST_ITEM_REFERENCE_SIZE);
     memset (payload_str, 0, PAYLOAD_SIZE);
 
     memcpy(payload_str, payload, length);
 
-    if (ctx->parser.type == PARSER_TYPE_JSON)
-    {
-        char *start_ptr = strrchr(topic, '/');
-        if (start_ptr != NULL)
-        {
-
-            strncpy(reference, start_ptr+1, strlen(topic)-(start_ptr-topic)-1);
-        }
-    }
-
     if (strstr(topic, ACTUATORS_COMMANDS_TOPIC_JSON) != NULL)
     {
-        size_t num_deserialized_commands = parser_deserialize_commands(&ctx->parser, payload_str, length, &commands_buffer[0], 128);
-
-        for (i = 0; i < num_deserialized_commands; ++i) 
+        actuator_command_t actuator_command;
+        const size_t num_deserialized_commands = parser_deserialize_actuator_commands(&ctx->parser, topic, strlen(topic), payload_str, length, &actuator_command, 1);
+        if (num_deserialized_commands != 0) 
         {
-            actuator_command_t* command = &commands_buffer[i];
-    
-            switch(actuator_command_get_type(command))
-            {
-                case ACTUATOR_COMMAND_TYPE_SET:
-                    if(ctx->actuation_handler != NULL)
-                    {
-                            ctx->actuation_handler(reference, actuator_command_get_value(command));
-                    }
-    
-            /* Fallthrough */
-            /* break; */
-                case ACTUATOR_COMMAND_TYPE_STATUS:
-                    if(ctx->actuator_status_provider != NULL)
-                    {
-                        wolk_publish_actuator_status(ctx, reference);
-                    }
-    
-                break;
-    
-                case ACTUATOR_COMMAND_TYPE_UNKNOWN:
-                break;
-            }
+            _handle_actuator_command(ctx, &actuator_command);
         }
+        
     }
     else if (strstr(topic, CONFIGURATION_COMMANDS_JSON)) 
     {
@@ -250,7 +215,7 @@ void callback(void *wolk, char* topic, byte*payload, unsigned int length)
         
         if (num_deserialized_commands != 0) 
         {
-        _handle_configuration_command(ctx, &configuration_command);
+            _handle_configuration_command(ctx, &configuration_command);
         }
     }
 }
@@ -293,6 +258,31 @@ static void _handle_configuration_command(wolk_ctx_t* ctx, configuration_command
     case CONFIGURATION_COMMAND_TYPE_UNKNOWN:
         break;
     }
+}
+
+static void _handle_actuator_command(wolk_ctx_t* ctx, actuator_command_t* command)
+{
+    switch(actuator_command_get_type(command))
+    {
+        case ACTUATOR_COMMAND_TYPE_SET:
+        if(ctx->actuation_handler != NULL)
+            {
+                ctx->actuation_handler(actuator_command_get_reference(command), actuator_command_get_value(command));
+            }
+
+        /* Fallthrough */
+        /* break; */
+        case ACTUATOR_COMMAND_TYPE_STATUS:
+            if(ctx->actuator_status_provider != NULL)
+            {
+                wolk_publish_actuator_status(ctx, actuator_command_get_reference(command));
+            }
+
+        break;
+
+        case ACTUATOR_COMMAND_TYPE_UNKNOWN:
+        break;
+        }
 }
 
 WOLK_ERR_T wolk_process (wolk_ctx_t *ctx, uint32_t tick)
