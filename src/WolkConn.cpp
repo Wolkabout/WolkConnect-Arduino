@@ -41,7 +41,7 @@
 /*ping keep alive every 60 seconds*/
 #define PING_KEEP_ALIVE_INTERVAL 300
 
-static const char* CONFIGURATION_COMMANDS_JSON = "configurations/commands/";
+static const char* CONFIGURATION_COMMANDS_TOPIC_JSON = "configurations/commands/";
 
 static WOLK_ERR_T _ping_keep_alive(wolk_ctx_t* ctx, uint32_t tick);
 
@@ -167,7 +167,7 @@ WOLK_ERR_T wolk_connect (wolk_ctx_t *ctx)
             }
         }
         memset(topic_buf, '\0', TOPIC_SIZE);
-        strcpy(&topic_buf[0], CONFIGURATION_COMMANDS_JSON);
+        strcpy(&topic_buf[0], CONFIGURATION_COMMANDS_TOPIC_JSON);
         strcat(&topic_buf[0], ctx->device_key);
 
         if (_subscribe(ctx, topic_buf) != W_FALSE) 
@@ -208,7 +208,7 @@ void callback(void *wolk, char* topic, byte*payload, unsigned int length)
         }
         
     }
-    else if (strstr(topic, CONFIGURATION_COMMANDS_JSON)) 
+    else if (strstr(topic, CONFIGURATION_COMMANDS_TOPIC_JSON)) 
     {
         configuration_command_t configuration_command;
         const size_t num_deserialized_commands = parser_deserialize_configuration_commands(&ctx->parser, (char*)payload_str, (size_t)length, &configuration_command, 1);
