@@ -201,7 +201,7 @@ void callback(void *wolk, char* topic, byte*payload, unsigned int length)
     if (strstr(topic, ACTUATORS_COMMANDS_TOPIC_JSON) != NULL)
     {
         actuator_command_t actuator_command;
-        const size_t num_deserialized_commands = parser_deserialize_actuator_commands(&ctx->parser, topic, strlen(topic), payload_str, length, &actuator_command, 1);
+        const size_t num_deserialized_commands = parser_deserialize_actuator_commands(&ctx->parser, topic, strlen(topic), (char*)payload_str, (size_t)length, &actuator_command, 1);
         if (num_deserialized_commands != 0) 
         {
             _handle_actuator_command(ctx, &actuator_command);

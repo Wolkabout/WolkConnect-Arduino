@@ -87,3 +87,13 @@ Disconnecting from the platform is done by calling the
 wolk_disconnect(&wolk)
 ```
 function. It sends the last will message to the platform and disconnects the MQTT client.
+
+#### Important note
+
+```c
+wolk_process (&wolk,  //Context 
+              5);     //Period at which wolk_process is called
+```
+Must be called regularly(less than 15 seconds between two calls) in order for the connection to be maintained.
+Be wary of that while implementing loop()!
+If possible, put sensor readings and other stuff to be called on timed interrupts.
