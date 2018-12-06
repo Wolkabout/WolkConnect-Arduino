@@ -62,19 +62,24 @@ static bool all_readings_have_equal_rtc(reading_t* first_reading, size_t num_rea
 static bool serialize_sensor(reading_t* reading, char* buffer, size_t buffer_size)
 {
     char data_buffer[PARSER_INTERNAL_BUFFER_SIZE];
-    if (!reading_get_delimited_data(reading, data_buffer, PARSER_INTERNAL_BUFFER_SIZE)) {
+    if (!reading_get_delimited_data(reading, data_buffer, PARSER_INTERNAL_BUFFER_SIZE)) 
+    {
         return false;
     }
 
-    if (reading_get_rtc(reading) > 0 &&
-        snprintf(buffer, buffer_size, "{\"utc\":%u,\"data\":\"%s\"}",
-                 reading_get_rtc(reading),
-                 data_buffer) >= (int)buffer_size) {
+    if (reading_get_rtc(reading) > 0)
+    {
+        if(snprintf(buffer, buffer_size, "{\"utc\":%u,\"data\":\"%s\"}", reading_get_rtc(reading),data_buffer) >= (int)buffer_size) 
+        {
             return false;
-    } else if (reading_get_rtc(reading) == 0 &&
-        snprintf(buffer, buffer_size, "{\"data\":\"%s\"}",
-        data_buffer) >= (int)buffer_size) {
-        return false;
+        }
+    } 
+    else if (reading_get_rtc(reading) == 0)
+    {
+        if(snprintf(buffer, buffer_size, "{\"data\":\"%s\"}",data_buffer) >= (int)buffer_size) 
+        {
+            return false;
+        }
     }
 
     return true;

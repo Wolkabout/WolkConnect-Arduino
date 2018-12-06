@@ -30,18 +30,18 @@
 #define BOOL_FALSE "false"
 #define BOOL_TRUE "true"
 
-#define RADINGS_PATH "readings/"
+#define READINGS_PATH_JSON "readings/"
 
-#define ACTUATORS_STATUS_TOPIC "actuators/status/"
+#define ACTUATORS_STATUS_TOPIC_JSON "actuators/status/"
 #define ACTUATORS_COMMANDS_TOPIC_JSON "actuators/commands/"
 
-#define LASTWILL_TOPIC "lastwill/"
-#define LASTWILL_MESSAGE "Gone offline"
+#define LASTWILL_TOPIC_JSON "lastwill/"
+#define LASTWILL_MESSAGE_JSON "Gone offline"
 
 /*ping keep alive every 60 seconds*/
 #define PING_KEEP_ALIVE_INTERVAL 300
 
-static const char* CONFIGURATION_COMMANDS = "configurations/commands/";
+static const char* CONFIGURATION_COMMANDS_JSON = "configurations/commands/";
 
 static WOLK_ERR_T _ping_keep_alive(wolk_ctx_t* ctx, uint32_t tick);
 
@@ -67,7 +67,7 @@ WOLK_ERR_T wolk_init(wolk_ctx_t* ctx, actuation_handler_t actuation_handler, act
     WOLK_ASSERT(strlen(device_key) < DEVICE_KEY_SIZE);
     WOLK_ASSERT(strlen(device_password) < DEVICE_PASSWORD_SIZE);
 
-    WOLK_ASSERT(protocol == PROTOCOL_TYPE_JSON);
+    WOLK_ASSERT(protocol == PROTOCOL_JSON_SINGLE);
 
     if (num_actuator_references > 0 && (actuation_handler == NULL || actuator_status_provider == NULL)) {
         WOLK_ASSERT(false);
@@ -119,10 +119,12 @@ WOLK_ERR_T wolk_connect (wolk_ctx_t *ctx)
     char sub_topic[TOPIC_SIZE];
     char client_id[TOPIC_SIZE];
 
-    memset (lastwill_topic, 0, TOPIC_SIZE);
-    strcpy (lastwill_topic, LASTWILL_TOPIC);
-    strcat (lastwill_topic, ctx->device_key);
-
+    if (ctx->parser.type == PARSER_TYPE_JSON)
+    {
+        memset (lastwill_topic, 0, TOPIC_SIZE);
+        strcpy (lastwill_topic, LASTWILL_TOPIC_JSON);
+        strcat (lastwill_topic, ctx->device_key);
+    }
     memset (client_id, 0, TOPIC_SIZE);
     sprintf(client_id,"%s%d",ctx->device_key,rand() % 1000);
 
@@ -130,7 +132,7 @@ WOLK_ERR_T wolk_connect (wolk_ctx_t *ctx)
     {
         Serial.print("Attempting MQTT connection...");
         // Attempt to connect
-        if (ctx->mqtt_client->connect(client_id, ctx->device_key, ctx->device_password)) 
+        if (ctx->mqtt_client->connect(client_id, ctx->device_key, ctx->device_password, lastwill_topic, NULL, NULL, LASTWILL_MESSAGE_JSON)) 
         {
             Serial.println("connected");
         } 
@@ -145,6 +147,7 @@ WOLK_ERR_T wolk_connect (wolk_ctx_t *ctx)
     }
 
     char pub_topic[TOPIC_SIZE];
+    char topic_buf[TOPIC_SIZE];
     int i;
     if (ctx->parser.type == PARSER_TYPE_JSON)
     {
@@ -158,32 +161,27 @@ WOLK_ERR_T wolk_connect (wolk_ctx_t *ctx)
             strcat(pub_topic,"/");
             strcat(pub_topic,str);
 
-
             if (_subscribe (ctx, pub_topic) != W_FALSE)
             {
                 return W_TRUE;
             }
         }
-    }
+        memset(topic_buf, '\0', TOPIC_SIZE);
+        strcpy(&topic_buf[0], CONFIGURATION_COMMANDS_JSON);
+        strcat(&topic_buf[0], ctx->device_key);
 
-    char topic_buf[TOPIC_SIZE];
+        if (_subscribe(ctx, topic_buf) != W_FALSE) 
+        {
+         return W_TRUE;
+        }
+    }  
 
-    memset(topic_buf, '\0', TOPIC_SIZE);
-    strcpy(&topic_buf[0], CONFIGURATION_COMMANDS);
-    strcat(&topic_buf[0], ctx->device_key);
-
-    if (_subscribe(ctx, topic_buf) != W_FALSE) {
-        return W_TRUE;
-    }
-
-    for (i = 0; i < ctx->num_actuator_references; ++i) {
+    for (i = 0; i < ctx->num_actuator_references; ++i) 
+    {
         const char* reference = ctx->actuator_references[i];
 
         wolk_publish_actuator_status(ctx, reference);
-
     }
-
-
 
     return W_FALSE;
 
@@ -245,7 +243,7 @@ void callback(void *wolk, char* topic, byte*payload, unsigned int length)
             }
         }
     }
-    else if (strstr(topic, CONFIGURATION_COMMANDS)) 
+    else if (strstr(topic, CONFIGURATION_COMMANDS_JSON)) 
     {
         configuration_command_t configuration_command;
         const size_t num_deserialized_commands = parser_deserialize_configuration_commands(&ctx->parser, (char*)payload_str, (size_t)length, &configuration_command, 1);
@@ -289,7 +287,6 @@ static void _handle_configuration_command(wolk_ctx_t* ctx, configuration_command
 
             _publish(ctx, outbound_message.topic, outbound_message.payload);
                 
-            
         }
         break;
 
@@ -522,7 +519,7 @@ WOLK_ERR_T wolk_publish_actuator_status (wolk_ctx_t *ctx,const char *reference)
 
     if (ctx->parser.type==PARSER_TYPE_JSON)
     {
-        strcpy(pub_topic,ACTUATORS_STATUS_TOPIC);
+        strcpy(pub_topic,ACTUATORS_STATUS_TOPIC_JSON);
         strcat(pub_topic,ctx->device_key);
         strcat(pub_topic,"/");
         strcat(pub_topic,reference);
@@ -565,10 +562,10 @@ WOLK_ERR_T wolk_disconnect(wolk_ctx_t *ctx)
     char lastwill_topic[TOPIC_SIZE];
 
     memset (lastwill_topic, 0, TOPIC_SIZE);
-    strcpy (lastwill_topic, LASTWILL_TOPIC);
+    strcpy (lastwill_topic, LASTWILL_TOPIC_JSON);
     strcat (lastwill_topic, ctx->device_key);
 
-    ctx->mqtt_client->publish(lastwill_topic, LASTWILL_MESSAGE);
+    ctx->mqtt_client->publish(lastwill_topic, LASTWILL_MESSAGE_JSON);
     ctx->mqtt_client->disconnect();
     return W_FALSE;
 }
@@ -620,7 +617,7 @@ static WOLK_ERR_T _ping_keep_alive(wolk_ctx_t* ctx, uint32_t tick)
 static void _parser_init(wolk_ctx_t* ctx, protocol_t protocol)
 {
     switch (protocol) {
-    case PROTOCOL_TYPE_JSON:
+    case PROTOCOL_JSON_SINGLE:
         initialize_parser(&ctx->parser, PARSER_TYPE_JSON);
         break;
 

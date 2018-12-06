@@ -8,7 +8,7 @@ WolkConnect-Arduino is compatible with all hardware supported by [PubSubClient](
 Provided example is made for Genuino MKR1000.
 
 Supported protocol(s):
-JSON single (PROTOCOL_TYPE_JSON)
+JSON single (PROTOCOL_JSON_SINGLE)
 
 ## Library usage
 
@@ -54,7 +54,7 @@ wolk_init(&wolk               //ctx Context
           &client,            //MQQT Client
           hostname,           //MQQT Server
           portno,             //Port to connect to
-          PROTOCOL_TYPE_JSON, //Protocol specified for device
+          PROTOCOL_JSON_SINGLE, //Protocol specified for device
           NULL,               //Array of strings containing references of actuators that device possess
           NULL);              //Number of actuator references contained in actuator_references
 ```

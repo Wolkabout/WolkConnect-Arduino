@@ -43,7 +43,7 @@ void setup() {
   setup_wifi();
 
   wolk_init(&wolk, NULL, NULL, NULL, NULL,
-            device_key, device_password, &client, hostname, portno, PROTOCOL_TYPE_JSON, NULL, NULL);
+            device_key, device_password, &client, hostname, portno, PROTOCOL_JSON_SINGLE, NULL, NULL);
 
   wolk_connect(&wolk);
 

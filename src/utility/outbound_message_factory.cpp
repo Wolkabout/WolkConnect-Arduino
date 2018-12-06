@@ -41,7 +41,7 @@ size_t outbound_message_make_from_readings(parser_t* parser, const char* device_
     memset(payload, '\0', sizeof(payload));
 
     if (!parser_serialize_readings_topic(parser, device_key, first_reading, num_readings, topic, sizeof(topic))) {
-        return num_serialized;
+        return 0;
     }
 
     num_serialized = parser_serialize_readings(parser, first_reading, num_readings, payload, sizeof(payload));

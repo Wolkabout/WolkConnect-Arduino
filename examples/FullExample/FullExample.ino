@@ -115,7 +115,7 @@ void setup() {
   setup_wifi();
 
   wolk_init(&wolk, actuation_handler, actuator_status_provider, configuration_handler, configuration_provider,
-            device_key, device_password, &client, hostname, portno, PROTOCOL_TYPE_JSON, actuator_refs, 2);
+            device_key, device_password, &client, hostname, portno, PROTOCOL_JSON_SINGLE, actuator_refs, 2);
 
   wolk_connect(&wolk);
 

@@ -39,7 +39,7 @@ extern "C" {
 /**
  * @brief Supported protocols, WolkConnect libararies currently support only PROTOCOL_JSON_SINGLE
  */
-typedef enum { PROTOCOL_TYPE_JSON = 0 } protocol_t;
+typedef enum { PROTOCOL_JSON_SINGLE = 0 } protocol_t;
 /**
  * @brief WOLK_ERR_T Boolean used for error handling in Wolk connection module
  */
