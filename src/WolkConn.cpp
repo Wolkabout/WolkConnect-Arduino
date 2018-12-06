@@ -183,11 +183,11 @@ WOLK_ERR_T wolk_connect (wolk_ctx_t *ctx)
         wolk_publish_actuator_status(ctx, reference);
     }
 
-    return W_FALSE;
-
     configuration_command_t configuration_command;
     configuration_command_init(&configuration_command, CONFIGURATION_COMMAND_TYPE_CURRENT);
     _handle_configuration_command(ctx, &configuration_command);
+
+    return W_FALSE;
 }
 
 void callback(void *wolk, char* topic, byte*payload, unsigned int length)

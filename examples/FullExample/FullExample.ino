@@ -2,7 +2,6 @@
 
 #include "WolkConn.h"
 #include "MQTTClient.h"
-#include "utility/wolk_utils.h"
 
 const char* ssid = "wifi_ssid";
 const char* wifi_pass = "wifi_password";

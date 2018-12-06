@@ -25,6 +25,7 @@
 #include "utility/outbound_message.h"
 #include "utility/outbound_message_factory.h"
 #include "utility/dtostrf_fix.h"
+#include "utility/wolk_utils.h"
 
 #include "Arduino.h"
 
