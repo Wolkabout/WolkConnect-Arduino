@@ -1,32 +1,30 @@
 # WolkConnect-Arduino
-WolkAbout Arduino Connector library for connecting Arduino devices to [WolkAbout IoT platform](https://demo.wolkabout.com/#/login).
+WolkAbout Arduino Connector library for connecting IP based Arduino devices to [WolkAbout IoT platform](https://demo.wolkabout.com/#/login).
+List of compatible hardware is driven by [PubSubClient](https://pubsubclient.knolleary.net/) Arduino library.
 
 WolkConnect-Arduino is transportation layer agnostic which means it is up to the user of the library to
-provide socket to WolkAbout IoT platform and configure SSL if desired.
+provide socket to WolkAbout IoT platform.
 
-WolkConnect-Arduino is compatible with all hardware supported by [PubSubClient](https://pubsubclient.knolleary.net/) Arduino library.
-Provided example is made for Genuino MKR1000.
+Provided examples are made for Genuino MKR1000.
 
 Supported protocol(s):
 JSON single (PROTOCOL_JSON_SINGLE)
 
-## Library usage
+Prerequisite
+------
 
-#### Prerequisite
+  * WiFi101 library, available in [Library Manager](https://www.arduino.cc/en/Guide/Libraries).
+  * Adding our library as .zip in the Arduino IDE 
+    `(Sketch->Include Library->Add .ZIP library).`
 
-	Provided example uses WiFi101 library.
-  The library should be located in the Arduino /libraries folder (in case you downloaded from Git, if you installed it via Arduino Library Manager, it should already be there by default), or included in the Arduino IDE (Sketch->Include Library->Add .ZIP library).
+Example Usage
+-------------
 
-#### Setup
+**Initialize WolkConnect-Arduino Connector**
 
 Create a device on WolkAbout IoT platform by importing the provided manifest .json file located in the 'examples' folder. This manifest fits the example and demonstrates the sending of sensor readings, actuation and configuration.
 
-Edit device information and connection parameters
-
 ```c
-static const char* ssid = "wifi_ssid";
-static const char* password = "wifi_password";
-
 static const char *device_key = "device_key";
 static const char *password_key = "password_key";
 
@@ -37,12 +35,7 @@ WiFiClient espClient;
 PubSubClient client(espClient);
 ```
 
-Establish WiFi connection
-```c
-WiFi.begin(ssid, password);
-```
-
-Initialize the context
+**Initialize the context**
 ```c
 wolk_init(&wolk                            //ctx Context
           actuation_handler,               //function pointer to 'actuation_handler_t' implementation
@@ -57,15 +50,10 @@ wolk_init(&wolk                            //ctx Context
           PROTOCOL_JSON_SINGLE,              //Protocol specified for device
           actuator_refs,                   //Array of strings containing references of actuators that device possess
           2);                              //Number of actuator references contained in actuator_references
-```
-Connect to server
-
-```c
 wolk_connect(&wolk);
 ```
 
-
-#### Publishing data
+**Adding sensor readings:**
 
 Sensor types can be numeric, boolean and string and can containt more than one data parameter.
 Every type has it's own function for adding value eg. numeric sensor has:
@@ -84,26 +72,12 @@ wolk_add_multi_value_numeric_sensor_reading(&wolk,          //Context
                                             3,              //Number of sensor dimensions
                                             0);             //UTC time of sensor value acquisition
 ```
-Data is published to the platform using
+
+**Publishing actuator statuses:**
 ```c
-wolk_publish(&wolk);
+wolk_publish_actuator_status(&wolk, "SLIDER_REF");
 ```
-In between adding data and publishing, data is stored in an internal buffer (along with the unpublished
-actuations and configurations, which are rare but they could be in there if you have network issues).
-The buffer can store 64 values at most, so be careful. 
-
-#### Alarms
-
-Alarms are published within the add alarm function
-
-```c
-wolk_add_alarm(&wolk,   //Context
-                "HH",   //Alarm Reference
-                true,   //Alarm Value
-                0);     //UTC time of alarm trigger
-```
-
-#### Actuation
+This will invoke the `actuator_status_provider` to read the actuator status, and publish actuator status.
 
 Process receives actuation commands from the platform when wolk_process is called.
 ```c
@@ -117,7 +91,7 @@ static void actuation_handler(const char* reference, const char* value)
 static actuator_status_t actuator_status_provider(const char* reference)
 ```
 
-#### Configuration
+**Device Configuration**
 
 Process receives configuration commands from the platform when wolk_proceess is called.
 ```c
@@ -134,13 +108,28 @@ static size_t configuration_provider(char (*reference)[CONFIGURATION_REFERENCE_S
                                      char (*value)[CONFIGURATION_VALUE_SIZE],
                                      size_t max_num_configuration_items)
 ```
-#### Maintaining connection to the platform
+
+**Publishing events:**
+
+Alarms are published within the add alarm function
+
 ```c
-wolk_process (&wolk,  //Context 
-              5);     //Period at which wolk_process is called
+wolk_add_alarm(&wolk,   //Context
+                "HH",   //Alarm Reference
+                true,   //Alarm Value
+                0);     //UTC time of alarm trigger
 ```
 
-### Disconnecting
+**Data publish strategy:**
+Data (alarms and sensor readings) is published to the platform using
+```c
+wolk_publish(&wolk);
+```
+In between adding data and publishing, data is stored in an internal buffer (along with the unpublished
+actuations and configurations, which are rare but they could be in there if you have network issues).
+The buffer can store 64 values at most, so be careful. 
+
+**Disconnecting from the platform:**
 
 Disconnecting from the platform is done by calling the
 ```c
@@ -148,8 +137,12 @@ wolk_disconnect(&wolk)
 ```
 function. It sends the last will message to the platform and disconnects the MQTT client.
 
-#### Important note
+**Cooperative scheduling:**
 
+Fuction `wolk_process(wolk_ctx_t *ctx)` is non-blocking in order to comply with cooperative scheduling,
+and it must to be called periodically.
+
+** Important note **
 ```c
 wolk_process (&wolk,  //Context 
               5);     //Period at which wolk_process is called

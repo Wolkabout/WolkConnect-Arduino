@@ -578,7 +578,7 @@ static WOLK_ERR_T _ping_keep_alive(wolk_ctx_t* ctx, uint32_t tick)
     if (_publish(ctx, outbound_message.topic, outbound_message.payload) != W_FALSE) {
         return W_TRUE;
     }
-
+    Serial.println("ping");
 
     ctx->milliseconds_since_last_ping_keep_alive = 0;
     return W_FALSE;
