@@ -130,6 +130,10 @@ void setup() {
 
   wolk_add_alarm(&wolk, "HH", true, 0);
 
+  wolk_publish(&wolk);
+
+  delay(500);
+
 }
 
 void loop() {

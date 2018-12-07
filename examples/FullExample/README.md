@@ -67,7 +67,6 @@ wolk_connect(&wolk);
 
 #### Publishing data
 
-As it is right now, the platform publishes data within the add sensor reading function.
 Sensor types can be numeric, boolean and string and can containt more than one data parameter.
 Every type has it's own function for adding value eg. numeric sensor has:
 
@@ -85,6 +84,13 @@ wolk_add_multi_value_numeric_sensor_reading(&wolk,          //Context
                                             3,              //Number of sensor dimensions
                                             0);             //UTC time of sensor value acquisition
 ```
+Data is published to the platform using
+```c
+wolk_publish(&wolk);
+```
+In between adding data and publishing, data is stored in an internal buffer (along with the unpublished
+actuations and configurations, which are rare but they could be in there if you have network issues).
+The buffer can store 64 values at most, so be careful. 
 
 #### Alarms
 

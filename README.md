@@ -66,15 +66,20 @@ wolk_connect(&wolk);
 
 
 #### Publishing data
-
-As it is right now, the platform publishes data within the set sensor reading function.
-
+Data is added to the system using
 ```c
 wolk_add_numeric_sensor_reading(&wolk,  //Context 
                                 "T",    //Sensor Reference
                                 23.4,   //Sensor Value
                                 0);     //UTC time
 ```
+Data is published to the platform using
+```c
+wolk_publish(&wolk);
+```
+In between adding data and publishing, data is stored in an internal buffer.
+The buffer can store 64 values at most, so be careful. 
+
 #### Maintaining connection to the platform
 ```c
 wolk_process (&wolk,  //Context 

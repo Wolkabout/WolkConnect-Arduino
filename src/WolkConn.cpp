@@ -226,9 +226,11 @@ void callback(void *wolk, char* topic, byte*payload, unsigned int length)
 
 static void _handle_configuration_command(wolk_ctx_t* ctx, configuration_command_t* configuration_command)
 {
-    switch (configuration_command_get_type(configuration_command)) {
+    switch (configuration_command_get_type(configuration_command)) 
+    {
     case CONFIGURATION_COMMAND_TYPE_SET:
-        if (ctx->configuration_handler != NULL) {
+        if (ctx->configuration_handler != NULL) 
+        {
             ctx->configuration_handler(configuration_command_get_references(configuration_command),
                                        configuration_command_get_values(configuration_command),
                                        configuration_command_get_number_of_items(configuration_command));
@@ -238,27 +240,33 @@ static void _handle_configuration_command(wolk_ctx_t* ctx, configuration_command
         /* break; */
 
     case CONFIGURATION_COMMAND_TYPE_CURRENT:
-        if (ctx->configuration_provider != NULL) {
+        if (ctx->configuration_provider != NULL) 
+        {
             char references[CONFIGURATION_ITEMS_SIZE][CONFIGURATION_REFERENCE_SIZE];
             char values[CONFIGURATION_ITEMS_SIZE][CONFIGURATION_VALUE_SIZE];
 
             const size_t num_configuration_items =
                 ctx->configuration_provider(&references[0], &values[0], CONFIGURATION_ITEMS_SIZE);
-            if (num_configuration_items == 0) {
+            if (num_configuration_items == 0) 
+            {
                 return;
             }
 
             outbound_message_t outbound_message;
             if (!outbound_message_make_from_configuration(&ctx->parser, ctx->device_key, references, values,
-                                                          num_configuration_items, &outbound_message)) {
+                                                          num_configuration_items, &outbound_message)) 
+            {
                 return;
             }
 
-            _publish(ctx, outbound_message.topic, outbound_message.payload);
+            if(_publish(ctx, outbound_message.topic, outbound_message.payload) != W_FALSE)
+            {
+                _store(ctx, outbound_message);
+            }
                 
         }
         break;
-
+            
     case CONFIGURATION_COMMAND_TYPE_UNKNOWN:
         break;
     }
@@ -326,7 +334,6 @@ WOLK_ERR_T wolk_add_string_sensor_reading(wolk_ctx_t *ctx,const char *reference,
     outbound_message_t outbound_message;
     outbound_message_make_from_readings(&ctx->parser, ctx->device_key, &reading, 1, &outbound_message);
 
-    //_publish(ctx, outbound_message.topic, outbound_message.payload);
     _store(ctx, outbound_message);
 
     return W_FALSE;
@@ -355,7 +362,6 @@ WOLK_ERR_T wolk_add_multi_value_string_sensor_reading(wolk_ctx_t* ctx, const cha
     outbound_message_t outbound_message;
     outbound_message_make_from_readings(&ctx->parser, ctx->device_key, &reading, 1, &outbound_message);
 
-    //_publish(ctx, outbound_message.topic, outbound_message.payload);
     _store(ctx, outbound_message);
 
     return W_FALSE;
@@ -381,7 +387,6 @@ WOLK_ERR_T wolk_add_numeric_sensor_reading(wolk_ctx_t *ctx,const char *reference
     outbound_message_t outbound_message;
     outbound_message_make_from_readings(&ctx->parser, ctx->device_key, &reading, 1, &outbound_message);
 
-    //_publish(ctx, outbound_message.topic, outbound_message.payload);
     _store(ctx, outbound_message);
 
     return W_FALSE;
@@ -414,7 +419,6 @@ WOLK_ERR_T wolk_add_multi_value_numeric_sensor_reading(wolk_ctx_t* ctx, const ch
     outbound_message_t outbound_message;
     outbound_message_make_from_readings(&ctx->parser, ctx->device_key, &reading, 1, &outbound_message);
 
-    //_publish(ctx, outbound_message.topic, outbound_message.payload);
     _store(ctx, outbound_message);
 
     return W_FALSE;
@@ -443,7 +447,6 @@ WOLK_ERR_T wolk_add_bool_sensor_reading(wolk_ctx_t *ctx,const char *reference,bo
     outbound_message_t outbound_message;
     outbound_message_make_from_readings(&ctx->parser, ctx->device_key, &reading, 1, &outbound_message);
 
-    //_publish(ctx, outbound_message.topic, outbound_message.payload);
     _store(ctx, outbound_message);
 
     return W_FALSE;
@@ -471,7 +474,6 @@ WOLK_ERR_T wolk_add_multi_value_bool_sensor_reading(wolk_ctx_t* ctx, const char*
     outbound_message_t outbound_message;
     outbound_message_make_from_readings(&ctx->parser, ctx->device_key, &reading, 1, &outbound_message);
 
-    //_publish(ctx, outbound_message.topic, outbound_message.payload);
     _store(ctx, outbound_message);
 
     return W_FALSE;
@@ -493,55 +495,27 @@ WOLK_ERR_T wolk_add_alarm(wolk_ctx_t* ctx, const char* reference, bool state, ui
     outbound_message_t outbound_message;
     outbound_message_make_from_readings(&ctx->parser, ctx->device_key, &alarm_reading, 1, &outbound_message);
 
-    //_publish(ctx, outbound_message.topic, outbound_message.payload);
     _store(ctx, outbound_message);
 
     return W_FALSE;
 }
 
-WOLK_ERR_T wolk_publish_actuator_status (wolk_ctx_t *ctx,const char *reference)
+WOLK_ERR_T wolk_publish_actuator_status(wolk_ctx_t* ctx, const char* reference)
 {
     /* Sanity check */
-    WOLK_ASSERT(ctx->is_initialized == true);
+    WOLK_ASSERT(_is_wolk_initialized(ctx));
 
-    parser_t parser;
-    reading_t readings;
-    char readings_buffer[READINGS_BUFFER_SIZE];
-    memset (readings_buffer, 0, READINGS_BUFFER_SIZE);
-    initialize_parser(&parser, ctx->parser.type);
+    if (ctx->actuator_status_provider != NULL) {
+        actuator_status_t actuator_status = ctx->actuator_status_provider(reference);
 
-    char pub_topic[TOPIC_SIZE];
-    memset (pub_topic, 0, TOPIC_SIZE);
-
-
-    actuator_status_t actuator_status = ctx->actuator_status_provider(reference);
-    
-
-    if (ctx->parser.type==PARSER_TYPE_JSON)
-    {
-        strcpy(pub_topic,ACTUATORS_STATUS_TOPIC_JSON);
-        strcat(pub_topic,ctx->device_key);
-        strcat(pub_topic,"/");
-        strcat(pub_topic,reference);
-    }
-
-    manifest_item_t manifest_item;
-    manifest_item_init(&manifest_item, reference, READING_TYPE_ACTUATOR, DATA_TYPE_STRING);
-
-    reading_init(&readings, &manifest_item);
-    reading_set_rtc(&readings, 0);
-    reading_set_data(&readings, actuator_status_get_value(&actuator_status));
-    reading_set_actuator_state(&readings, actuator_status_get_state(&actuator_status));
-
-    size_t serialized_readings = parser_serialize_readings(&parser, &readings, 1, readings_buffer, READINGS_BUFFER_SIZE);
-
-    outbound_message_t outbound_message;
-
-    outbound_message_init(&outbound_message, pub_topic, readings_buffer);
-
-    if (_publish (ctx, outbound_message.topic, outbound_message.payload) != W_FALSE)
-    {
-        return W_TRUE;
+        outbound_message_t outbound_message;
+        if (!outbound_message_make_from_actuator_status(&ctx->parser, ctx->device_key, &actuator_status, reference,
+                                                        &outbound_message)) {
+            return W_TRUE;
+        }
+        if (_publish(ctx, outbound_message.topic, outbound_message.payload) != W_FALSE) {
+            _store(ctx, outbound_message);
+        }
     }
 
     return W_FALSE;
@@ -631,10 +605,6 @@ WOLK_ERR_T wolk_publish(wolk_ctx_t* ctx)
         {
         return W_TRUE;
         }
-        //log
-        Serial.print("Outbound message topic, payload: ");
-        Serial.print(ctx->outbound_messages[i].topic);
-        Serial.println(ctx->outbound_messages[i].payload);
     }
     ctx->number_of_msgs = 0;
     return W_FALSE;
@@ -650,7 +620,6 @@ WOLK_ERR_T _store(wolk_ctx_t* ctx, outbound_message_t outbound_message)
     }
     else
     {
-        //log
         Serial.println("Buffer full!");
         return W_TRUE;
     }
