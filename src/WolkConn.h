@@ -115,6 +115,9 @@ struct _wolk_ctx_t {
     uint32_t milliseconds_since_last_ping_keep_alive;
 
     bool is_initialized;
+
+    outbound_message_t outbound_messages[STORE_SIZE];
+    int number_of_msgs;
 };
 
 /**
@@ -278,8 +281,23 @@ WOLK_ERR_T wolk_publish_actuator_status (wolk_ctx_t *ctx,const char *reference);
  *  @param ctx library context
  *  @return Error value is returned
  */
-WOLK_ERR_T wolk_keep_alive (wolk_ctx_t *ctx);
 
+/**
+ * @brief Publish accumulated sensor readings, and alarms
+ *
+ * @param ctx Context
+ *
+ * @return Error code
+ */
+WOLK_ERR_T wolk_publish(wolk_ctx_t* ctx);
+
+/**
+ * @brief Disables internal keep alive mechanism
+ *
+ * @param ctx Context
+ *
+ * @return Error code
+ */
 WOLK_ERR_T wolk_disable_keep_alive(wolk_ctx_t* ctx);
 
 

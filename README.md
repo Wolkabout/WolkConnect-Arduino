@@ -15,7 +15,7 @@ JSON single (PROTOCOL_JSON_SINGLE)
 #### Prerequisite
 
   Provided example uses WiFi101 library.
-  The library should be located in the Arduino /libraries folder (in case you downloaded from Git, if you installed it via Arduino Library Manager, it should already be there by default).
+  The library should be located in the Arduino /libraries folder (in case you downloaded from Git, if you installed it via Arduino Library Manager, it should already be there by default), or included in the Arduino IDE (Sketch->Include Library->Add .ZIP library).
 
 #### Setup
 

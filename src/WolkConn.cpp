@@ -106,6 +106,8 @@ WOLK_ERR_T wolk_init(wolk_ctx_t* ctx, actuation_handler_t actuation_handler, act
 
     ctx->is_initialized = true;
 
+    ctx->number_of_msgs = 0;
+
     return W_FALSE;
 
 }
@@ -322,7 +324,16 @@ WOLK_ERR_T wolk_add_string_sensor_reading(wolk_ctx_t *ctx,const char *reference,
     outbound_message_t outbound_message;
     outbound_message_make_from_readings(&ctx->parser, ctx->device_key, &reading, 1, &outbound_message);
 
-    _publish(ctx, outbound_message.topic, outbound_message.payload);
+    //_publish(ctx, outbound_message.topic, outbound_message.payload);
+    if(ctx->number_of_msgs < STORE_SIZE)
+    {
+        ctx->outbound_messages[ctx->number_of_msgs] = outbound_message;
+        ctx->number_of_msgs++;
+    }
+    else
+    {
+        Serial.println("Buffer full!");
+    }
 
     return W_FALSE;
 }
@@ -350,7 +361,16 @@ WOLK_ERR_T wolk_add_multi_value_string_sensor_reading(wolk_ctx_t* ctx, const cha
     outbound_message_t outbound_message;
     outbound_message_make_from_readings(&ctx->parser, ctx->device_key, &reading, 1, &outbound_message);
 
-    _publish(ctx, outbound_message.topic, outbound_message.payload);
+    //_publish(ctx, outbound_message.topic, outbound_message.payload);
+    if(ctx->number_of_msgs < STORE_SIZE)
+    {
+        ctx->outbound_messages[ctx->number_of_msgs] = outbound_message;
+        ctx->number_of_msgs++;
+    }
+    else
+    {
+        Serial.println("Buffer full!");
+    }
 
     return W_FALSE;
 }
@@ -375,7 +395,16 @@ WOLK_ERR_T wolk_add_numeric_sensor_reading(wolk_ctx_t *ctx,const char *reference
     outbound_message_t outbound_message;
     outbound_message_make_from_readings(&ctx->parser, ctx->device_key, &reading, 1, &outbound_message);
 
-    _publish(ctx, outbound_message.topic, outbound_message.payload);
+    //_publish(ctx, outbound_message.topic, outbound_message.payload);
+    if(ctx->number_of_msgs < STORE_SIZE)
+    {
+        ctx->outbound_messages[ctx->number_of_msgs] = outbound_message;
+        ctx->number_of_msgs++;
+    }
+    else
+    {
+        Serial.println("Buffer full!");
+    }
 
 
     return W_FALSE;
@@ -408,7 +437,18 @@ WOLK_ERR_T wolk_add_multi_value_numeric_sensor_reading(wolk_ctx_t* ctx, const ch
     outbound_message_t outbound_message;
     outbound_message_make_from_readings(&ctx->parser, ctx->device_key, &reading, 1, &outbound_message);
 
-    _publish(ctx, outbound_message.topic, outbound_message.payload);
+    //_publish(ctx, outbound_message.topic, outbound_message.payload);
+    if(ctx->number_of_msgs < STORE_SIZE)
+    {
+        ctx->outbound_messages[ctx->number_of_msgs] = outbound_message;
+        ctx->number_of_msgs++;
+        //log
+        Serial.println("multival message packed");
+    }
+    else
+    {
+        Serial.println("Buffer full!");
+    }
 
     return W_FALSE;
 }
@@ -436,7 +476,16 @@ WOLK_ERR_T wolk_add_bool_sensor_reading(wolk_ctx_t *ctx,const char *reference,bo
     outbound_message_t outbound_message;
     outbound_message_make_from_readings(&ctx->parser, ctx->device_key, &reading, 1, &outbound_message);
 
-    _publish(ctx, outbound_message.topic, outbound_message.payload);
+    //_publish(ctx, outbound_message.topic, outbound_message.payload);
+    if(ctx->number_of_msgs < STORE_SIZE)
+    {
+        ctx->outbound_messages[ctx->number_of_msgs] = outbound_message;
+        ctx->number_of_msgs++;
+    }
+    else
+    {
+        Serial.println("Buffer full!");
+    }
 
     return W_FALSE;
 }
@@ -463,7 +512,16 @@ WOLK_ERR_T wolk_add_multi_value_bool_sensor_reading(wolk_ctx_t* ctx, const char*
     outbound_message_t outbound_message;
     outbound_message_make_from_readings(&ctx->parser, ctx->device_key, &reading, 1, &outbound_message);
 
-    _publish(ctx, outbound_message.topic, outbound_message.payload);
+    //_publish(ctx, outbound_message.topic, outbound_message.payload);
+    if(ctx->number_of_msgs < STORE_SIZE)
+    {
+        ctx->outbound_messages[ctx->number_of_msgs] = outbound_message;
+        ctx->number_of_msgs++;
+    }
+    else
+    {
+        Serial.println("Buffer full!");
+    }
 
     return W_FALSE;
 }
@@ -484,7 +542,18 @@ WOLK_ERR_T wolk_add_alarm(wolk_ctx_t* ctx, const char* reference, bool state, ui
     outbound_message_t outbound_message;
     outbound_message_make_from_readings(&ctx->parser, ctx->device_key, &alarm_reading, 1, &outbound_message);
 
-    _publish(ctx, outbound_message.topic, outbound_message.payload);
+    //_publish(ctx, outbound_message.topic, outbound_message.payload);
+    if(ctx->number_of_msgs < STORE_SIZE)
+    {
+        ctx->outbound_messages[ctx->number_of_msgs] = outbound_message;
+        ctx->number_of_msgs++;
+        //log
+        Serial.println("alarm message packed");
+    }
+    else
+    {
+        Serial.println("Buffer full!");
+    }
 
     return W_FALSE;
 }
@@ -537,13 +606,6 @@ WOLK_ERR_T wolk_publish_actuator_status (wolk_ctx_t *ctx,const char *reference)
     return W_FALSE;
 }
 
-WOLK_ERR_T wolk_keep_alive (wolk_ctx_t *ctx)
-{
-    WOLK_UNUSED(ctx);
-    return W_FALSE;
-}
-
-
 WOLK_ERR_T wolk_disconnect(wolk_ctx_t *ctx)
 {
     /* Sanity check */
@@ -562,7 +624,10 @@ WOLK_ERR_T wolk_disconnect(wolk_ctx_t *ctx)
 
 WOLK_ERR_T _publish (wolk_ctx_t *ctx, char *topic, char *readings)
 {
-    ctx->mqtt_client->publish(topic, readings);
+    if(!(ctx->mqtt_client->publish(topic, readings)))
+    {
+        return W_TRUE;
+    }
     return W_FALSE;
 }
 
@@ -617,3 +682,18 @@ static void _parser_init(wolk_ctx_t* ctx, protocol_t protocol)
     }
 }
 
+WOLK_ERR_T wolk_publish(wolk_ctx_t* ctx)
+{
+    for(int i = 0; i < ctx->number_of_msgs; i++)
+    {
+        if (_publish(ctx, ctx->outbound_messages[i].topic, ctx->outbound_messages[i].payload) != W_FALSE) 
+        {
+        return W_TRUE;
+        }
+        Serial.print("Outbound message topic, payload: ");
+        Serial.print(ctx->outbound_messages[i].topic);
+        Serial.println(ctx->outbound_messages[i].payload);
+    }
+    ctx->number_of_msgs = 0;
+    return W_FALSE;
+}
