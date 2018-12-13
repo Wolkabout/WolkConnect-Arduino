@@ -68,7 +68,7 @@ void loop() {
       delay(10000);
     };
   }
-  wolk_process (&wolk, 5);
+  wolk_process(&wolk, 5);
 
   delay(1000);
 }

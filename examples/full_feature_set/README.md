@@ -1,3 +1,21 @@
+```sh
+
+██╗    ██╗ ██████╗ ██╗     ██╗  ██╗ ██████╗ ██████╗ ███╗   ██╗███╗   ██╗███████╗ ██████╗████████╗
+██║    ██║██╔═══██╗██║     ██║ ██╔╝██╔════╝██╔═══██╗████╗  ██║████╗  ██║██╔════╝██╔════╝╚══██╔══╝
+██║ █╗ ██║██║   ██║██║     █████╔╝ ██║     ██║   ██║██╔██╗ ██║██╔██╗ ██║█████╗  ██║        ██║   
+██║███╗██║██║   ██║██║     ██╔═██╗ ██║     ██║   ██║██║╚██╗██║██║╚██╗██║██╔══╝  ██║        ██║   
+╚███╔███╔╝╚██████╔╝███████╗██║  ██╗╚██████╗╚██████╔╝██║ ╚████║██║ ╚████║███████╗╚██████╗   ██║   
+ ╚══╝╚══╝  ╚═════╝ ╚══════╝╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚═╝  ╚═══╝╚═╝  ╚═══╝╚══════╝ ╚═════╝   ╚═╝   
+                                                                                                 
+                                       █████╗ ██████╗ ██████╗ ██╗   ██╗██╗███╗   ██╗ ██████╗     
+                                      ██╔══██╗██╔══██╗██╔══██╗██║   ██║██║████╗  ██║██╔═══██╗    
+                                █████╗███████║██████╔╝██║  ██║██║   ██║██║██╔██╗ ██║██║   ██║    
+                                ╚════╝██╔══██║██╔══██╗██║  ██║██║   ██║██║██║╚██╗██║██║   ██║    
+                                      ██║  ██║██║  ██║██████╔╝╚██████╔╝██║██║ ╚████║╚██████╔╝    
+                                      ╚═╝  ╚═╝╚═╝  ╚═╝╚═════╝  ╚═════╝ ╚═╝╚═╝  ╚═══╝ ╚═════╝     
+                                                                                                 
+```
+----
 # WolkConnect-Arduino
 WolkAbout Arduino Connector library for connecting IP based Arduino devices to [WolkAbout IoT platform](https://demo.wolkabout.com/#/login).
 List of compatible hardware is driven by [PubSubClient](https://pubsubclient.knolleary.net/) Arduino library.
@@ -55,7 +73,7 @@ wolk_connect(&wolk);
 
 **Adding sensor readings:**
 
-Sensor types can be numeric, boolean and string and can containt more than one data parameter.
+Sensor types can be numeric, boolean or string and can contain more than one data parameter.
 Every type has it's own function for adding value eg. numeric sensor has:
 
 ```c
@@ -64,7 +82,7 @@ wolk_add_numeric_sensor_reading(&wolk,  //Context
                                 23.4,   //Sensor Value
                                 0);     //UTC time of sensor value acquisition
 ```
-and the
+and the multi value numeric function is called like so:
 ```c
 wolk_add_multi_value_numeric_sensor_reading(&wolk,          //Context
                                             "ACL",          //Sensor reference
@@ -79,9 +97,9 @@ wolk_publish_actuator_status(&wolk, "SLIDER_REF");
 ```
 This will invoke the `actuator_status_provider` to read the actuator status, and publish actuator status.
 
-Process receives actuation commands from the platform when wolk_process is called.
+Process receives actuation commands from the platform when `wolk_process` is called.
 ```c
-wolk_process (wolk_ctx_t *ctx, uint32_t tick)
+wolk_process(wolk_ctx_t *ctx, uint32_t tick)
 ```
 Actuation handler and actuator status provider functions must be implemented by the user.
 Example function is included in the full example.
@@ -93,9 +111,9 @@ static actuator_status_t actuator_status_provider(const char* reference)
 
 **Device Configuration**
 
-Process receives configuration commands from the platform when wolk_proceess is called.
+Process receives configuration commands from the platform when `wolk_proceess` is called.
 ```c
-wolk_process (wolk_ctx_t *ctx, uint32_t tick);
+wolk_process(wolk_ctx_t *ctx, uint32_t tick);
 ```
 Configuration handler and configuration provider functions must be implemented by the user.
 Example function is included in the full example.
@@ -111,7 +129,7 @@ static size_t configuration_provider(char (*reference)[CONFIGURATION_REFERENCE_S
 
 **Publishing events:**
 
-Alarms are published within the add alarm function
+Alarms are published with the add alarm function
 
 ```c
 wolk_add_alarm(&wolk,   //Context
@@ -131,11 +149,11 @@ The buffer can store 64 values at most, so be careful.
 
 **Disconnecting from the platform:**
 
-Disconnecting from the platform is done by calling the
+Disconnecting from the platform is done by calling:
 ```c
 wolk_disconnect(&wolk)
 ```
-function. It sends the last will message to the platform and disconnects the MQTT client.
+It sends the last will message to the platform and disconnects the MQTT client.
 
 **Cooperative scheduling:**
 
@@ -144,7 +162,7 @@ and it must to be called periodically.
 
 **Important note**
 ```c
-wolk_process (&wolk,  //Context 
+wolk_process(&wolk,   //Context 
               5);     //Period at which wolk_process is called
 ```
 When implementing the `loop()` function, bear in mind that calls to `wolk_process` need to occur in intervals of less than 15 seconds apart in order to maintain the connection.

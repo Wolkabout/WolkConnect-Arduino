@@ -40,7 +40,7 @@ Example Usage
 
 **Initialize WolkConnect-Arduino Connector**
 
-Create a device on WolkAbout IoT platform by importing the provided `manifest.json` file located in the `examples/simple` folder. This manifest fits `SimpleExample.ino` and demonstrates the sending of a temperature sensor readings.
+Create a device on WolkAbout IoT platform by importing the provided `manifest.json` file located in the `examples/simple` folder. This manifest fits `SimpleExample.ino` and demonstrates the sending of a temperature sensor reading.
 
 ```c
 static const char *device_key = "device_key";
@@ -96,7 +96,7 @@ The buffer can store 64 values at most, so be careful.
 Fuction `wolk_process(wolk_ctx_t *ctx)` is non-blocking in order to comply with cooperative scheduling,
 and it must to be called periodically.
 ```c
-wolk_process (&wolk,  //Context 
+wolk_process(&wolk,   //Context 
               5);     //Period at which wolk_process is called
 ```
 **Disconnecting from the platform:**
@@ -110,7 +110,7 @@ It sends the last will message to the platform and disconnects the MQTT client.
 **Important note**
 
 ```c
-wolk_process (&wolk,  //Context 
+wolk_process(&wolk,   //Context 
               5);     //Period at which wolk_process is called
 ```
 When implementing the `loop()` function, bear in mind that calls to `wolk_process` need to occur in intervals of less than 15 seconds apart in order to maintain the connection.
