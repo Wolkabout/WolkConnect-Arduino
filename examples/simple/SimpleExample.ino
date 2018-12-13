@@ -47,7 +47,7 @@ void setup() {
 
   wolk_connect(&wolk);
 
-  delay (1000);
+  delay(1000);
   
   wolk_add_numeric_sensor_reading(&wolk, "T", 53, 0);
 
@@ -68,7 +68,7 @@ void loop() {
       delay(10000);
     };
   }
-  wolk_process (&wolk, 5);
+  wolk_process(&wolk, 5);
 
   delay(1000);
 }
