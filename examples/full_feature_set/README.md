@@ -47,7 +47,7 @@ wolk_init(&wolk                            //ctx Context
           &client,                         //MQQT Client
           hostname,                        //MQQT Server
           portno,                          //Port to connect to
-          PROTOCOL_JSON_SINGLE,              //Protocol specified for device
+          PROTOCOL_JSON_SINGLE,            //Protocol specified for device
           actuator_refs,                   //Array of strings containing references of actuators that device possess
           2);                              //Number of actuator references contained in actuator_references
 wolk_connect(&wolk);
@@ -142,11 +142,10 @@ function. It sends the last will message to the platform and disconnects the MQT
 Fuction `wolk_process(wolk_ctx_t *ctx)` is non-blocking in order to comply with cooperative scheduling,
 and it must to be called periodically.
 
-** Important note **
+**Important note**
 ```c
 wolk_process (&wolk,  //Context 
               5);     //Period at which wolk_process is called
 ```
-Must be called regularly(less than 15 seconds between two calls) in order for the connection to be maintained.
-Be wary of that while implementing loop()!
-If possible, put sensor readings and other stuff to be called on timed interrupts.
+When implementing the `loop()` function, bear in mind that calls to `wolk_process` need to occur in intervals of less than 15 seconds apart in order to maintain the connection.
+Acquiring sensor readings and other business logic should preferably be called on timed interrupts.

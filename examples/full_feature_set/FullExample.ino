@@ -56,7 +56,7 @@ static actuator_status_t actuator_status_provider(const char* reference)
 }
 
 static char device_configuration_references[CONFIGURATION_ITEMS_SIZE][CONFIGURATION_REFERENCE_SIZE] = {"config_1", "config_2", "config_3", "config_4"};
-static char device_configuration_values[CONFIGURATION_ITEMS_SIZE][CONFIGURATION_VALUE_SIZE] = {"0", "False", "configuration3", "a1,a2,a3"};
+static char device_configuration_values[CONFIGURATION_ITEMS_SIZE][CONFIGURATION_VALUE_SIZE] = {"0", "False", "configuration_3", "configuration_4a,configuration_4b,configuration_4c"};
 
 static void configuration_handler(char (*reference)[CONFIGURATION_REFERENCE_SIZE],
                                   char (*value)[CONFIGURATION_VALUE_SIZE],
@@ -118,7 +118,7 @@ void setup() {
 
   wolk_connect(&wolk);
 
-  delay (1000);
+  delay(1000);
 
   wolk_add_numeric_sensor_reading(&wolk, "T", 23, 0);
 
@@ -147,7 +147,7 @@ void loop() {
       delay(10000);
     };
   }
-  wolk_process (&wolk, 5);
+  wolk_process(&wolk, 5);
 
   delay(1000);
 }
