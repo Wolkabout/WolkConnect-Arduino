@@ -40,7 +40,7 @@ Example Usage
 
 **Initialize WolkConnect-Arduino Connector**
 
-Create a device on WolkAbout IoT platform by importing the provided manifest .json file located in the 'examples' folder. This manifest fits the example and demonstrates the sending of sensor readings, actuation and configuration.
+Create a device on WolkAbout IoT platform by importing the provided `full-example-manifest.json` file located in the `examples/full_feature_set` folder. This manifest fits `FullExample.ino` and demonstrates the sending of sensor readings, actuations and configurations.
 
 ```c
 static const char *device_key = "device_key";
