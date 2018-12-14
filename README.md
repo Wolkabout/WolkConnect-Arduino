@@ -1,19 +1,19 @@
 ```sh
 
-██╗    ██╗ ██████╗ ██╗     ██╗  ██╗ ██████╗ ██████╗ ███╗   ██╗███╗   ██╗███████╗ ██████╗████████╗
-██║    ██║██╔═══██╗██║     ██║ ██╔╝██╔════╝██╔═══██╗████╗  ██║████╗  ██║██╔════╝██╔════╝╚══██╔══╝
-██║ █╗ ██║██║   ██║██║     █████╔╝ ██║     ██║   ██║██╔██╗ ██║██╔██╗ ██║█████╗  ██║        ██║   
-██║███╗██║██║   ██║██║     ██╔═██╗ ██║     ██║   ██║██║╚██╗██║██║╚██╗██║██╔══╝  ██║        ██║   
-╚███╔███╔╝╚██████╔╝███████╗██║  ██╗╚██████╗╚██████╔╝██║ ╚████║██║ ╚████║███████╗╚██████╗   ██║   
- ╚══╝╚══╝  ╚═════╝ ╚══════╝╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚═╝  ╚═══╝╚═╝  ╚═══╝╚══════╝ ╚═════╝   ╚═╝   
-                                                                                                 
-                                       █████╗ ██████╗ ██████╗ ██╗   ██╗██╗███╗   ██╗ ██████╗     
-                                      ██╔══██╗██╔══██╗██╔══██╗██║   ██║██║████╗  ██║██╔═══██╗    
-                                █████╗███████║██████╔╝██║  ██║██║   ██║██║██╔██╗ ██║██║   ██║    
-                                ╚════╝██╔══██║██╔══██╗██║  ██║██║   ██║██║██║╚██╗██║██║   ██║    
-                                      ██║  ██║██║  ██║██████╔╝╚██████╔╝██║██║ ╚████║╚██████╔╝    
-                                      ╚═╝  ╚═╝╚═╝  ╚═╝╚═════╝  ╚═════╝ ╚═╝╚═╝  ╚═══╝ ╚═════╝     
-                                                                                                 
+██╗    ██╗ ██████╗ ██╗     ██╗  ██╗ ██████╗ ██████╗ ███╗   ██╗███╗   ██╗███████╗ ██████╗████████╗      
+██║    ██║██╔═══██╗██║     ██║ ██╔╝██╔════╝██╔═══██╗████╗  ██║████╗  ██║██╔════╝██╔════╝╚══██╔══╝      
+██║ █╗ ██║██║   ██║██║     █████╔╝ ██║     ██║   ██║██╔██╗ ██║██╔██╗ ██║█████╗  ██║        ██║         
+██║███╗██║██║   ██║██║     ██╔═██╗ ██║     ██║   ██║██║╚██╗██║██║╚██╗██║██╔══╝  ██║        ██║         
+╚███╔███╔╝╚██████╔╝███████╗██║  ██╗╚██████╗╚██████╔╝██║ ╚████║██║ ╚████║███████╗╚██████╗   ██║         
+ ╚══╝╚══╝  ╚═════╝ ╚══════╝╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚═╝  ╚═══╝╚═╝  ╚═══╝╚══════╝ ╚═════╝   ╚═╝         
+                                                                                                       
+                                                 █████╗ ██████╗ ██████╗ ██╗   ██╗██╗███╗   ██╗ ██████╗ 
+                                                ██╔══██╗██╔══██╗██╔══██╗██║   ██║██║████╗  ██║██╔═══██╗
+                                                ███████║██████╔╝██║  ██║██║   ██║██║██╔██╗ ██║██║   ██║
+                                                ██╔══██║██╔══██╗██║  ██║██║   ██║██║██║╚██╗██║██║   ██║
+                                                ██║  ██║██║  ██║██████╔╝╚██████╔╝██║██║ ╚████║╚██████╔╝
+                                                ╚═╝  ╚═╝╚═╝  ╚═╝╚═════╝  ╚═════╝ ╚═╝╚═╝  ╚═══╝ ╚═════╝ 
+                                                                                                       
 ```
 ----
 # WolkConnect-Arduino
@@ -22,8 +22,7 @@ List of compatible hardware is driven by [PubSubClient](https://pubsubclient.kno
 
 WolkConnect-Arduino is transportation layer agnostic which means it is up to the user of the library to
 provide socket to WolkAbout IoT platform.
-
-Provided examples are made for Genuino MKR1000.
+Provided examples are made for Genuino MKR1000. Porting to other Arduino board is done by replacing MKR1000 library with a library which fit selected board.
 
 Supported protocol(s):
 JSON single (PROTOCOL_JSON_SINGLE)
@@ -76,7 +75,6 @@ wolk_connect(&wolk);
 ```
 
 **Adding sensor readings:**
-Data is added to the system using
 ```c
 wolk_add_numeric_sensor_reading(&wolk,  //Context 
                                 "T",    //Sensor Reference
@@ -84,12 +82,12 @@ wolk_add_numeric_sensor_reading(&wolk,  //Context
                                 0);     //UTC time
 ```
 **Data publish strategy:**
-Data is published to the platform using
+In between adding data and publishing, data is stored in an internal buffer.
+**The buffer can store 64 values at most**, so be careful. 
+Stored sensor readings are pushed to WolkAbout IoT platform on demand by calling:
 ```c
 wolk_publish(&wolk);
 ```
-In between adding data and publishing, data is stored in an internal buffer.
-The buffer can store 64 values at most, so be careful. 
 
 **Cooperative scheduling:**
 
@@ -100,14 +98,15 @@ wolk_process(&wolk,   //Context
               5);     //Period at which wolk_process is called
 ```
 **Disconnecting from the platform:**
-
-Disconnecting from the platform is done by calling:
 ```c
 wolk_disconnect(&wolk)
 ```
-It sends the last will message to the platform and disconnects the MQTT client.
 
-**Important note**
+**Additional functionality**
+
+WolkConnect-Arduino library has integrated additional features which can perform full WolkAbout IoT platform potential. Read more about full feature set example [HERE](https://github.com/Wolkabout/WolkConnect-Arduino/tree/master/examples/full_feature_set).
+
+# Important note
 
 ```c
 wolk_process(&wolk,   //Context 
@@ -115,7 +114,3 @@ wolk_process(&wolk,   //Context
 ```
 When implementing the `loop()` function, bear in mind that calls to `wolk_process` need to occur in intervals of less than 15 seconds apart in order to maintain the connection.
 Acquiring sensor readings and other business logic should preferably be called on timed interrupts.
-
-**Additional functionality**
-
-WolkConnect-Arduino library has integrated additional features which can perform full WolkAbout IoT platform potential. Read more about full feature set example [HERE](https://github.com/Wolkabout/WolkConnect-Arduino/tree/master/examples/full_feature_set).
