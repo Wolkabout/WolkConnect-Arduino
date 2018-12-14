@@ -129,10 +129,10 @@ void setup() {
 
   wolk_add_alarm(&wolk, "HH", true, 0);
 
+  wolk_publish(&wolk);
+  
   wolk_publish_actuator_status(&wolk, "SW");
   wolk_publish_actuator_status(&wolk, "SL");
-
-  wolk_publish(&wolk);
 
   delay(500);
 
