@@ -26,10 +26,11 @@ provide socket to WolkAbout IoT platform.
 Provided examples are made for Genuino MKR1000. Porting to other Arduino board is done by replacing MKR1000 library with a library which fit selected board.
 
 Supported protocol(s):
-JSON single (PROTOCOL_JSON_SINGLE)
+* JSON single (PROTOCOL_JSON_SINGLE)
 
 Prerequisite
 ------
+Following libraries are required in order to run WolkConnect-Arduino examples
 
   * WiFi101 library, available in [Library Manager](https://www.arduino.cc/en/Guide/Libraries).
   * Adding our library as .zip in the Arduino IDE 
