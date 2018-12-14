@@ -22,6 +22,7 @@ List of compatible hardware is driven by [PubSubClient](https://pubsubclient.kno
 
 WolkConnect-Arduino is transportation layer agnostic which means it is up to the user of the library to
 provide socket to WolkAbout IoT platform.
+
 Provided examples are made for Genuino MKR1000. Porting to other Arduino board is done by replacing MKR1000 library with a library which fit selected board.
 
 Supported protocol(s):
@@ -82,6 +83,7 @@ wolk_add_numeric_sensor_reading(&wolk,  //Context
                                 0);     //UTC time
 ```
 **Data publish strategy:**
+
 In between adding data and publishing, data is stored in an internal buffer.
 **The buffer can store 64 values at most**, so be careful. 
 Stored sensor readings are pushed to WolkAbout IoT platform on demand by calling:
