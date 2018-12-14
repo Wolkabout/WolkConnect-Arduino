@@ -1,19 +1,19 @@
 ```sh
 
-██╗    ██╗ ██████╗ ██╗     ██╗  ██╗ ██████╗ ██████╗ ███╗   ██╗███╗   ██╗███████╗ ██████╗████████╗
-██║    ██║██╔═══██╗██║     ██║ ██╔╝██╔════╝██╔═══██╗████╗  ██║████╗  ██║██╔════╝██╔════╝╚══██╔══╝
-██║ █╗ ██║██║   ██║██║     █████╔╝ ██║     ██║   ██║██╔██╗ ██║██╔██╗ ██║█████╗  ██║        ██║   
-██║███╗██║██║   ██║██║     ██╔═██╗ ██║     ██║   ██║██║╚██╗██║██║╚██╗██║██╔══╝  ██║        ██║   
-╚███╔███╔╝╚██████╔╝███████╗██║  ██╗╚██████╗╚██████╔╝██║ ╚████║██║ ╚████║███████╗╚██████╗   ██║   
- ╚══╝╚══╝  ╚═════╝ ╚══════╝╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚═╝  ╚═══╝╚═╝  ╚═══╝╚══════╝ ╚═════╝   ╚═╝   
-                                                                                                 
-                                       █████╗ ██████╗ ██████╗ ██╗   ██╗██╗███╗   ██╗ ██████╗     
-                                      ██╔══██╗██╔══██╗██╔══██╗██║   ██║██║████╗  ██║██╔═══██╗    
-                                █████╗███████║██████╔╝██║  ██║██║   ██║██║██╔██╗ ██║██║   ██║    
-                                ╚════╝██╔══██║██╔══██╗██║  ██║██║   ██║██║██║╚██╗██║██║   ██║    
-                                      ██║  ██║██║  ██║██████╔╝╚██████╔╝██║██║ ╚████║╚██████╔╝    
-                                      ╚═╝  ╚═╝╚═╝  ╚═╝╚═════╝  ╚═════╝ ╚═╝╚═╝  ╚═══╝ ╚═════╝     
-                                                                                                 
+██╗    ██╗ ██████╗ ██╗     ██╗  ██╗ ██████╗ ██████╗ ███╗   ██╗███╗   ██╗███████╗ ██████╗████████╗      
+██║    ██║██╔═══██╗██║     ██║ ██╔╝██╔════╝██╔═══██╗████╗  ██║████╗  ██║██╔════╝██╔════╝╚══██╔══╝      
+██║ █╗ ██║██║   ██║██║     █████╔╝ ██║     ██║   ██║██╔██╗ ██║██╔██╗ ██║█████╗  ██║        ██║         
+██║███╗██║██║   ██║██║     ██╔═██╗ ██║     ██║   ██║██║╚██╗██║██║╚██╗██║██╔══╝  ██║        ██║         
+╚███╔███╔╝╚██████╔╝███████╗██║  ██╗╚██████╗╚██████╔╝██║ ╚████║██║ ╚████║███████╗╚██████╗   ██║         
+ ╚══╝╚══╝  ╚═════╝ ╚══════╝╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚═╝  ╚═══╝╚═╝  ╚═══╝╚══════╝ ╚═════╝   ╚═╝         
+                                                                                                       
+                                                 █████╗ ██████╗ ██████╗ ██╗   ██╗██╗███╗   ██╗ ██████╗ 
+                                                ██╔══██╗██╔══██╗██╔══██╗██║   ██║██║████╗  ██║██╔═══██╗
+                                                ███████║██████╔╝██║  ██║██║   ██║██║██╔██╗ ██║██║   ██║
+                                                ██╔══██║██╔══██╗██║  ██║██║   ██║██║██║╚██╗██║██║   ██║
+                                                ██║  ██║██║  ██║██████╔╝╚██████╔╝██║██║ ╚████║╚██████╔╝
+                                                ╚═╝  ╚═╝╚═╝  ╚═╝╚═════╝  ╚═════╝ ╚═╝╚═╝  ╚═══╝ ╚═════╝ 
+                                                                                                       
 ```
 ----
 # WolkConnect-Arduino
@@ -23,13 +23,14 @@ List of compatible hardware is driven by [PubSubClient](https://pubsubclient.kno
 WolkConnect-Arduino is transportation layer agnostic which means it is up to the user of the library to
 provide socket to WolkAbout IoT platform.
 
-Provided examples are made for Genuino MKR1000.
+Provided examples are made for Genuino MKR1000. Porting to other Arduino board is done by replacing MKR1000 library with a library which fit selected board.
 
 Supported protocol(s):
-JSON single (PROTOCOL_JSON_SINGLE)
+* JSON single (PROTOCOL_JSON_SINGLE)
 
 Prerequisite
 ------
+Following libraries are required in order to run WolkConnect-Arduino examples
 
   * WiFi101 library, available in [Library Manager](https://www.arduino.cc/en/Guide/Libraries).
   * Adding our library as .zip in the Arduino IDE 
@@ -73,14 +74,9 @@ wolk_connect(&wolk);
 
 **Adding sensor readings:**
 
-Sensor types can be numeric, boolean or string and can contain more than one data parameter.
-Every type has it's own function for adding value eg. numeric sensor has:
-
 ```c
-wolk_add_numeric_sensor_reading(&wolk,  //Context 
-                                "T",    //Sensor Reference
-                                23.4,   //Sensor Value
-                                0);     //UTC time of sensor value acquisition
+wolk_add_numeric_sensor_reading(&wolk, "T", 23, 0);
+
 ```
 and the multi value numeric function is called like so:
 ```c
