@@ -120,15 +120,17 @@ void setup() {
 
   delay(1000);
 
-  wolk_add_numeric_sensor_reading(&wolk, "T", 23, 0);
-
+  wolk_add_numeric_sensor_reading(&wolk, "T", 25.6, 0);
   wolk_add_numeric_sensor_reading(&wolk, "P", 1024, 0);
+  wolk_add_numeric_sensor_reading(&wolk, "H", 52, 0);
 
-  wolk_add_numeric_sensor_reading(&wolk, "H", 86, 0);
-
+  // Multi-value sensor reading
   wolk_add_multi_value_numeric_sensor_reading(&wolk, "ACL", accl_readings, 3, 0);
 
   wolk_add_alarm(&wolk, "HH", true, 0);
+
+  wolk_publish_actuator_status(&wolk, "SW");
+  wolk_publish_actuator_status(&wolk, "SL");
 
   wolk_publish(&wolk);
 
