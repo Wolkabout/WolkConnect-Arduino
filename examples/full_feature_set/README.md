@@ -75,7 +75,7 @@ wolk_connect(&wolk);
 **Adding sensor readings:**
 
 ```c
-wolk_add_numeric_sensor_reading(&wolk, "T", 23, 0);
+wolk_add_numeric_sensor_reading(&wolk, "T", 25.6, 0);
 
 // Multi-value sensor reading
 wolk_add_multi_value_numeric_sensor_reading(&wolk, "ACL", accl_readings, 3, 0);
@@ -87,6 +87,7 @@ wolk_add_alarm(&wolk, "HH", true, 0);
 ```
 
 **Data publish strategy:**
+
 Data (alarms and sensor readings) is published to the platform using
 ```c
 wolk_publish(&wolk);
@@ -107,7 +108,6 @@ wolk_publish_configuration_status(&wolk, "CONFIGURATION_REF");
 ```
 This will call the `ConfigurationProvider` to read the current configuration and publish it to the platform
 
-
 **Cooperative scheduling:**
 
 Fuction `wolk_process(wolk_ctx_t *ctx)` is non-blocking in order to comply with cooperative scheduling,
@@ -122,5 +122,6 @@ wolk_disconnect(&wolk)
 ```
 
 **Important note**
+
 When implementing the `loop()` function, bear in mind that calls to `wolk_process` need to occur in intervals of less than 15 seconds apart in order to maintain the connection.
 Acquiring sensor readings and other business logic should preferably be called on timed interrupts.

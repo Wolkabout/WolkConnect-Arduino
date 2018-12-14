@@ -78,10 +78,7 @@ wolk_connect(&wolk);
 
 **Adding sensor readings:**
 ```c
-wolk_add_numeric_sensor_reading(&wolk,  //Context 
-                                "T",    //Sensor Reference
-                                23.4,   //Sensor Value
-                                0);     //UTC time
+wolk_add_numeric_sensor_reading(&wolk, "T", 23.4, 0);
 ```
 **Data publish strategy:**
 
@@ -97,8 +94,7 @@ wolk_publish(&wolk);
 Fuction `wolk_process(wolk_ctx_t *ctx)` is non-blocking in order to comply with cooperative scheduling,
 and it must to be called periodically.
 ```c
-wolk_process(&wolk,   //Context 
-              5);     //Period at which wolk_process is called
+wolk_process(&wolk, 5);
 ```
 **Disconnecting from the platform:**
 ```c
@@ -111,9 +107,5 @@ WolkConnect-Arduino library has integrated additional features which can perform
 
 # Important note
 
-```c
-wolk_process(&wolk,   //Context 
-              5);     //Period at which wolk_process is called
-```
 When implementing the `loop()` function, bear in mind that calls to `wolk_process` need to occur in intervals of less than 15 seconds apart in order to maintain the connection.
 Acquiring sensor readings and other business logic should preferably be called on timed interrupts.
