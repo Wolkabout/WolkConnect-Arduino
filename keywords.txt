@@ -6,19 +6,19 @@
 # Datatypes (KEYWORD1)
 #####################################################
 
-PubSubClient								KEYWORD1
+PubSubClient	KEYWORD1
 
-actuator_status_t							KEYWORD1
-actuation_handler_t							KEYWORD1
-actuator_status_provider_t					KEYWORD1
+actuator_status_t	KEYWORD1
+actuation_handler_t	KEYWORD1
+actuator_status_provider_t	KEYWORD1
 
-configuration_handler_t 					KEYWORD1
-configuration_provider_t 					KEYWORD1
+configuration_handler_t	KEYWORD1
+configuration_provider_t	KEYWORD1
 
-protocol_t									KEYWORD1
+protocol_t	KEYWORD1
 
-WOLK_ERR_T									KEYWORD1
-WOLK_BOOL_T									KEYWORD1
+WOLK_ERR_T	KEYWORD1
+WOLK_BOOL_T	KEYWORD1
 
 #####################################################
 # Methods and Functions (KEYWORD2)
