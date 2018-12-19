@@ -1,0 +1,71 @@
+#####################################################
+# Syntax Coloring Map For WolkConnect
+#####################################################
+
+#####################################################
+# Datatypes (KEYWORD1)
+#####################################################
+
+PubSubClient								KEYWORD1
+
+actuator_status_t							KEYWORD1
+actuation_handler_t							KEYWORD1
+actuator_status_provider_t					KEYWORD1
+
+configuration_handler_t 					KEYWORD1
+configuration_provider_t 					KEYWORD1
+
+protocol_t									KEYWORD1
+
+WOLK_ERR_T									KEYWORD1
+WOLK_BOOL_T									KEYWORD1
+
+#####################################################
+# Methods and Functions (KEYWORD2)
+#####################################################
+
+actuator_status_init						KEYWORD2
+
+wolk_init									KEYWORD2
+wolk_connect								KEYWORD2
+wolk_process								KEYWORD2
+
+wolk_add_numeric_sensor_reading				KEYWORD2
+wolk_add_multi_value_numeric_sensor_reading	KEYWORD2
+
+wolk_add_string_sensor_reading 				KEYWORD2
+wolk_add_multi_value_string_sensor_reading	KEYWORD2
+
+wolk_add_bool_sensor_reading				KEYWORD2
+wolk_add_multi_value_bool_sensor_reading	KEYWORD2
+
+wolk_add_alarm 								KEYWORD2
+
+wolk_publish								KEYWORD2
+wolk_publish_actuator_status 				KEYWORD2
+
+wolk_disable_keep_alive						KEYWORD2
+
+wolk_disconnect								KEYWORD2
+
+
+WOLK_UNUSED									KEYWORD2
+WOLK_ASSERT									KEYWORD2
+
+#####################################################
+# Structures (KEYWORD3)
+#####################################################
+
+wolk_ctx_t 									KEYWORD3
+
+#####################################################
+# Constants (LITERAL1)
+#####################################################
+
+ACTUATOR_STATE_ERROR 						LITERAL1
+ACTUATOR_STATE_READY						LITERAL1
+ACTUATOR_STATE_BUSY							LITERAL1
+
+CONFIGURATION_ITEMS_SIZE					LITERAL1
+CONFIGURATION_REFERENCE_SIZE				LITERAL1
+CONFIGURATION_VALUE_SIZE					LITERAL1

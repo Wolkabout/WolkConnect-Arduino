@@ -11,7 +11,7 @@ const char *device_password = "device_password";
 const char* hostname = "api-demo.wolkabout.com";
 int portno = 1883;
 
-/* WolkConnect-C Connector context */
+/* WolkConnect-Arduino Connector context */
 static wolk_ctx_t wolk;
 
 const char* actuator_refs[] = {"SL", "SW"};
