@@ -36,6 +36,7 @@
 extern "C" {
 #endif
 
+#define VERSION 20100 //2.1.0
 
 /**
  * @brief Supported protocols, WolkConnect libararies currently support only PROTOCOL_JSON_SINGLE
