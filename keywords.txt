@@ -43,6 +43,7 @@ wolk_add_alarm 								KEYWORD2
 
 wolk_publish								KEYWORD2
 wolk_publish_actuator_status 				KEYWORD2
+wolk_publish_configuration					KEYWORD2
 
 wolk_disable_keep_alive						KEYWORD2
 
