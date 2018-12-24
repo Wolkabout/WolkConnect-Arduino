@@ -240,31 +240,7 @@ static void _handle_configuration_command(wolk_ctx_t* ctx, configuration_command
         /* break; */
 
     case CONFIGURATION_COMMAND_TYPE_CURRENT:
-        if (ctx->configuration_provider != NULL) 
-        {
-            char references[CONFIGURATION_ITEMS_SIZE][CONFIGURATION_REFERENCE_SIZE];
-            char values[CONFIGURATION_ITEMS_SIZE][CONFIGURATION_VALUE_SIZE];
-
-            const size_t num_configuration_items =
-                ctx->configuration_provider(&references[0], &values[0], CONFIGURATION_ITEMS_SIZE);
-            if (num_configuration_items == 0) 
-            {
-                return;
-            }
-
-            outbound_message_t outbound_message;
-            if (!outbound_message_make_from_configuration(&ctx->parser, ctx->device_key, references, values,
-                                                          num_configuration_items, &outbound_message)) 
-            {
-                return;
-            }
-
-            if(_publish(ctx, outbound_message.topic, outbound_message.payload) != W_FALSE)
-            {
-                _store(ctx, outbound_message);
-            }
-                
-        }
+        wolk_publish_configuration(ctx);
         break;
             
     case CONFIGURATION_COMMAND_TYPE_UNKNOWN:
@@ -519,6 +495,40 @@ WOLK_ERR_T wolk_publish_actuator_status(wolk_ctx_t* ctx, const char* reference)
     }
 
     return W_FALSE;
+}
+
+WOLK_ERR_T wolk_publish_configuration(wolk_ctx_t* ctx)
+{
+    /* Sanity check */
+    WOLK_ASSERT(_is_wolk_initialized(ctx));
+
+    if (ctx->configuration_provider != NULL) 
+        {
+            char references[CONFIGURATION_ITEMS_SIZE][CONFIGURATION_REFERENCE_SIZE];
+            char values[CONFIGURATION_ITEMS_SIZE][CONFIGURATION_VALUE_SIZE];
+
+            const size_t num_configuration_items =
+                ctx->configuration_provider(&references[0], &values[0], CONFIGURATION_ITEMS_SIZE);
+            if (num_configuration_items == 0) 
+            {
+                return W_TRUE;
+            }
+
+            outbound_message_t outbound_message;
+            if (!outbound_message_make_from_configuration(&ctx->parser, ctx->device_key, references, values,
+                                                          num_configuration_items, &outbound_message)) 
+            {
+                return W_TRUE;
+            }
+
+            if(_publish(ctx, outbound_message.topic, outbound_message.payload) != W_FALSE)
+            {
+                _store(ctx, outbound_message);
+            }
+
+            return W_FALSE;
+        }
+        return W_TRUE;
 }
 
 WOLK_ERR_T wolk_disconnect(wolk_ctx_t *ctx)

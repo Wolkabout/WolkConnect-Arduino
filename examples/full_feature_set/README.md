@@ -102,9 +102,9 @@ wolk_publish_actuator_status(&wolk, "SW");
 ```
 This will invoke the `actuator_status_provider` to read the actuator status, and publish actuator status. 
 
-**TODO: Publishing configuration**
+**Publishing configuration**
 ```c
-wolk_publish_configuration_status(&wolk, "CONFIGURATION_REF");
+wolk_publish_configuration(&wolk);
 ```
 This will call the `ConfigurationProvider` to read the current configuration and publish it to the platform
 

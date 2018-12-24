@@ -273,14 +273,15 @@ WOLK_ERR_T wolk_add_alarm(wolk_ctx_t* ctx, const char* reference, bool state, ui
  * @return Error code
  */
 WOLK_ERR_T wolk_publish_actuator_status (wolk_ctx_t *ctx,const char *reference);
-
-/** @brief Keep alive message
+ 
+ /**
+ *@brief Obratins configuration via configuration_provider and publishes it.
  *
- *  Function that needs to be called in main loop in order to keep connection alive
+ *@param ctx Context
  *
- *  @param ctx library context
- *  @return Error value is returned
+ *@return Error code
  */
+WOLK_ERR_T wolk_publish_configuration(wolk_ctx_t* ctx);
 
 /**
  * @brief Publish accumulated sensor readings, and alarms
