@@ -121,13 +121,13 @@ struct _wolk_ctx_t {
 
     bool is_initialized;
 
-    outbound_message_t outbound_messages[STORE_SIZE];
-    int number_of_msgs;
+    //outbound_message_t outbound_messages[STORE_SIZE];
+    //int number_of_msgs;
 
     circular_buffer_t buffer;
 };
 
-void in_memory_persistence_init(wolk_ctx_t* ctx);
+void wolk_init_in_memory_persistence(wolk_ctx_t* ctx, void* storage, uint32_t size, bool wrap);
 /**
  * @brief Initializes WolkAbout IoT Platform connector context
  * @param ctx Context

@@ -53,11 +53,11 @@ static void callback(void *wolk, char* topic, byte* payload, unsigned int length
 static void _handle_actuator_command(wolk_ctx_t* ctx, actuator_command_t* actuator_command);
 static void _handle_configuration_command(wolk_ctx_t* ctx, configuration_command_t* configuration_command);
 
-WOLK_ERR_T _store(wolk_ctx_t* ctx, outbound_message_t outbound_message);
-
-void in_memory_persistence_init(wolk_ctx_t* ctx)
+void wolk_init_in_memory_persistence(wolk_ctx_t* ctx, void* storage, uint32_t size, bool wrap)
 {
-    circular_buffer_init(&ctx->buffer, ctx->outbound_messages, STORE_SIZE, sizeof(outbound_message_t), false, true);
+    uint32_t num_elements = size / sizeof(outbound_message_t);
+    WOLK_ASSERT(num_elements > 0);
+    circular_buffer_init(&ctx->buffer, storage, num_elements, sizeof(outbound_message_t), wrap, true);
 }
 
 WOLK_ERR_T wolk_init(wolk_ctx_t* ctx, actuation_handler_t actuation_handler, actuator_status_provider_t actuator_status_provider,
@@ -112,8 +112,6 @@ WOLK_ERR_T wolk_init(wolk_ctx_t* ctx, actuation_handler_t actuation_handler, act
     ctx->milliseconds_since_last_ping_keep_alive = PING_KEEP_ALIVE_INTERVAL;
 
     ctx->is_initialized = true;
-
-    ctx->number_of_msgs = 0;
 
     return W_FALSE;
 
@@ -629,19 +627,4 @@ WOLK_ERR_T wolk_publish(wolk_ctx_t* ctx)
         }
     }
     return W_FALSE;
-}
-
-WOLK_ERR_T _store(wolk_ctx_t* ctx, outbound_message_t outbound_message)
-{
-    if(ctx->number_of_msgs < STORE_SIZE)
-    {
-        ctx->outbound_messages[ctx->number_of_msgs] = outbound_message;
-        ctx->number_of_msgs++;
-        return W_FALSE;
-    }
-    else
-    {
-        Serial.println("Buffer full!");
-        return W_TRUE;
-    }
 }
