@@ -27,6 +27,8 @@
 #include "utility/dtostrf_fix.h"
 #include "utility/wolk_utils.h"
 
+#include "utility/circular_buffer.h"
+
 #include "Arduino.h"
 
 #include <stdbool.h>
@@ -121,8 +123,11 @@ struct _wolk_ctx_t {
 
     outbound_message_t outbound_messages[STORE_SIZE];
     int number_of_msgs;
+
+    circular_buffer_t buffer;
 };
 
+void in_memory_persistence_init(wolk_ctx_t* ctx);
 /**
  * @brief Initializes WolkAbout IoT Platform connector context
  * @param ctx Context

@@ -55,6 +55,11 @@ static void _handle_configuration_command(wolk_ctx_t* ctx, configuration_command
 
 WOLK_ERR_T _store(wolk_ctx_t* ctx, outbound_message_t outbound_message);
 
+void in_memory_persistence_init(wolk_ctx_t* ctx)
+{
+    circular_buffer_init(&ctx->buffer, ctx->outbound_messages, STORE_SIZE, sizeof(outbound_message_t), false, true);
+}
+
 WOLK_ERR_T wolk_init(wolk_ctx_t* ctx, actuation_handler_t actuation_handler, actuator_status_provider_t actuator_status_provider,
                     configuration_handler_t configuration_handler, configuration_provider_t configuration_provider,
                     const char* device_key, const char* device_password, PubSubClient *client, 
@@ -310,7 +315,7 @@ WOLK_ERR_T wolk_add_string_sensor_reading(wolk_ctx_t *ctx,const char *reference,
     outbound_message_t outbound_message;
     outbound_message_make_from_readings(&ctx->parser, ctx->device_key, &reading, 1, &outbound_message);
 
-    _store(ctx, outbound_message);
+    circular_buffer_add(&(ctx->buffer), &outbound_message);
 
     return W_FALSE;
 }
@@ -338,7 +343,7 @@ WOLK_ERR_T wolk_add_multi_value_string_sensor_reading(wolk_ctx_t* ctx, const cha
     outbound_message_t outbound_message;
     outbound_message_make_from_readings(&ctx->parser, ctx->device_key, &reading, 1, &outbound_message);
 
-    _store(ctx, outbound_message);
+    circular_buffer_add(&(ctx->buffer), &outbound_message);
 
     return W_FALSE;
 }
@@ -363,7 +368,7 @@ WOLK_ERR_T wolk_add_numeric_sensor_reading(wolk_ctx_t *ctx,const char *reference
     outbound_message_t outbound_message;
     outbound_message_make_from_readings(&ctx->parser, ctx->device_key, &reading, 1, &outbound_message);
 
-    _store(ctx, outbound_message);
+    circular_buffer_add(&(ctx->buffer), &outbound_message);
 
     return W_FALSE;
 }
@@ -395,7 +400,7 @@ WOLK_ERR_T wolk_add_multi_value_numeric_sensor_reading(wolk_ctx_t* ctx, const ch
     outbound_message_t outbound_message;
     outbound_message_make_from_readings(&ctx->parser, ctx->device_key, &reading, 1, &outbound_message);
 
-    _store(ctx, outbound_message);
+    circular_buffer_add(&(ctx->buffer), &outbound_message);
 
     return W_FALSE;
 }
@@ -423,7 +428,7 @@ WOLK_ERR_T wolk_add_bool_sensor_reading(wolk_ctx_t *ctx,const char *reference,bo
     outbound_message_t outbound_message;
     outbound_message_make_from_readings(&ctx->parser, ctx->device_key, &reading, 1, &outbound_message);
 
-    _store(ctx, outbound_message);
+    circular_buffer_add(&(ctx->buffer), &outbound_message);
 
     return W_FALSE;
 }
@@ -450,7 +455,7 @@ WOLK_ERR_T wolk_add_multi_value_bool_sensor_reading(wolk_ctx_t* ctx, const char*
     outbound_message_t outbound_message;
     outbound_message_make_from_readings(&ctx->parser, ctx->device_key, &reading, 1, &outbound_message);
 
-    _store(ctx, outbound_message);
+    circular_buffer_add(&(ctx->buffer), &outbound_message);
 
     return W_FALSE;
 }
@@ -471,7 +476,7 @@ WOLK_ERR_T wolk_add_alarm(wolk_ctx_t* ctx, const char* reference, bool state, ui
     outbound_message_t outbound_message;
     outbound_message_make_from_readings(&ctx->parser, ctx->device_key, &alarm_reading, 1, &outbound_message);
 
-    _store(ctx, outbound_message);
+    circular_buffer_add(&(ctx->buffer), &outbound_message);
 
     return W_FALSE;
 }
@@ -490,7 +495,7 @@ WOLK_ERR_T wolk_publish_actuator_status(wolk_ctx_t* ctx, const char* reference)
             return W_TRUE;
         }
         if (_publish(ctx, outbound_message.topic, outbound_message.payload) != W_FALSE) {
-            _store(ctx, outbound_message);
+            circular_buffer_add(&(ctx->buffer), &outbound_message);
         }
     }
 
@@ -523,7 +528,7 @@ WOLK_ERR_T wolk_publish_configuration(wolk_ctx_t* ctx)
 
             if(_publish(ctx, outbound_message.topic, outbound_message.payload) != W_FALSE)
             {
-                _store(ctx, outbound_message);
+                circular_buffer_add(&(ctx->buffer), &outbound_message);
             }
 
             return W_FALSE;
@@ -609,14 +614,20 @@ static void _parser_init(wolk_ctx_t* ctx, protocol_t protocol)
 
 WOLK_ERR_T wolk_publish(wolk_ctx_t* ctx)
 {
-    for(int i = 0; i < ctx->number_of_msgs; i++)
+    outbound_message_t outbound_message;
+    uint16_t batch_size = 64;
+    uint8_t i;
+    for(i = 0; i < batch_size; i++)
     {
-        if (_publish(ctx, ctx->outbound_messages[i].topic, ctx->outbound_messages[i].payload) != W_FALSE) 
+        if (circular_buffer_empty(&ctx->buffer))
         {
-        return W_TRUE;
+            return W_FALSE;
+        }
+        if (circular_buffer_pop(&ctx->buffer, &outbound_message))
+        {
+            _publish(ctx, outbound_message.topic, outbound_message.payload);
         }
     }
-    ctx->number_of_msgs = 0;
     return W_FALSE;
 }
 
