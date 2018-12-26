@@ -27,8 +27,8 @@
 #include "utility/dtostrf_fix.h"
 #include "utility/wolk_utils.h"
 
-//#include "utility/circular_buffer.h"
 #include "utility/in_memory_persistence.h"
+#include "utility/persistence.h"
 
 #include "Arduino.h"
 
@@ -122,13 +122,10 @@ struct _wolk_ctx_t {
 
     bool is_initialized;
 
-    //outbound_message_t outbound_messages[STORE_SIZE];
-    //int number_of_msgs;
-
-    //circular_buffer_t buffer;
+    persistence_t persistence;
 };
 
-void wolk_init_in_memory_persistence(wolk_ctx_t* ctx, void* storage, uint32_t size, bool wrap);
+
 /**
  * @brief Initializes WolkAbout IoT Platform connector context
  * @param ctx Context
@@ -159,6 +156,34 @@ WOLK_ERR_T wolk_init(wolk_ctx_t* ctx, actuation_handler_t actuation_handler, act
                     const char* device_key, const char* device_password, PubSubClient *client, 
                     const char *server, int port, protocol_t protocol, const char** actuator_references,
                     uint32_t num_actuator_references);
+/**
+ * @brief Initializes persistence mechanism with in-memory implementation
+ *
+ * @param ctx Context
+ * @param storage Address to start of the memory which will be used by
+ * persistence mechanism
+ * @param size Size of memory in bytes
+ * @param wrap If storage is full overwrite oldest item when pushing new item
+ *
+ * @return Error code
+ */
+WOLK_ERR_T wolk_init_in_memory_persistence(wolk_ctx_t* ctx, void* storage, uint32_t size, bool wrap);
+/**
+ * @brief Initializes persistence mechanism with custom implementation
+ *
+ * @param ctx Context
+ * @param push Function pointer to 'push' implemenation
+ * @param pop Function pointer to 'pop' implementation
+ * @param is_empty Function pointer to 'is empty' implementation
+ *
+ * @return Error code
+ *
+ * @see persistence.h for signatures of methods to be implemented, and
+ * implementation contract
+ */
+WOLK_ERR_T wolk_init_custom_persistence(wolk_ctx_t* ctx, persistence_push_t push, persistence_peek_t peek,
+                                        persistence_pop_t pop, persistence_is_empty_t is_empty);
+
 
 /**
  * @brief Connect to WolkAbout IoT Platform
