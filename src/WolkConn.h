@@ -27,7 +27,8 @@
 #include "utility/dtostrf_fix.h"
 #include "utility/wolk_utils.h"
 
-#include "utility/circular_buffer.h"
+//#include "utility/circular_buffer.h"
+#include "utility/in_memory_persistence.h"
 
 #include "Arduino.h"
 
@@ -124,7 +125,7 @@ struct _wolk_ctx_t {
     //outbound_message_t outbound_messages[STORE_SIZE];
     //int number_of_msgs;
 
-    circular_buffer_t buffer;
+    //circular_buffer_t buffer;
 };
 
 void wolk_init_in_memory_persistence(wolk_ctx_t* ctx, void* storage, uint32_t size, bool wrap);

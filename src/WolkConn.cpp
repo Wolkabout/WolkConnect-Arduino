@@ -55,9 +55,7 @@ static void _handle_configuration_command(wolk_ctx_t* ctx, configuration_command
 
 void wolk_init_in_memory_persistence(wolk_ctx_t* ctx, void* storage, uint32_t size, bool wrap)
 {
-    uint32_t num_elements = size / sizeof(outbound_message_t);
-    WOLK_ASSERT(num_elements > 0);
-    circular_buffer_init(&ctx->buffer, storage, num_elements, sizeof(outbound_message_t), wrap, true);
+    in_memory_persistence_init(storage, size, wrap);
 }
 
 WOLK_ERR_T wolk_init(wolk_ctx_t* ctx, actuation_handler_t actuation_handler, actuator_status_provider_t actuator_status_provider,
@@ -283,13 +281,12 @@ WOLK_ERR_T wolk_process (wolk_ctx_t *ctx, uint32_t tick)
 
     if (ctx->mqtt_client->loop(ctx)==false)
     {
-        Serial.println("Disconnected, attempting to reconnect");
+        Serial.println("Disconnected");
         wolk_connect(ctx);
         return W_TRUE;
     }
 
     if (_ping_keep_alive(ctx, tick) != W_FALSE) {
-        Serial.println("Ping keep alive failed");
         return W_TRUE;
     }
 
@@ -313,7 +310,7 @@ WOLK_ERR_T wolk_add_string_sensor_reading(wolk_ctx_t *ctx,const char *reference,
     outbound_message_t outbound_message;
     outbound_message_make_from_readings(&ctx->parser, ctx->device_key, &reading, 1, &outbound_message);
 
-    circular_buffer_add(&(ctx->buffer), &outbound_message);
+    in_memory_persistence_push(&outbound_message);
 
     return W_FALSE;
 }
@@ -341,7 +338,7 @@ WOLK_ERR_T wolk_add_multi_value_string_sensor_reading(wolk_ctx_t* ctx, const cha
     outbound_message_t outbound_message;
     outbound_message_make_from_readings(&ctx->parser, ctx->device_key, &reading, 1, &outbound_message);
 
-    circular_buffer_add(&(ctx->buffer), &outbound_message);
+    in_memory_persistence_push(&outbound_message);
 
     return W_FALSE;
 }
@@ -366,7 +363,7 @@ WOLK_ERR_T wolk_add_numeric_sensor_reading(wolk_ctx_t *ctx,const char *reference
     outbound_message_t outbound_message;
     outbound_message_make_from_readings(&ctx->parser, ctx->device_key, &reading, 1, &outbound_message);
 
-    circular_buffer_add(&(ctx->buffer), &outbound_message);
+    in_memory_persistence_push(&outbound_message);
 
     return W_FALSE;
 }
@@ -398,7 +395,7 @@ WOLK_ERR_T wolk_add_multi_value_numeric_sensor_reading(wolk_ctx_t* ctx, const ch
     outbound_message_t outbound_message;
     outbound_message_make_from_readings(&ctx->parser, ctx->device_key, &reading, 1, &outbound_message);
 
-    circular_buffer_add(&(ctx->buffer), &outbound_message);
+    in_memory_persistence_push(&outbound_message);
 
     return W_FALSE;
 }
@@ -426,7 +423,7 @@ WOLK_ERR_T wolk_add_bool_sensor_reading(wolk_ctx_t *ctx,const char *reference,bo
     outbound_message_t outbound_message;
     outbound_message_make_from_readings(&ctx->parser, ctx->device_key, &reading, 1, &outbound_message);
 
-    circular_buffer_add(&(ctx->buffer), &outbound_message);
+    in_memory_persistence_push(&outbound_message);
 
     return W_FALSE;
 }
@@ -453,7 +450,7 @@ WOLK_ERR_T wolk_add_multi_value_bool_sensor_reading(wolk_ctx_t* ctx, const char*
     outbound_message_t outbound_message;
     outbound_message_make_from_readings(&ctx->parser, ctx->device_key, &reading, 1, &outbound_message);
 
-    circular_buffer_add(&(ctx->buffer), &outbound_message);
+    in_memory_persistence_push(&outbound_message);
 
     return W_FALSE;
 }
@@ -474,7 +471,7 @@ WOLK_ERR_T wolk_add_alarm(wolk_ctx_t* ctx, const char* reference, bool state, ui
     outbound_message_t outbound_message;
     outbound_message_make_from_readings(&ctx->parser, ctx->device_key, &alarm_reading, 1, &outbound_message);
 
-    circular_buffer_add(&(ctx->buffer), &outbound_message);
+    in_memory_persistence_push(&outbound_message);
 
     return W_FALSE;
 }
@@ -493,7 +490,7 @@ WOLK_ERR_T wolk_publish_actuator_status(wolk_ctx_t* ctx, const char* reference)
             return W_TRUE;
         }
         if (_publish(ctx, outbound_message.topic, outbound_message.payload) != W_FALSE) {
-            circular_buffer_add(&(ctx->buffer), &outbound_message);
+            in_memory_persistence_push(&outbound_message);
         }
     }
 
@@ -526,7 +523,7 @@ WOLK_ERR_T wolk_publish_configuration(wolk_ctx_t* ctx)
 
             if(_publish(ctx, outbound_message.topic, outbound_message.payload) != W_FALSE)
             {
-                circular_buffer_add(&(ctx->buffer), &outbound_message);
+                in_memory_persistence_push(&outbound_message);
             }
 
             return W_FALSE;
@@ -591,7 +588,6 @@ static WOLK_ERR_T _ping_keep_alive(wolk_ctx_t* ctx, uint32_t tick)
     if (_publish(ctx, outbound_message.topic, outbound_message.payload) != W_FALSE) {
         return W_TRUE;
     }
-    Serial.println("ping");
 
     ctx->milliseconds_since_last_ping_keep_alive = 0;
     return W_FALSE;
@@ -617,11 +613,11 @@ WOLK_ERR_T wolk_publish(wolk_ctx_t* ctx)
     uint8_t i;
     for(i = 0; i < batch_size; i++)
     {
-        if (circular_buffer_empty(&ctx->buffer))
+        if (in_memory_persistence_is_empty())
         {
             return W_FALSE;
         }
-        if (circular_buffer_pop(&ctx->buffer, &outbound_message))
+        if (in_memory_persistence_pop(&outbound_message))
         {
             _publish(ctx, outbound_message.topic, outbound_message.payload);
         }
