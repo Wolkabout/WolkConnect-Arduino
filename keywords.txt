@@ -27,6 +27,8 @@ WOLK_BOOL_T	KEYWORD1
 actuator_status_init						KEYWORD2
 
 wolk_init									KEYWORD2
+wolk_init_in_memory_persistence				KEYWORD2
+wolk_init_custom_persistence				KEYWORD2
 wolk_connect								KEYWORD2
 wolk_process								KEYWORD2
 

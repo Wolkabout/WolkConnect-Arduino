@@ -13,6 +13,7 @@ int portno = 1883;
 
 /* WolkConnect-Arduino Connector context */
 static wolk_ctx_t wolk;
+outbound_message_t outbound_messages[STORE_SIZE];
 
 WiFiClient espClient;
 PubSubClient client(espClient);
@@ -44,6 +45,8 @@ void setup() {
 
   wolk_init(&wolk, NULL, NULL, NULL, NULL,
             device_key, device_password, &client, hostname, portno, PROTOCOL_JSON_SINGLE, NULL, NULL);
+
+  wolk_init_in_memory_persistence(&wolk, &outbound_messages, sizeof(outbound_messages), false);
 
   wolk_connect(&wolk);
 

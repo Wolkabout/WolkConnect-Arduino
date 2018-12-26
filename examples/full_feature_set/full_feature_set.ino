@@ -13,6 +13,7 @@ int portno = 1883;
 
 /* WolkConnect-Arduino Connector context */
 static wolk_ctx_t wolk;
+outbound_message_t outbound_messages[STORE_SIZE];
 
 const char* actuator_refs[] = {"SL", "SW"};
 
@@ -116,6 +117,8 @@ void setup() {
   wolk_init(&wolk, actuation_handler, actuator_status_provider, configuration_handler, configuration_provider,
             device_key, device_password, &client, hostname, portno, PROTOCOL_JSON_SINGLE, actuator_refs, 2);
 
+  wolk_init_in_memory_persistence(&wolk, &outbound_messages, sizeof(outbound_messages), false);
+  
   wolk_connect(&wolk);
 
   delay(1000);
