@@ -38,6 +38,8 @@
 #define LASTWILL_TOPIC_JSON "lastwill/"
 #define LASTWILL_MESSAGE_JSON "Gone offline"
 
+#define PONG_JSON "pong/"
+
 /*ping keep alive every 60 seconds*/
 #define PING_KEEP_ALIVE_INTERVAL 300
 
@@ -144,22 +146,16 @@ WOLK_ERR_T wolk_connect (wolk_ctx_t *ctx)
     memset (client_id, 0, TOPIC_SIZE);
     sprintf(client_id,"%s%d",ctx->device_key,rand() % 1000);
 
-    while (!ctx->mqtt_client->connected()) 
+    Serial.print("Attempting MQTT connection...");
+    // Attempt to connect
+    if (ctx->mqtt_client->connect(client_id, ctx->device_key, ctx->device_password, lastwill_topic, NULL, NULL, LASTWILL_MESSAGE_JSON)) 
     {
-        Serial.print("Attempting MQTT connection...");
-        // Attempt to connect
-        if (ctx->mqtt_client->connect(client_id, ctx->device_key, ctx->device_password, lastwill_topic, NULL, NULL, LASTWILL_MESSAGE_JSON)) 
-        {
-            Serial.println("connected");
-        } 
-        else 
-        {
-            Serial.print("failed, rc=");
-            Serial.print(ctx->mqtt_client->state());
-            Serial.println(" try again in 5 seconds");
-            // Wait 5 seconds before retrying
-            delay(5000);
-        }
+        Serial.println("connected");
+    } 
+    else 
+    {
+        Serial.print("failed, rc=");
+        Serial.print(ctx->mqtt_client->state());
     }
 
     char pub_topic[TOPIC_SIZE];
@@ -185,6 +181,17 @@ WOLK_ERR_T wolk_connect (wolk_ctx_t *ctx)
         memset(topic_buf, '\0', TOPIC_SIZE);
         strcpy(&topic_buf[0], CONFIGURATION_COMMANDS_TOPIC_JSON);
         strcat(&topic_buf[0], ctx->device_key);
+
+        if (_subscribe(ctx, topic_buf) != W_FALSE) 
+        {
+         return W_TRUE;
+        }
+
+        memset(topic_buf, '\0', TOPIC_SIZE);
+        strcpy(&topic_buf[0], PONG_JSON);
+        strcat(&topic_buf[0], ctx->device_key);
+
+        Serial.println(topic_buf);
 
         if (_subscribe(ctx, topic_buf) != W_FALSE) 
         {
@@ -611,7 +618,7 @@ static void _parser_init(wolk_ctx_t* ctx, protocol_t protocol)
 WOLK_ERR_T wolk_publish(wolk_ctx_t* ctx)
 {
     outbound_message_t outbound_message;
-    uint16_t batch_size = 64;
+    uint16_t batch_size = 50;
     uint8_t i;
     for(i = 0; i < batch_size; i++)
     {
@@ -619,10 +626,16 @@ WOLK_ERR_T wolk_publish(wolk_ctx_t* ctx)
         {
             return W_FALSE;
         }
-        if (persistence_pop(&ctx->persistence, &outbound_message))
-        {
-            _publish(ctx, outbound_message.topic, outbound_message.payload);
+        if (!persistence_peek(&ctx->persistence, &outbound_message)) {
+            continue;
         }
+
+        if (_publish(ctx, outbound_message.topic, outbound_message.payload) != W_FALSE) {
+            return W_TRUE;
+        }
+
+        persistence_pop(&ctx->persistence, &outbound_message);
     }
+
     return W_FALSE;
 }
