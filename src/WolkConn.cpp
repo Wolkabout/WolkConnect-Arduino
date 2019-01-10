@@ -191,8 +191,6 @@ WOLK_ERR_T wolk_connect (wolk_ctx_t *ctx)
         strcpy(&topic_buf[0], PONG_JSON);
         strcat(&topic_buf[0], ctx->device_key);
 
-        Serial.println(topic_buf);
-
         if (_subscribe(ctx, topic_buf) != W_FALSE) 
         {
          return W_TRUE;
@@ -299,8 +297,8 @@ WOLK_ERR_T wolk_process (wolk_ctx_t *ctx, uint32_t tick)
 
     if (ctx->mqtt_client->loop(ctx)==false)
     {
-        Serial.println("Disconnected");
-        wolk_connect(ctx);
+        Serial.println("MQTT lost connection!");
+        //wolk_connect(ctx);
         return W_TRUE;
     }
 

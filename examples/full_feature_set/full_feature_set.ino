@@ -3,6 +3,8 @@
 #include "WolkConn.h"
 #include "MQTTClient.h"
 
+#define NUM_ACTUATORS 2
+
 const char* ssid = "wifi_ssid";
 const char* wifi_pass = "wifi_password";
 
@@ -17,7 +19,7 @@ outbound_message_t outbound_messages[STORE_SIZE];
 
 const char* actuator_refs[] = {"SL", "SW"};
 
-static char actuator_value[READING_SIZE] = {"0"};
+static char actuator_value[NUM_ACTUATORS][READING_SIZE] = {"0", "true"};
 
 double accl_readings[3] = {1, 3, 5};
 
@@ -31,7 +33,12 @@ static void actuation_handler(const char* reference, const char* value)
   Serial.print("Value:");
   Serial.println(value);
 
-  strcpy(actuator_value, value);
+  if (strcmp(reference, "SW") == 0) {
+    strcpy(actuator_value[1], value);
+  }
+  else if (strcmp(reference, "SL") == 0) {
+    strcpy(actuator_value[0], value);
+  }
 }
 
 static actuator_status_t actuator_status_provider(const char* reference)
@@ -44,13 +51,13 @@ static actuator_status_t actuator_status_provider(const char* reference)
 
   if (strcmp(reference, "SW") == 0) {
     Serial.print("Hey there SW, your new value is ");
-    Serial.println(actuator_value);
-    actuator_status_init(&actuator_status, actuator_value, ACTUATOR_STATE_READY);
+    Serial.println(actuator_value[1]);
+    actuator_status_init(&actuator_status, actuator_value[1], ACTUATOR_STATE_READY);
   }
   else if (strcmp(reference, "SL") == 0) {
     Serial.print("Hey there SL, your new value is ");
-    Serial.println(actuator_value);
-    actuator_status_init(&actuator_status, actuator_value, ACTUATOR_STATE_READY);
+    Serial.println(actuator_value[0]);
+    actuator_status_init(&actuator_status, actuator_value[0], ACTUATOR_STATE_READY);
   }
 
   return actuator_status;
@@ -109,17 +116,22 @@ void setup_wifi() {
   Serial.println(WiFi.localIP());
 }
 
-void setup() {
-  Serial.begin(9600);
-
+void connect_to_platform()
+{
   setup_wifi();
 
   wolk_init(&wolk, actuation_handler, actuator_status_provider, configuration_handler, configuration_provider,
-            device_key, device_password, &client, hostname, portno, PROTOCOL_JSON_SINGLE, actuator_refs, 2);
+            device_key, device_password, &client, hostname, portno, PROTOCOL_JSON_SINGLE, actuator_refs, NUM_ACTUATORS);
 
   wolk_init_in_memory_persistence(&wolk, &outbound_messages, sizeof(outbound_messages), false);
   
   wolk_connect(&wolk);
+}
+
+void setup() {
+  Serial.begin(9600);
+
+  connect_to_platform();
 
   delay(1000);
 
@@ -152,7 +164,10 @@ void loop() {
       delay(10000);
     };
   }
-  wolk_process(&wolk, 5);
+  if(wolk_process(&wolk, 5) == W_TRUE)
+  {
+    connect_to_platform();
+  }
 
   delay(1000);
 }

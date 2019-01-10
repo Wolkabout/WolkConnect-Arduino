@@ -13,6 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/**
+ *@file
+ *@brief Header file with library function descriptions 
+ */
 
 #ifndef WOLK_H
 #define WOLK_H
@@ -59,25 +63,25 @@ enum WOLK_BOOL_T_values { W_FALSE = 0, W_TRUE = 1 };
 
 /**
  * @brief Declaration of actuator handler.
- * Actuator reference and value are the pairs of data on the same place in own arrays.
+ * Actuator reference and value are the pairs of data on the same place in their own arrays.
  *
- * @param reference actuator references defined in manifest on WolkAbout IoT Platform.
+ * @param reference actuator references defined in manifest on the WolkAbout IoT Platform.
  * @param value value received from WolkAbout IoT Platform.
  */
 typedef void (*actuation_handler_t)(const char* reference, const char* value);
 /**
  * @brief Declaration of actuator status
  *
- * @param reference actuator references define in manifest on WolkAbout IoT Platform
+ * @param reference actuator references defined in manifest on the WolkAbout IoT Platform
  */
 typedef actuator_status_t (*actuator_status_provider_t)(const char* reference);
 
 /**
  * @brief Declaration of configuration handler.
- * Configuration reference and value are the pairs of data on the same place in own arrays.
+ * Configuration reference and value are the pairs of data on the same place in their own arrays.
  *
- * @param reference actuator references define in manifest on WolkAbout IoT Platform
- * @param value actuator values received from WolkAbout IoT Platform.
+ * @param reference actuator references defined in the manifest on the WolkAbout IoT Platform
+ * @param value actuator values received from the WolkAbout IoT Platform.
  * @param num_configuration_items number of used configuration parameters
  */
 typedef void (*configuration_handler_t)(char (*reference)[CONFIGURATION_REFERENCE_SIZE],
@@ -85,8 +89,8 @@ typedef void (*configuration_handler_t)(char (*reference)[CONFIGURATION_REFERENC
 /**
  * @brief Declaration of configuration provider
  *
- * @param reference configuration references define in manifest on WolkAbout IoT Platform
- * @param value configuration values received from WolkAbout IoT Platform
+ * @param reference configuration references defined in the manifest on the WolkAbout IoT Platform
+ * @param value configuration values received from the WolkAbout IoT Platform
  * @param num_configuration_items number of used configuration parameters
  */
 typedef size_t (*configuration_provider_t)(char (*reference)[CONFIGURATION_REFERENCE_SIZE],
@@ -188,9 +192,18 @@ WOLK_ERR_T wolk_init_custom_persistence(wolk_ctx_t* ctx, persistence_push_t push
 /**
  * @brief Connect to WolkAbout IoT Platform
  *
- * Prior to connecting, following must be performed:
- *  - Context must be initialized via wolk_init()
- *
+ *  1. Context must be initialized via wolk_init(wolk_ctx_t* ctx, actuation_handler_t actuation_handler, actuator_status_provider_t actuator_status_provider,
+ *                   configuration_handler_t configuration_handler, configuration_provider_t configuration_provider,
+ *                   const char* device_key, const char* device_password, PubSubClient *client, 
+ *                   const char *server, int port, protocol_t protocol, const char** actuator_references,
+ *                   uint32_t num_actuator_references)
+ *  2. Persistence must be initialized using
+ *      wolk_initialize_in_memory_persistence(wolk_ctx_t *ctx, void* storage,
+ * uint16_t num_elements, bool wrap) or
+ *      wolk_initialize_custom_persistence(wolk_ctx_t *ctx,
+ *                                         persistence_push_t push,
+ * persistence_pop_t pop, persistence_is_empty_t is_empty, persistence_size_t
+ * size)
  * @param ctx Context
  *
  * @return Error code
@@ -205,8 +218,8 @@ WOLK_ERR_T wolk_connect (wolk_ctx_t *ctx);
 WOLK_ERR_T wolk_disconnect (wolk_ctx_t *ctx);
 
 /**
- * @brief Must be called periodically to keep alive connection to WolkAbout IoT
- * platform, obtain and perform actuation requests
+ * @brief Must be called periodically to keep the connection to the WolkAbout IoT
+ * platform alive, obtain and perform actuation requests
  *
  * @param ctx Context
  * @param tick Period at which wolk_process is called
@@ -221,7 +234,8 @@ WOLK_ERR_T wolk_process (wolk_ctx_t *ctx, uint32_t tick);
  *  @param reference Sensor reference
  *  @param value Sensor value
  *  @param utc_time UTC time. If unable to retrieve UTC set 0
- *  @return Error value is returned
+ *
+ *  @return Error code
  */
 WOLK_ERR_T wolk_add_string_sensor_reading(wolk_ctx_t *ctx,const char *reference,const char *value, uint32_t utc_time);
 
@@ -240,11 +254,12 @@ WOLK_ERR_T wolk_add_multi_value_string_sensor_reading(wolk_ctx_t* ctx, const cha
                                                       uint32_t utc_time);
 /** @brief Add numeric reading
  *
- *  @param ctx library context
+ *  @param ctx Context
  *  @param reference Sensor reference
  *  @param value Sensor value
- *  @param utc_time UTC time. If unable to retrieve UTC set 0
- *  @return Error value is returned
+ *  @param utc_time UTC time of sensor value acquisition [seconds]
+ *
+ *  @return Error code
  */
 WOLK_ERR_T wolk_add_numeric_sensor_reading(wolk_ctx_t *ctx,const char *reference,double value, uint32_t utc_time);
 
@@ -263,11 +278,12 @@ WOLK_ERR_T wolk_add_multi_value_numeric_sensor_reading(wolk_ctx_t* ctx, const ch
                                                        uint16_t values_size, uint32_t utc_time);
 /** @brief Add bool reading
  *
- *  @param ctx library context
+ *  @param ctx Context
  *  @param reference Sensor reference
  *  @param value Sensor value
- *  @param utc_time UTC time. If unable to retrieve UTC set 0
- *  @return Error value is returned
+ *  @param utc_time UTC time of sensor value acquisition [seconds]
+ *
+ *  @return Error code
  */
 WOLK_ERR_T wolk_add_bool_sensor_reading(wolk_ctx_t *ctx,const char *reference,bool value, uint32_t utc_time);
 
@@ -299,7 +315,7 @@ WOLK_ERR_T wolk_add_alarm(wolk_ctx_t* ctx, const char* reference, bool state, ui
 
 /**
  * @brief Obtains actuator status via actuator_status_provider_t and publishes
- * it.
+ * it. If actuator status can not be published, it is persisted.
  *
  * @param ctx Context
  * @param reference Actuator reference
@@ -310,6 +326,7 @@ WOLK_ERR_T wolk_publish_actuator_status (wolk_ctx_t *ctx,const char *reference);
  
  /**
  *@brief Obratins configuration via configuration_provider and publishes it.
+ * If configuration can not be published, it is persisted.
  *
  *@param ctx Context
  *
