@@ -69,6 +69,19 @@ wolk_init(&wolk                            //ctx Context
           PROTOCOL_JSON_SINGLE,            //Protocol specified for device
           actuator_refs,                   //Array of strings containing references of actuators that device possess
           2);                              //Number of actuator references contained in actuator_references
+```
+
+**Initialize in-memory persistence**
+```c
+wolk_init_in_memory_persistence(&wolk,                       // Context
+                                persistence_storage,         // Address to start of the memory which will be used by persistence mechanism 
+                                sizeof(persistence_storage), // Size of memory in bytes
+                                true);                       // If storage is full overwrite oldest item when pushing
+```
+
+**Establishing connection with WolkAbout IoT platform**
+
+```c
 wolk_connect(&wolk);
 ```
 
@@ -92,9 +105,9 @@ Data (alarms and sensor readings) is published to the platform using
 ```c
 wolk_publish(&wolk);
 ```
-In between adding data and publishing, data is stored in an internal buffer (along with the unpublished
+In between adding data and publishing, data is stored in an user-defined buffer passed via persistence functions (along with the unpublished
 actuations and configurations, which are rare but they could be in there if you have network issues).
-The buffer can store 64 values at most, so be careful. 
+The buffer stores an array of outbound_message_t which is 320 bytes in length. 
 
 **Publishing actuator statuses:**
 ```c

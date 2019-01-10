@@ -177,6 +177,7 @@ WOLK_ERR_T wolk_init_in_memory_persistence(wolk_ctx_t* ctx, void* storage, uint3
  *
  * @param ctx Context
  * @param push Function pointer to 'push' implemenation
+ * @param peek Function pointer to 'peek' implementation
  * @param pop Function pointer to 'pop' implementation
  * @param is_empty Function pointer to 'is empty' implementation
  *

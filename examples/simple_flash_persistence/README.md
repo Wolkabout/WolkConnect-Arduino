@@ -33,6 +33,7 @@ Prerequisite
 Following libraries are required in order to run WolkConnect-Arduino examples
 
   * WiFi101 library, available in [Library Manager](https://www.arduino.cc/en/Guide/Libraries).
+  * [FlashStorage]https://github.com/cmaglie/FlashStorage library available in  [Library Manager](https://www.arduino.cc/en/Guide/Libraries).
   * Adding our library as .zip in the Arduino IDE 
     `(Sketch->Include Library->Add .ZIP library).`
 
@@ -70,13 +71,16 @@ wolk_init(&wolk                 //ctx Context
           NULL,                 //Array of strings containing references of actuators that device possess
           NULL);                //Number of actuator references contained in actuator_references
 ```
-**Initialize in-memory persistence**
+**Initialize custom persistence**
+See persistence.h for signatures of methods to be implemented, and implementation contract.
 ```c
-wolk_init_in_memory_persistence(&wolk,                       // Context
-                                persistence_storage,         // Address to start of the memory which will be used by persistence mechanism 
-                                sizeof(persistence_storage), // Size of memory in bytes
-                                true);                       // If storage is full overwrite oldest item when pushing
+wolk_init_custom_persistence(&wolk,      //Context
+                              push,       //Function pointer to 'push' implemenation
+                              peek,       //Function pointer to 'pop' implementation
+                              pop,        //Function pointer to 'peek' implementation
+                              is_empty);  //Function pointer to 'is empty' implementation
 ```
+
 **Establishing connection with WolkAbout IoT platform**
 
 ```c
