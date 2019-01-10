@@ -72,6 +72,7 @@ wolk_init(&wolk                 //ctx Context
           NULL);                //Number of actuator references contained in actuator_references
 ```
 **Initialize custom persistence**
+
 See persistence.h for signatures of methods to be implemented, and implementation contract.
 ```c
 wolk_init_custom_persistence(&wolk,      //Context
