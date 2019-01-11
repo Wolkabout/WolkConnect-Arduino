@@ -150,12 +150,12 @@ WOLK_ERR_T wolk_connect (wolk_ctx_t *ctx)
     // Attempt to connect
     if (ctx->mqtt_client->connect(client_id, ctx->device_key, ctx->device_password, lastwill_topic, NULL, NULL, LASTWILL_MESSAGE_JSON)) 
     {
-        Serial.println("connected");
+        Serial.println("connected!");
     } 
     else 
     {
-        Serial.print("failed, rc=");
-        Serial.print(ctx->mqtt_client->state());
+        Serial.print("failed!");
+        //Serial.print(ctx->mqtt_client->state());
     }
 
     char pub_topic[TOPIC_SIZE];
