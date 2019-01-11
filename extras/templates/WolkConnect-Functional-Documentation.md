@@ -56,7 +56,6 @@ WolkConnect libraries separate device’s functionality through the API into thr
 	* [Actuators](#actuators)
  * [Device management](#device-managment) - allows monitoring and controlling the connected device in order to maintain data delivery integrity.is the dynamical modification of the device properties with the goal to change device behavior:
 	* [Configuration](#configuration)
-	* [Device Software/Firmware Update](#dfu)
 
 ---
 
@@ -150,36 +149,5 @@ Configuration is the dynamical modification of the device properties from WolkAb
 
 Configuration requires the same way of handling messages as actuation. When a configuration command is issued from WolkAbout IoT Platform, it will be passed to the configuration handler that will attempt to execute the command. Then the configuration status provider will report back to WolkAbout IoT Platform with the current values of the configuration parameters, with the addition that configuration parameters are always sent as a whole, even when only one value changes.
 
-<a name="dfu">
-> **Device Software/Firmware Update**
-</a>
-
-WolkAbout IoT Platform gives the possibility of updating the device software/firmware. The process is separated into three autonomous stages:
-
-- delivering software/firmware file from the WolkAbout IoT Platform to a device
-- start a process of installing a file on the device
-- verify installed software/firmware
-
-The device needs to be connected to and deliver current software/firmware version to WolkAbout IoT Platform before starting to exploit software/firmware update.
-
-WolkAbout IoT Platform actuates the device to start the process of installing. The responsibility to successfully install the file is on a device, not on WolkConnect library.
-In order to update the firmware, the user must create a firmware handler.
-
-This firmware handler will specify the following parameters:
-
-- current firmware version,
-- desired size of firmware chunk to be received from WolkAbout IoT Platform,
-- maximum supported firmware file size,
-- download location,
-- implementation of a firmware installer that will be responsible for the installation process.
-- Optionally, an implementation of firmware download handler that will download a file from an URL issued from WolkAbout IoT Platform.
-
-
 ---
-# API examples
 
----
-To see how to utilize WolkConnect library APIs, visit one of the following files and look up detailed information in the Example Usage section:
-
-* <a href="md_README.html">Simple example README.md</a> - demonstrates the sending of a temperature sensor reading
-* <a href="md_examples_full_feature_set_README.html">Full feature set example README.md</a> - demonstrates full WolkAbout IoT Platform potential

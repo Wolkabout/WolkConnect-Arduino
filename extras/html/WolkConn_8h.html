@@ -92,8 +92,6 @@ $(function() {
 Include dependency graph for WolkConn.h:</div>
 <div class="dyncontent">
 <div class="center"><img src="WolkConn_8h__incl.png" border="0" usemap="#_2home_2lbozic_2Arduino_2libraries_2WolkConnect-Arduino_2src_2WolkConn_8h" alt=""/></div>
-<map name="_2home_2lbozic_2Arduino_2libraries_2WolkConnect-Arduino_2src_2WolkConn_8h" id="_2home_2lbozic_2Arduino_2libraries_2WolkConnect-Arduino_2src_2WolkConn_8h">
-</map>
 </div>
 </div>
 <p><a href="WolkConn_8h_source.html">Go to the source code of this file.</a></p>
@@ -171,7 +169,7 @@ Functions</h2></td></tr>
 <tr class="memdesc:af174943365b8cddc1e6e9351996805c3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Disconnect from WolkAbout IoT Platform.  <a href="#af174943365b8cddc1e6e9351996805c3">More...</a><br /></td></tr>
 <tr class="separator:af174943365b8cddc1e6e9351996805c3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a57a05d76cc96bc5de0ee0e9a23ca5a8e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="WolkConn_8h.html#a5e8017d60f3753b4d489aeb7d3392641">WOLK_ERR_T</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="WolkConn_8h.html#a57a05d76cc96bc5de0ee0e9a23ca5a8e">wolk_process</a> (<a class="el" href="WolkConn_8h.html#a0257b85c2973b7443a15679eb6ee3ed6">wolk_ctx_t</a> *ctx, uint32_t tick)</td></tr>
-<tr class="memdesc:a57a05d76cc96bc5de0ee0e9a23ca5a8e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Must be called periodically to keep the connection to the WolkAbout IoT platform alive, obtain and perform actuation requests.  <a href="#a57a05d76cc96bc5de0ee0e9a23ca5a8e">More...</a><br /></td></tr>
+<tr class="memdesc:a57a05d76cc96bc5de0ee0e9a23ca5a8e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Must be called periodically to keep the connection to the WolkAbout IoT platform alive, obtain and perform actuation requests. It also serves as a diagnostic tool for the MQTT client, printing it's state when an error occurs. Client state will be -3 if the connection is lost and -4 if the broker can't be reached.  <a href="#a57a05d76cc96bc5de0ee0e9a23ca5a8e">More...</a><br /></td></tr>
 <tr class="separator:a57a05d76cc96bc5de0ee0e9a23ca5a8e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5588d57c8ff9d6138f418803bbe064fb"><td class="memItemLeft" align="right" valign="top"><a class="el" href="WolkConn_8h.html#a5e8017d60f3753b4d489aeb7d3392641">WOLK_ERR_T</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="WolkConn_8h.html#a5588d57c8ff9d6138f418803bbe064fb">wolk_add_string_sensor_reading</a> (<a class="el" href="WolkConn_8h.html#a0257b85c2973b7443a15679eb6ee3ed6">wolk_ctx_t</a> *ctx, const char *reference, const char *value, uint32_t utc_time)</td></tr>
 <tr class="memdesc:a5588d57c8ff9d6138f418803bbe064fb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Add string reading.  <a href="#a5588d57c8ff9d6138f418803bbe064fb">More...</a><br /></td></tr>
@@ -1027,7 +1025,7 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Must be called periodically to keep the connection to the WolkAbout IoT platform alive, obtain and perform actuation requests. </p>
+<p>Must be called periodically to keep the connection to the WolkAbout IoT platform alive, obtain and perform actuation requests. It also serves as a diagnostic tool for the MQTT client, printing it's state when an error occurs. Client state will be -3 if the connection is lost and -4 if the broker can't be reached. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">ctx</td><td>Context </td></tr>

@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.13"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Arduino WolkConnect library: Main Page</title>
+<title>Arduino WolkConnect library: WolkConnect library</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -61,10 +61,103 @@ $(function() {
 
 <div class="header">
   <div class="headertitle">
-<div class="title">Arduino WolkConnect library Documentation</div>  </div>
+<div class="title">WolkConnect library </div>  </div>
 </div><!--header-->
 <div class="contents">
-</div><!-- contents -->
+<div class="textblock"><p>WolkConnect libraries are used to enable a device’s communication with <a href="https://demo.wolkabout.com/#/login">WolkAbout IoT Platform</a>. Using WolkConnect libraries in the software or firmware of a device will drastically decrease the time to market for developers or anyone wanting to integrate their own product with WolkAbout IoT Platform.</p>
+<p>WolkConnect libraries are intended to be used on IP enabled devices. The available WolkConnect libraries (implemented in the following programming languages <a href="https://github.com/Wolkabout/WolkConnect-C">C</a>, <a href="https://github.com/Wolkabout/WolkConnect-Cpp">C++</a>, <a href="https://github.com/Wolkabout/WolkConnect-Java-">Java</a>, <a href="https://github.com/Wolkabout/WolkConnect-Python">Python</a>) are platform independent for OS based devices, with a special note that the WolkConnect-C library is suitable to be adapted for the use on non-OS devices as WolkConnect libraries have a small memory footprint.</p>
+<p>Features of WolkAbout IoT Platform that have been incorporated into WolkConnect libraries will be disambiguated with information on how to perform these features on devices by using WolkConnect’s API.</p>
+<p>WolkConnect libraries are open-source and released under the <a href="https://github.com/Wolkabout/WolkConnect-C/blob/master/LICENSE">Apache Licence 2.0</a>. </p><hr/>
+ <h1>Architecture</h1>
+<hr/>
+<p>WolkConnect library is intended to be used as a dependency in other firmwares or softwares that have their own existing business logic. WolkConnect library is not, by any means, a single service to control the device, it is a library intended to handle all the specific communication with WolkAbout IoT Platform.</p>
+<p>Using WolkConnect library requires minimal knowledge of WolkAbout IoT Platform, no knowledge of the internal mechanisms and protocols of WolkAbout IoT Platform is necessary. The user only utilises APIs provided by WolkConnect library in the User Application Layer, thereby reducing time-to-market required.</p>
+<p>The architecture of software/firmware where WolkConnect library is meant to be used is presented in <em>Fig.1.1</em>. The gray section in <em>Fig.1.1</em> represents the developer's software/firmware.</p>
+<center> <div class="image">
+<img src="Fig11.png" alt="Fig11.png"/>
+<div class="caption">
+Fig.1.1 WolkConnect library represented in general software/firmware architecture.</div></div>
+</center><p>The gray section between the User Application Layer and the Hardware Abstraction Layer reDevice DataDevice Datapresents the user’s libraries and drivers that are required for his project. Providing WolkConnect library with IP connectivity from the Hardware Abstraction Layer is expected from the user.</p>
+<p>WolkConnect library is separated into layers as shown in <em>Fig.1.2</em> </p><center> <div class="image">
+<img src="Fig12.png" alt="Fig12.png"/>
+<div class="caption">
+Fig.1.2 WolkConnect library layer's</div></div>
+</center><p>WolkConnect libraries use IP connectivity provided by the OS, but on devices, where this not available, it is user’s responsibility to provide implementations for opening a socket and send/receive methods to the socket.</p>
+<p>Communication between WolkConnect library and WolkAbout IoT Platform is achieved through the use of the <a href="http://mqtt.org/">MQTT messaging protocol</a>. WolkConnect libraries have a common dependency, an implementation of an MQTT client that will exchange data with an MQTT server that is part of WolkAbout IoT Platform. The communication between WolkConnect library and WolkAbout IoT Platform is made secure with the use of Secure Sockets Layer (SSL).</p>
+<p>Another common dependency for WolkConnect libraries is JSON library that is used for parsing data that is exchanged with WolkAbout IoT Platform. This data is formatted using a custom JSON based protocol defined by WolkAbout IoT Platform.</p>
+<p>The high-level API represents what is available to the developer that is using WolkConnect library. APIs follow the naming convention of the programming language they were written in. Consult a specific WolkConnect library’s documentation for more information. The API is divided into two parts: data management and device management. Data handling is independent of device management on WolkAbout IoT Platform and therefore has a separe API. Device management is responsible for device health and this, in turn, increases the device’s lifespan. </p><hr/>
+ <h1>API's functional description</h1>
+<hr/>
+<p> WolkConnect libraries separate device’s functionality through the API into three distinct parts:</p>
+<ul>
+<li><a href="#connection-management">Connection Management</a> - allows controlling the connected device in order to maintain data delivery integrity:<ul>
+<li><a href="#connect">Connect</a></li>
+<li><a href="#disconnect">Disconnect</a></li>
+<li><a href="#keep-alive-mechanism">Keep-Alive Mechanism</a></li>
+</ul>
+</li>
+<li><a href="#data-handling">Data Handling</a> - valuable data to be exchanged with WolkAbout IoT Platform<ul>
+<li><a href="#sensor-readings">Sensors</a></li>
+<li><a href="#alarms">Alarms</a></li>
+<li><a href="#actuators">Actuators</a></li>
+</ul>
+</li>
+<li><a href="#device-managment">Device management</a> - allows monitoring and controlling the connected device in order to maintain data delivery integrity.is the dynamical modification of the device properties with the goal to change device behavior:<ul>
+<li><a href="#configuration">Configuration</a> <hr/>
+</li>
+</ul>
+</li>
+</ul>
+<p><a class="anchor" id="connection-management"></a> </p><h2>Connection Management</h2>
+<hr/>
+ <p>Every connection from WolkConnect library to WolkAbout IoT Platform is authenticated with a device key and a device password. These credentials are created on WolkAbout IoT Platform when a device is created and are unique to that device. Only one active connection is allowed per device. Attempting to create an additional connection with the same device credentials will terminate the previous connection. The connection is made secure, by default, in all WolkConnect libraries through the use of Secure Sockets Layer (SSL). Connecting without SSL is possible. For more information, refer to specific WolkConnect library documentation.</p>
+<p><a class="anchor" id="connect"></a> </p><blockquote class="doxtable">
+<p><b>Connect</b> </p>
+</blockquote>
+<p>A device can be connected to WolkAbout IoT Platform in two ways: Always connected devices - connect once and publish data when necessary. Actuations can only be used in this case, as sending actuations from WolkAbout IoT Platform are disabled when the device is offline. Periodically connected devices - connect and publish data when needed. It is important to use disconnect here, as this is a valid device state on WolkAbout IoT Platform - controlled offline.</p>
+<p><a class="anchor" id="disconnect"></a> </p><blockquote class="doxtable">
+<p><b>Disconnect</b> </p>
+</blockquote>
+<p>Disconnecting will gracefully terminate the connection and the device will momentarily appear offline on WolkAbout IoT Platform. In cases of ungraceful disconnections, eg. due to a networking error, WolkAbout IoT Platform will be able to determine if the device is offline based on whether the device has send a message from its keep-alive mechanism. After waiting for the keep-alive mechanism timeout with no message, WolkAbout IoT Platform will declare the device offline.</p>
+<p><a class="anchor" id="keep-alive-mechanism"></a> </p><blockquote class="doxtable">
+<p><b>Keep-Alive Mechanism</b> </p>
+</blockquote>
+<p>In cases where the device is connected to the Platform but is not publishing any data for the period of 30 minutes, the device may be declared offline. This is especially true for devices that only have actuators, for example. To prevent this issue, a keep-alive mechanism will periodically send a message to WolkAbout IoT Platform. This mechanism can also be disabled to reduce bandwidth usage.</p>
+<p><a class="anchor" id="data-handling"></a> </p><h2>Data Handling</h2>
+<hr/>
+ <p>Real world devices can perform a wide variety of operations that result in meaningful data. These operations could be to conduct a measurement, monitor certain condition or execute some form of command. The data resulting from these operations have been modeled into three distinct types of data on WolkAbout IoT Platform: sensors, alarms, and actuators.</p>
+<p>Information needs to be distinguishable, so every piece of data sent from the device needs to have an identifier. This identifier is called a reference, and all the references of a device on WolkAbout IoT Platform must be unique.</p>
+<p><a class="anchor" id="sensor-readings"></a> </p><blockquote class="doxtable">
+<p><b>Sensors</b> </p>
+</blockquote>
+<p>Sensor readings are stored on the device before explicitly being published to WolkAbout IoT Platform. If the exact time when the reading occured is meaningful information, it can be assigned to the reading as a UTC timestamp. If this timestamp is not provided, WolkAbout IoT Platform will assign the reading a timestamp when it has been received, treating the reading like it occured the moment it arrived.</p>
+<p>Readings could be of a very high precision, and although this might not be fully displayed on the dashboard, the information is not lost and can be viewed on different parts of WolkAbout IoT Platform.</p>
+<p>Sensors readings like GPS and accelerometers hold more than one single information and these types of readings are supported in WolkConnect libraries and on WolkAbout IoT Platform. This concept is called a multi-value reading.</p>
+<p><a class="anchor" id="alarms"></a> </p><blockquote class="doxtable">
+<p><b>Alarms</b> </p>
+</blockquote>
+<p>Alarms are derived from some data on the device and are used to indicate the state of a condition, eg. high-temperature alarm which emerged as a result of exceeding a threshold value on the device. Alarm value can either be on or off.</p>
+<p>Like sensor readings, alarm messages are stored on the device before being published to WolkAbout IoT Platform. Alarms can also have a UTC timestamp to denote when the alarm occurred, but if the timestamp is omitted then WolkAbout IoT Platform will assign a timestamp when it receives the alarm message.</p>
+<p><a class="anchor" id="actuators"></a> </p><blockquote class="doxtable">
+<p><b>Actuators</b> </p>
+</blockquote>
+<p>Actuators are used to enable WolkAbout IoT Platform to set the state of some part of the device, eg. flip a switch or change the gear of a motor.</p>
+<p>Single actuation consists of the command to a device and feedback from the device. A command is a message that arrived at the device. Feedback is the current status of the actuator on the device which needs to be sent to WolkAbout IoT Platform in order to complete a single actuation process. Current status has two parameters: actuator value and actuator state. Value is current value of the actuator, eg. for a switch, it can be true or false. Possible actuator states are:</p>
+<ul>
+<li><b>READY</b> - waiting to receive a command to change its value</li>
+<li><b>BUSY</b> - in the process of changing its value</li>
+<li><b>ERROR</b> - unable to comply</li>
+</ul>
+<p>To perform a successful actuation, user needs to know the actuator references he was required to enter in the manifest, on the Platform, to forward them during the actuation initialisation period. The user has to implement an actuation handler that will execute the commands that have been issued from WolkAbout IoT Platform. Then the user has to implement an actuation provider that will update WolkAbout IoT Platform with the current status of the actuator. Publishing actuator statuses is performed immediately, but if the actuator takes time to be executed, eg. closing the gate, then the actuator status will update WolkAbout IoT Platform with the current values until it reaches the commanded value. If the device is unable to publish the actuator status, then the information will be stored on the device until the next successful publish attempt.</p>
+<p>To summarise, when an actuation command is issued from WolkAbout IoT Platform, it will be passed to the actuation handler that will attempt to execute the command, and then the actuator status provider will report back to WolkAbout IoT Platform with the current value and state of the actuator.</p>
+<p><a class="anchor" id="device-managment"></a> </p><h2>Device Management</h2>
+<hr/>
+ <p><a class="anchor" id="configuration"></a> </p><blockquote class="doxtable">
+<p><b>Configuration</b> </p>
+</blockquote>
+<p>Configuration is the dynamical modification of the device properties from WolkAbout IoT Platform with the goal to change device behavior, eg. measurement heartbeat, sensors delivery reduction, enabling/disabling device interfaces, increase/decrease device logging level.</p>
+<p>Configuration requires the same way of handling messages as actuation. When a configuration command is issued from WolkAbout IoT Platform, it will be passed to the configuration handler that will attempt to execute the command. Then the configuration status provider will report back to WolkAbout IoT Platform with the current values of the configuration parameters, with the addition that configuration parameters are always sent as a whole, even when only one value changes. </p><hr/>
+ </div></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
 Generated by &#160;<a href="http://www.doxygen.org/index.html">

@@ -54,8 +54,7 @@ The high-\/level A\+PI represents what is available to the developer that is usi
 \end{DoxyItemize}
 \item \href{#device-managment}{\tt Device management} -\/ allows monitoring and controlling the connected device in order to maintain data delivery integrity.\+is the dynamical modification of the device properties with the goal to change device behavior\+:
 \begin{DoxyItemize}
-\item \href{#configuration}{\tt Configuration}
-\item \href{#dfu}{\tt Device Software/\+Firmware Update} 
+\item \href{#configuration}{\tt Configuration} 
 
 
 \end{DoxyItemize}
@@ -156,48 +155,6 @@ To summarise, when an actuation command is issued from Wolk\+About IoT Platform,
 
 Configuration is the dynamical modification of the device properties from Wolk\+About IoT Platform with the goal to change device behavior, eg. measurement heartbeat, sensors delivery reduction, enabling/disabling device interfaces, increase/decrease device logging level.
 
-Configuration requires the same way of handling messages as actuation. When a configuration command is issued from Wolk\+About IoT Platform, it will be passed to the configuration handler that will attempt to execute the command. Then the configuration status provider will report back to Wolk\+About IoT Platform with the current values of the configuration parameters, with the addition that configuration parameters are always sent as a whole, even when only one value changes.
+Configuration requires the same way of handling messages as actuation. When a configuration command is issued from Wolk\+About IoT Platform, it will be passed to the configuration handler that will attempt to execute the command. Then the configuration status provider will report back to Wolk\+About IoT Platform with the current values of the configuration parameters, with the addition that configuration parameters are always sent as a whole, even when only one value changes. 
 
-\label{_dfu}%
- \begin{quote}
-{\bfseries Device Software/\+Firmware Update} \end{quote}
-
-
-Wolk\+About IoT Platform gives the possibility of updating the device software/firmware. The process is separated into three autonomous stages\+:
-
-
-\begin{DoxyItemize}
-\item delivering software/firmware file from the Wolk\+About IoT Platform to a device
-\item start a process of installing a file on the device
-\item verify installed software/firmware
-\end{DoxyItemize}
-
-The device needs to be connected to and deliver current software/firmware version to Wolk\+About IoT Platform before starting to exploit software/firmware update.
-
-Wolk\+About IoT Platform actuates the device to start the process of installing. The responsibility to successfully install the file is on a device, not on Wolk\+Connect library. In order to update the firmware, the user must create a firmware handler.
-
-This firmware handler will specify the following parameters\+:
-
-
-\begin{DoxyItemize}
-\item current firmware version,
-\item desired size of firmware chunk to be received from Wolk\+About IoT Platform,
-\item maximum supported firmware file size,
-\item download location,
-\item implementation of a firmware installer that will be responsible for the installation process.
-\item Optionally, an implementation of firmware download handler that will download a file from an U\+RL issued from Wolk\+About IoT Platform.
-\end{DoxyItemize}
-
-
-
- \section*{A\+PI examples}
-
-
-
- To see how to utilize Wolk\+Connect library A\+P\+Is, visit one of the following files and look up detailed information in the Example Usage section\+:
-
-
-\begin{DoxyItemize}
-\item \href{md_README.html}{\tt Simple example R\+E\+A\+D\+M\+E.\+md} -\/ demonstrates the sending of a temperature sensor reading
-\item \href{md_examples_full_feature_set_README.html}{\tt Full feature set example R\+E\+A\+D\+M\+E.\+md} -\/ demonstrates full Wolk\+About IoT Platform potential 
-\end{DoxyItemize}
+ 
