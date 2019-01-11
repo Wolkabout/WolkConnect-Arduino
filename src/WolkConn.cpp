@@ -154,7 +154,7 @@ WOLK_ERR_T wolk_connect (wolk_ctx_t *ctx)
     } 
     else 
     {
-        Serial.print("failed!");
+        Serial.println("failed!");
         //Serial.print(ctx->mqtt_client->state());
     }
 

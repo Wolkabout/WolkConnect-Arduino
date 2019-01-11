@@ -25,11 +25,13 @@ void setup_wifi() {
   Serial.println();
   Serial.print("Connecting to ");
   Serial.println(ssid);
-  WiFi.begin(ssid, wifi_pass);
+  WiFi.begin(ssid);
 
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
+  if ( WiFi.status() != WL_CONNECTED) {
+    while (WiFi.begin(ssid, wifi_pass) != WL_CONNECTED) {
+      Serial.print(".");
+      delay(4000);
+    }
   }
 
   Serial.println("");
