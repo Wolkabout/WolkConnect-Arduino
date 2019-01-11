@@ -1,0 +1,203 @@
+Wolk\+Connect libraries are used to enable a device’s communication with \href{https://demo.wolkabout.com/#/login}{\tt Wolk\+About IoT Platform}. Using Wolk\+Connect libraries in the software or firmware of a device will drastically decrease the time to market for developers or anyone wanting to integrate their own product with Wolk\+About IoT Platform.
+
+Wolk\+Connect libraries are intended to be used on IP enabled devices. The available Wolk\+Connect libraries (implemented in the following programming languages \href{https://github.com/Wolkabout/WolkConnect-C}{\tt C}, \href{https://github.com/Wolkabout/WolkConnect-Cpp}{\tt C++}, \href{https://github.com/Wolkabout/WolkConnect-Java-}{\tt Java}, \href{https://github.com/Wolkabout/WolkConnect-Python}{\tt Python}) are platform independent for OS based devices, with a special note that the Wolk\+Connect-\/C library is suitable to be adapted for the use on non-\/\+OS devices as Wolk\+Connect libraries have a small memory footprint.
+
+Features of Wolk\+About IoT Platform that have been incorporated into Wolk\+Connect libraries will be disambiguated with information on how to perform these features on devices by using Wolk\+Connect’s A\+PI.
+
+Wolk\+Connect libraries are open-\/source and released under the \href{https://github.com/Wolkabout/WolkConnect-C/blob/master/LICENSE}{\tt Apache Licence 2.\+0}. 
+
+ \section*{Architecture}
+
+
+
+
+
+Wolk\+Connect library is intended to be used as a dependency in other firmwares or softwares that have their own existing business logic. Wolk\+Connect library is not, by any means, a single service to control the device, it is a library intended to handle all the specific communication with Wolk\+About IoT Platform.
+
+Using Wolk\+Connect library requires minimal knowledge of Wolk\+About IoT Platform, no knowledge of the internal mechanisms and protocols of Wolk\+About IoT Platform is necessary. The user only utilises A\+P\+Is provided by Wolk\+Connect library in the User Application Layer, thereby reducing time-\/to-\/market required.
+
+The architecture of software/firmware where Wolk\+Connect library is meant to be used is presented in {\itshape Fig.\+1.\+1}. The gray section in {\itshape Fig.\+1.\+1} represents the developer\textquotesingle{}s software/firmware.
+
+\begin{center} \end{center} 
+
+The gray section between the User Application Layer and the Hardware Abstraction Layer re\+Device Data\+Device Datapresents the user’s libraries and drivers that are required for his project. Providing Wolk\+Connect library with IP connectivity from the Hardware Abstraction Layer is expected from the user.
+
+Wolk\+Connect library is separated into layers as shown in {\itshape Fig.\+1.\+2} \begin{center} \end{center} 
+
+Wolk\+Connect libraries use IP connectivity provided by the OS, but on devices, where this not available, it is user’s responsibility to provide implementations for opening a socket and send/receive methods to the socket.
+
+Communication between Wolk\+Connect library and Wolk\+About IoT Platform is achieved through the use of the \href{http://mqtt.org/}{\tt M\+Q\+TT messaging protocol}. Wolk\+Connect libraries have a common dependency, an implementation of an M\+Q\+TT client that will exchange data with an M\+Q\+TT server that is part of Wolk\+About IoT Platform. The communication between Wolk\+Connect library and Wolk\+About IoT Platform is made secure with the use of Secure Sockets Layer (S\+SL).
+
+Another common dependency for Wolk\+Connect libraries is J\+S\+ON library that is used for parsing data that is exchanged with Wolk\+About IoT Platform. This data is formatted using a custom J\+S\+ON based protocol defined by Wolk\+About IoT Platform.
+
+The high-\/level A\+PI represents what is available to the developer that is using Wolk\+Connect library. A\+P\+Is follow the naming convention of the programming language they were written in. Consult a specific Wolk\+Connect library’s documentation for more information. The A\+PI is divided into two parts\+: data management and device management. Data handling is independent of device management on Wolk\+About IoT Platform and therefore has a separe A\+PI. Device management is responsible for device health and this, in turn, increases the device’s lifespan. 
+
+ \section*{A\+PI\textquotesingle{}s functional description}
+
+
+
+ Wolk\+Connect libraries separate device’s functionality through the A\+PI into three distinct parts\+:
+
+
+\begin{DoxyItemize}
+\item \href{#connection-management}{\tt Connection Management} -\/ allows controlling the connected device in order to maintain data delivery integrity\+:
+\begin{DoxyItemize}
+\item \href{#connect}{\tt Connect}
+\item \href{#disconnect}{\tt Disconnect}
+\item \href{#keep-alive-mechanism}{\tt Keep-\/\+Alive Mechanism}
+\end{DoxyItemize}
+\item \href{#data-handling}{\tt Data Handling} -\/ valuable data to be exchanged with Wolk\+About IoT Platform
+\begin{DoxyItemize}
+\item \href{#sensor-readings}{\tt Sensors}
+\item \href{#alarms}{\tt Alarms}
+\item \href{#actuators}{\tt Actuators}
+\end{DoxyItemize}
+\item \href{#device-managment}{\tt Device management} -\/ allows monitoring and controlling the connected device in order to maintain data delivery integrity.\+is the dynamical modification of the device properties with the goal to change device behavior\+:
+\begin{DoxyItemize}
+\item \href{#configuration}{\tt Configuration}
+\item \href{#dfu}{\tt Device Software/\+Firmware Update} 
+
+
+\end{DoxyItemize}
+\end{DoxyItemize}
+
+\label{_connection-management}%
+ \subsection*{Connection Management}
+
+
+
+ 
+
+Every connection from Wolk\+Connect library to Wolk\+About IoT Platform is authenticated with a device key and a device password. These credentials are created on Wolk\+About IoT Platform when a device is created and are unique to that device. Only one active connection is allowed per device. Attempting to create an additional connection with the same device credentials will terminate the previous connection. The connection is made secure, by default, in all Wolk\+Connect libraries through the use of Secure Sockets Layer (S\+SL). Connecting without S\+SL is possible. For more information, refer to specific Wolk\+Connect library documentation.
+
+\label{_connect}%
+ \begin{quote}
+{\bfseries Connect} \end{quote}
+
+
+A device can be connected to Wolk\+About IoT Platform in two ways\+: Always connected devices -\/ connect once and publish data when necessary. Actuations can only be used in this case, as sending actuations from Wolk\+About IoT Platform are disabled when the device is offline. Periodically connected devices -\/ connect and publish data when needed. It is important to use disconnect here, as this is a valid device state on Wolk\+About IoT Platform -\/ controlled offline.
+
+\label{_disconnect}%
+ \begin{quote}
+{\bfseries Disconnect} \end{quote}
+
+
+Disconnecting will gracefully terminate the connection and the device will momentarily appear offline on Wolk\+About IoT Platform. In cases of ungraceful disconnections, eg. due to a networking error, Wolk\+About IoT Platform will be able to determine if the device is offline based on whether the device has send a message from its keep-\/alive mechanism. After waiting for the keep-\/alive mechanism timeout with no message, Wolk\+About IoT Platform will declare the device offline.
+
+\label{_keep-alive-mechanism}%
+ \begin{quote}
+{\bfseries Keep-\/\+Alive Mechanism} \end{quote}
+
+
+In cases where the device is connected to the Platform but is not publishing any data for the period of 30 minutes, the device may be declared offline. This is especially true for devices that only have actuators, for example. To prevent this issue, a keep-\/alive mechanism will periodically send a message to Wolk\+About IoT Platform. This mechanism can also be disabled to reduce bandwidth usage.
+
+\label{_data-handling}%
+ \subsection*{Data Handling}
+
+
+
+ 
+
+Real world devices can perform a wide variety of operations that result in meaningful data. These operations could be to conduct a measurement, monitor certain condition or execute some form of command. The data resulting from these operations have been modeled into three distinct types of data on Wolk\+About IoT Platform\+: sensors, alarms, and actuators.
+
+Information needs to be distinguishable, so every piece of data sent from the device needs to have an identifier. This identifier is called a reference, and all the references of a device on Wolk\+About IoT Platform must be unique.
+
+\label{_sensor-readings}%
+ \begin{quote}
+{\bfseries Sensors} \end{quote}
+
+
+Sensor readings are stored on the device before explicitly being published to Wolk\+About IoT Platform. If the exact time when the reading occured is meaningful information, it can be assigned to the reading as a U\+TC timestamp. If this timestamp is not provided, Wolk\+About IoT Platform will assign the reading a timestamp when it has been received, treating the reading like it occured the moment it arrived.
+
+Readings could be of a very high precision, and although this might not be fully displayed on the dashboard, the information is not lost and can be viewed on different parts of Wolk\+About IoT Platform.
+
+Sensors readings like G\+PS and accelerometers hold more than one single information and these types of readings are supported in Wolk\+Connect libraries and on Wolk\+About IoT Platform. This concept is called a multi-\/value reading.
+
+\label{_alarms}%
+ \begin{quote}
+{\bfseries Alarms} \end{quote}
+
+
+Alarms are derived from some data on the device and are used to indicate the state of a condition, eg. high-\/temperature alarm which emerged as a result of exceeding a threshold value on the device. Alarm value can either be on or off.
+
+Like sensor readings, alarm messages are stored on the device before being published to Wolk\+About IoT Platform. Alarms can also have a U\+TC timestamp to denote when the alarm occurred, but if the timestamp is omitted then Wolk\+About IoT Platform will assign a timestamp when it receives the alarm message.
+
+\label{_actuators}%
+ \begin{quote}
+{\bfseries Actuators} \end{quote}
+
+
+Actuators are used to enable Wolk\+About IoT Platform to set the state of some part of the device, eg. flip a switch or change the gear of a motor.
+
+Single actuation consists of the command to a device and feedback from the device. A command is a message that arrived at the device. Feedback is the current status of the actuator on the device which needs to be sent to Wolk\+About IoT Platform in order to complete a single actuation process. Current status has two parameters\+: actuator value and actuator state. Value is current value of the actuator, eg. for a switch, it can be true or false. Possible actuator states are\+:
+
+
+\begin{DoxyItemize}
+\item {\bfseries R\+E\+A\+DY} -\/ waiting to receive a command to change its value
+\item {\bfseries B\+U\+SY} -\/ in the process of changing its value
+\item {\bfseries E\+R\+R\+OR} -\/ unable to comply
+\end{DoxyItemize}
+
+To perform a successful actuation, user needs to know the actuator references he was required to enter in the manifest, on the Platform, to forward them during the actuation initialisation period. The user has to implement an actuation handler that will execute the commands that have been issued from Wolk\+About IoT Platform. Then the user has to implement an actuation provider that will update Wolk\+About IoT Platform with the current status of the actuator. Publishing actuator statuses is performed immediately, but if the actuator takes time to be executed, eg. closing the gate, then the actuator status will update Wolk\+About IoT Platform with the current values until it reaches the commanded value. If the device is unable to publish the actuator status, then the information will be stored on the device until the next successful publish attempt.
+
+To summarise, when an actuation command is issued from Wolk\+About IoT Platform, it will be passed to the actuation handler that will attempt to execute the command, and then the actuator status provider will report back to Wolk\+About IoT Platform with the current value and state of the actuator.
+
+\label{_device-managment}%
+ \subsection*{Device Management}
+
+
+
+ 
+
+\label{_configuration}%
+ \begin{quote}
+{\bfseries Configuration} \end{quote}
+
+
+Configuration is the dynamical modification of the device properties from Wolk\+About IoT Platform with the goal to change device behavior, eg. measurement heartbeat, sensors delivery reduction, enabling/disabling device interfaces, increase/decrease device logging level.
+
+Configuration requires the same way of handling messages as actuation. When a configuration command is issued from Wolk\+About IoT Platform, it will be passed to the configuration handler that will attempt to execute the command. Then the configuration status provider will report back to Wolk\+About IoT Platform with the current values of the configuration parameters, with the addition that configuration parameters are always sent as a whole, even when only one value changes.
+
+\label{_dfu}%
+ \begin{quote}
+{\bfseries Device Software/\+Firmware Update} \end{quote}
+
+
+Wolk\+About IoT Platform gives the possibility of updating the device software/firmware. The process is separated into three autonomous stages\+:
+
+
+\begin{DoxyItemize}
+\item delivering software/firmware file from the Wolk\+About IoT Platform to a device
+\item start a process of installing a file on the device
+\item verify installed software/firmware
+\end{DoxyItemize}
+
+The device needs to be connected to and deliver current software/firmware version to Wolk\+About IoT Platform before starting to exploit software/firmware update.
+
+Wolk\+About IoT Platform actuates the device to start the process of installing. The responsibility to successfully install the file is on a device, not on Wolk\+Connect library. In order to update the firmware, the user must create a firmware handler.
+
+This firmware handler will specify the following parameters\+:
+
+
+\begin{DoxyItemize}
+\item current firmware version,
+\item desired size of firmware chunk to be received from Wolk\+About IoT Platform,
+\item maximum supported firmware file size,
+\item download location,
+\item implementation of a firmware installer that will be responsible for the installation process.
+\item Optionally, an implementation of firmware download handler that will download a file from an U\+RL issued from Wolk\+About IoT Platform.
+\end{DoxyItemize}
+
+
+
+ \section*{A\+PI examples}
+
+
+
+ To see how to utilize Wolk\+Connect library A\+P\+Is, visit one of the following files and look up detailed information in the Example Usage section\+:
+
+
+\begin{DoxyItemize}
+\item \href{md_README.html}{\tt Simple example R\+E\+A\+D\+M\+E.\+md} -\/ demonstrates the sending of a temperature sensor reading
+\item \href{md_examples_full_feature_set_README.html}{\tt Full feature set example R\+E\+A\+D\+M\+E.\+md} -\/ demonstrates full Wolk\+About IoT Platform potential 
+\end{DoxyItemize}

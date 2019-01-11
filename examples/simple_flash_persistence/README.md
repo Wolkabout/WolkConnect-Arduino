@@ -123,3 +123,10 @@ WolkConnect-Arduino library has integrated additional features which can perform
 
 When implementing the `loop()` function, bear in mind that calls to `wolk_process` need to occur in intervals of less than 15 seconds apart in order to maintain the connection.
 Acquiring sensor readings and other business logic should preferably be called on timed interrupts.
+
+# Known issues
+
+When connecting MKR1000 or Node MCU to a busy or unstable WiFi network, MQTT client might lose connection often. 
+The example handles this situation by reconnecting to the WiFi and the platform. 
+MQTT client state will return -3 error code.
+If the broker can't be reached MQTT Client state will return -4 error code.

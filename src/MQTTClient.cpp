@@ -286,7 +286,6 @@ boolean PubSubClient::loop(void *wolk) {
             if (pingOutstanding) {
                 this->_state = MQTT_CONNECTION_TIMEOUT;
                 _client->stop();
-                Serial.println("Connection timeout!");
                 return false;
             } else {
                 buffer[0] = MQTTPINGREQ;
@@ -342,7 +341,6 @@ boolean PubSubClient::loop(void *wolk) {
         }
         return true;
     }
-    Serial.println("Something else happened");
     return false;
 }
 

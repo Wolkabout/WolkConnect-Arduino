@@ -18,7 +18,7 @@ Header file with library function descriptions.
 {\ttfamily \#include \char`\"{}utility/persistence.\+h\char`\"{}}\newline
 Include dependency graph for Wolk\+Conn.\+h\+:
 % FIG 0
-\subsection*{Classes}
+\subsection*{Data Structures}
 \begin{DoxyCompactItemize}
 \item 
 struct \hyperlink{struct__wolk__ctx__t}{\+\_\+wolk\+\_\+ctx\+\_\+t}
@@ -474,6 +474,8 @@ Initializes persistence mechanism with custom implementation.
 {\em ctx} & Context \\
 \hline
 {\em push} & Function pointer to \textquotesingle{}push\textquotesingle{} implemenation \\
+\hline
+{\em peek} & Function pointer to \textquotesingle{}peek\textquotesingle{} implementation \\
 \hline
 {\em pop} & Function pointer to \textquotesingle{}pop\textquotesingle{} implementation \\
 \hline

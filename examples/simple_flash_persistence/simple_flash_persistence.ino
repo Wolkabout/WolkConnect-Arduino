@@ -135,6 +135,13 @@ void setup_wifi() {
   Serial.println(WiFi.localIP());
 }
 
+void reconnect_to_platform()
+{
+  setup_wifi();
+  
+  wolk_connect(&wolk);
+}
+
 void setup() {
   Serial.begin(9600);
   
@@ -182,7 +189,10 @@ void loop() {
       delay(10000);
     };
   }
-  wolk_process(&wolk, 5);
+  if(wolk_process(&wolk, 5) == W_TRUE)
+  {
+    reconnect_to_platform();
+  }
 
   delay(1000);
 }

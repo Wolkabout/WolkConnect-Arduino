@@ -116,8 +116,16 @@ void setup_wifi() {
   Serial.println(WiFi.localIP());
 }
 
-void connect_to_platform()
+void reconnect_to_platform()
 {
+  setup_wifi();
+  
+  wolk_connect(&wolk);
+}
+
+void setup() {
+  Serial.begin(9600);
+
   setup_wifi();
 
   wolk_init(&wolk, actuation_handler, actuator_status_provider, configuration_handler, configuration_provider,
@@ -126,12 +134,6 @@ void connect_to_platform()
   wolk_init_in_memory_persistence(&wolk, &outbound_messages, sizeof(outbound_messages), false);
   
   wolk_connect(&wolk);
-}
-
-void setup() {
-  Serial.begin(9600);
-
-  connect_to_platform();
 
   delay(1000);
 
@@ -166,7 +168,7 @@ void loop() {
   }
   if(wolk_process(&wolk, 5) == W_TRUE)
   {
-    connect_to_platform();
+    reconnect_to_platform();
   }
 
   delay(1000);

@@ -220,7 +220,9 @@ WOLK_ERR_T wolk_disconnect (wolk_ctx_t *ctx);
 
 /**
  * @brief Must be called periodically to keep the connection to the WolkAbout IoT
- * platform alive, obtain and perform actuation requests
+ * platform alive, obtain and perform actuation requests. It also serves as a diagnostic tool
+ * for the MQTT client, printing it's state when an error occurs.
+ * Client state will be -3 if the connection is lost and -4 if the broker can't be reached. 
  *
  * @param ctx Context
  * @param tick Period at which wolk_process is called

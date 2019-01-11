@@ -298,7 +298,8 @@ WOLK_ERR_T wolk_process (wolk_ctx_t *ctx, uint32_t tick)
     if (ctx->mqtt_client->loop(ctx)==false)
     {
         Serial.println("MQTT lost connection!");
-        //wolk_connect(ctx);
+        Serial.print("Client state:");
+        Serial.println(ctx->mqtt_client->state());
         return W_TRUE;
     }
 
