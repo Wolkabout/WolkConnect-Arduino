@@ -20,7 +20,7 @@
 
 #ifndef WOLK_H
 #define WOLK_H
-
+/** @cond */
 #include "MQTTClient.h"
 #include "utility/WolkQueue.h"
 #include "utility/parser.h"
@@ -38,13 +38,13 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-
+/** @endcond */
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#define FW_VERSION_MAJOR 2 // number 0 -99
-#define FW_VERSION_MINOR 1 // number 0 -99
+#define FW_VERSION_MAJOR 3 // number 0 -99
+#define FW_VERSION_MINOR 0 // number 0 -99
 #define FW_VERSION_PATCH 0 // number 0 -99
 
 /**
