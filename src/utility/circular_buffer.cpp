@@ -190,7 +190,9 @@ uint32_t circular_buffer_drop_from_end(circular_buffer_t* buffer, uint32_t numbe
     if (!buffer) {
         return 0;
     }
-
+    if(number_of_elements >= circular_buffer_size(buffer)) {
+        return 0;
+    }
     for (i = 0; i < number_of_elements; i++) {
         decrease_pointer(&buffer->tail, buffer->storage_size);
         buffer->full = false;
