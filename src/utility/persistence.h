@@ -82,8 +82,6 @@ bool persistence_pop(persistence_t* persistence, outbound_message_t* item);
 
 bool persistence_is_empty(persistence_t* persistence);
 
-size_t persistence_size(persistence_t* persistence);
-
 #ifdef __cplusplus
 }
 #endif

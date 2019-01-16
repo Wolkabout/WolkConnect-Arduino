@@ -151,11 +151,13 @@ WOLK_ERR_T wolk_connect (wolk_ctx_t *ctx)
     if (ctx->mqtt_client->connect(client_id, ctx->device_key, ctx->device_password, lastwill_topic, NULL, NULL, LASTWILL_MESSAGE_JSON)) 
     {
         Serial.println("connected!");
+        ctx->is_connected = true;
     } 
     else 
     {
         Serial.println("failed!");
         //Serial.print(ctx->mqtt_client->state());
+        ctx->is_connected = false;
     }
 
     char pub_topic[TOPIC_SIZE];
@@ -300,6 +302,7 @@ WOLK_ERR_T wolk_process (wolk_ctx_t *ctx, uint32_t tick)
         Serial.println("MQTT lost connection!");
         Serial.print("Client state:");
         Serial.println(ctx->mqtt_client->state());
+        ctx->is_connected = false;
         return W_TRUE;
     }
 
@@ -552,6 +555,7 @@ WOLK_ERR_T wolk_disconnect(wolk_ctx_t *ctx)
 
     ctx->mqtt_client->publish(lastwill_topic, LASTWILL_MESSAGE_JSON);
     ctx->mqtt_client->disconnect();
+    ctx->is_connected = false;
     return W_FALSE;
 }
 
