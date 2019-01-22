@@ -103,7 +103,7 @@ void setup_wifi() {
   Serial.println();
   Serial.print("Connecting to ");
   Serial.println(ssid);
-  WiFi.begin(ssid);
+  WiFi.begin(ssid, wifi_pass);
 
   if ( WiFi.status() != WL_CONNECTED) {
     while (WiFi.begin(ssid, wifi_pass) != WL_CONNECTED) {
