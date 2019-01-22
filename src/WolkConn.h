@@ -45,7 +45,8 @@ extern "C" {
 
 #define FW_VERSION_MAJOR 3 // number 0 -99
 #define FW_VERSION_MINOR 0 // number 0 -99
-#define FW_VERSION_PATCH 0 // number 0 -99
+#define FW_VERSION_PATCH 2 // number 0 -99
+
 
 /**
  * @brief Supported protocols, WolkConnect libararies currently support only PROTOCOL_JSON_SINGLE
@@ -125,6 +126,7 @@ struct _wolk_ctx_t {
     uint32_t milliseconds_since_last_ping_keep_alive;
 
     bool is_initialized;
+    bool is_connected;
 
     persistence_t persistence;
 };
