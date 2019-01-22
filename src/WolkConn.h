@@ -43,9 +43,9 @@
 extern "C" {
 #endif
 
-#define FW_VERSION_MAJOR 2 // number 0 -99
-#define FW_VERSION_MINOR 1 // number 0 -99
-#define FW_VERSION_PATCH 0 // number 0 -99
+#define FW_VERSION_MAJOR 3 // number 0 -99
+#define FW_VERSION_MINOR 0 // number 0 -99
+#define FW_VERSION_PATCH 2 // number 0 -99
 
 /**
  * @brief Supported protocols, WolkConnect libararies currently support only PROTOCOL_JSON_SINGLE
