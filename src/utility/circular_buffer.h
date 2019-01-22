@@ -43,9 +43,23 @@ void circular_buffer_init(circular_buffer_t* circular_buffer, void* storage, uin
 
 bool circular_buffer_add(circular_buffer_t* buffer, const void* element);
 
+bool circular_buffer_add_array(circular_buffer_t* buffer, const void* elements_array, uint32_t length);
+
+uint32_t circular_buffer_add_as_many_as_possible(circular_buffer_t* buffer, const void* elements_array,
+                                                 uint32_t length);
+
 bool circular_buffer_pop(circular_buffer_t* buffer, void* element);
 
+uint32_t circular_buffer_pop_array(circular_buffer_t* buffer, uint32_t length, void* elements_array);
+
+uint32_t circular_buffer_drop_from_beggining(circular_buffer_t* buffer, uint32_t number_of_elements);
+
+uint32_t circular_buffer_drop_from_end(circular_buffer_t* buffer, uint32_t number_of_elements);
+
 bool circular_buffer_peek(circular_buffer_t* buffer, uint32_t element_position, void* element);
+
+uint32_t circular_buffer_peek_array(circular_buffer_t* buffer, uint32_t element_position, uint32_t length,
+                                    void* elements_array);
 
 bool circular_buffer_empty(circular_buffer_t* buffer);
 

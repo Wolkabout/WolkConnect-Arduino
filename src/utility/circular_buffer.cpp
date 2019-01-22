@@ -90,6 +90,49 @@ bool circular_buffer_add(circular_buffer_t* buffer, const void* element)
  * Adds element to buffer. If buffer is full it will overwrite the oldest
  * element.
  */
+bool circular_buffer_add_array(circular_buffer_t* buffer, const void* elements_array, uint32_t length)
+{
+    uint32_t free_space;
+    uint64_t i = 0;
+
+    if (!buffer || !elements_array) {
+        return false;
+    }
+
+    free_space = circular_buffer_free_space(buffer);
+    if (!buffer->wrap && (length > free_space)) {
+        return false;
+    }
+
+    for (i = 0; i < length; i++) {
+        const unsigned char* source_position = (const unsigned char*)elements_array + i * buffer->element_size;
+        circular_buffer_add(buffer, source_position);
+    }
+
+    return true;
+}
+
+uint32_t circular_buffer_add_as_many_as_possible(circular_buffer_t* buffer, const void* elements_array, uint32_t length)
+{
+    uint32_t to_add;
+    uint64_t i;
+
+    if (!buffer || !elements_array) {
+        return 0;
+    }
+
+    to_add = circular_buffer_free_space(buffer);
+    if (length < to_add) {
+        to_add = length;
+    }
+
+    for (i = 0; i < to_add; i++) {
+        const unsigned char* source_position = (const unsigned char*)elements_array + i * buffer->element_size;
+        circular_buffer_add(buffer, source_position);
+    }
+
+    return to_add;
+}
 
 bool circular_buffer_pop(circular_buffer_t* buffer, void* element)
 {
@@ -111,6 +154,52 @@ bool circular_buffer_pop(circular_buffer_t* buffer, void* element)
     return true;
 }
 
+/**
+ * Drops first number_of_elements.
+ */
+
+uint32_t circular_buffer_pop_array(circular_buffer_t* buffer, uint32_t length, void* elements_array)
+{
+    uint32_t read;
+
+    if (!buffer) {
+        return 0;
+    }
+
+    read = 0;
+    unsigned char* elements_array_position = elements_array ? (unsigned char*)elements_array : NULL;
+    while ((read < length) && circular_buffer_pop(buffer, elements_array_position)) {
+        read++;
+        if (elements_array_position) {
+            elements_array_position += buffer->element_size;
+        }
+    }
+
+    return read;
+}
+
+uint32_t circular_buffer_drop_from_beggining(circular_buffer_t* buffer, uint32_t number_of_elements)
+{
+    return circular_buffer_pop_array(buffer, number_of_elements, NULL);
+}
+
+uint32_t circular_buffer_drop_from_end(circular_buffer_t* buffer, uint32_t number_of_elements)
+{
+    uint64_t i;
+
+    if (!buffer) {
+        return 0;
+    }
+    if(number_of_elements >= circular_buffer_size(buffer)) {
+        return 0;
+    }
+    for (i = 0; i < number_of_elements; i++) {
+        decrease_pointer(&buffer->tail, buffer->storage_size);
+        buffer->full = false;
+    }
+
+    return number_of_elements;
+}
 
 bool circular_buffer_peek(circular_buffer_t* buffer, uint32_t element_position, void* element)
 {
@@ -130,6 +219,26 @@ bool circular_buffer_peek(circular_buffer_t* buffer, uint32_t element_position, 
     }
 
     return true;
+}
+
+uint32_t circular_buffer_peek_array(circular_buffer_t* buffer, uint32_t element_position, uint32_t length,
+                                    void* elements_array)
+{
+    uint32_t read;
+
+    if (!buffer || !elements_array) {
+        return false;
+    }
+
+    read = 0;
+    unsigned char* elements_array_position = (unsigned char*)elements_array;
+    while ((read < length)
+           && circular_buffer_peek(buffer, element_position + read,
+                                   elements_array_position + read * buffer->element_size)) {
+        read++;
+    }
+
+    return read;
 }
 
 bool circular_buffer_empty(circular_buffer_t* buffer)
