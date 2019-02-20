@@ -43,6 +43,8 @@ void initialize_parser(parser_t* parser, parser_type_t parser_type)
         parser->deserialize_configuration_commands = json_deserialize_configuration_command;
 
         parser->serialize_keep_alive_message = json_serialize_keep_alive_message;
+
+        parser->deserialize_pong = json_deserialize_pong;
         break;
 
     default:
@@ -135,3 +137,11 @@ bool parser_is_initialized(parser_t* parser)
     return parser->is_initialized;
 }
 
+bool parser_deserialize_pong(parser_t* parser, char* buffer, size_t buffer_size, char* time)
+{
+    WOLK_ASSERT(parser);
+    WOLK_ASSERT(buffer_size < PAYLOAD_SIZE);
+
+    return parser->deserialize_pong(buffer, buffer_size, time);
+
+}

@@ -49,6 +49,8 @@ size_t json_deserialize_configuration_command(char* buffer, size_t buffer_size,
 
 bool json_serialize_keep_alive_message(const char* device_key, outbound_message_t* outbound_message);
 
+bool json_deserialize_pong(char* buffer, size_t buffer_size, char* time);
+
 #ifdef __cplusplus
 }
 #endif
