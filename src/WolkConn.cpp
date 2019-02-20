@@ -246,14 +246,12 @@ void callback(void *wolk, char* topic, byte*payload, unsigned int length)
     }
     else if (strstr(topic, PONG_JSON))
     {
-        Serial.println("Pong received!");
-        //ctx->pong_received = true;
+        ctx->pong_received = true;
         uint32_t time;
-        char value[50];
+        char value[10];
         parser_deserialize_pong(&ctx->parser, (char*)payload_str, (size_t)length, value);
-        Serial.print("Epoch time is ");
-        Serial.println(value);
-        ctx->epoch_time = atoi(value);
+        value[10] = 0;
+        ctx->epoch_time = strtol(value, NULL, 10);
     }
 }
 
@@ -599,7 +597,6 @@ WOLK_ERR_T wolk_disable_keep_alive(wolk_ctx_t* ctx)
 
 static WOLK_ERR_T _ping_keep_alive(wolk_ctx_t* ctx, uint32_t tick)
 {
-    //ctx->pong_received = false;
 
     if (!ctx->is_keep_alive_enabled) {
         return W_FALSE;
@@ -616,7 +613,7 @@ static WOLK_ERR_T _ping_keep_alive(wolk_ctx_t* ctx, uint32_t tick)
     if (_publish(ctx, outbound_message.topic, outbound_message.payload) != W_FALSE) {
         return W_TRUE;
     }
-    Serial.println("Ping!");
+    ctx->pong_received = false;
 
     ctx->milliseconds_since_last_ping_keep_alive = 0;
     return W_FALSE;
@@ -663,8 +660,9 @@ WOLK_ERR_T wolk_publish(wolk_ctx_t* ctx)
 
 WOLK_ERR_T wolk_update_epoch(wolk_ctx_t* ctx)
 {
+    WOLK_ASSERT(ctx->is_connected == true);
 
-    //ctx->pong_received = false;
+    ctx->pong_received = false;
 
     outbound_message_t outbound_message;
 
@@ -675,5 +673,4 @@ WOLK_ERR_T wolk_update_epoch(wolk_ctx_t* ctx)
     }
 
     delay(100);
-    Serial.println("Ping for epoch!");
 }

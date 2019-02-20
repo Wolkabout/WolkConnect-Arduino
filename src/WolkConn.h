@@ -131,7 +131,7 @@ struct _wolk_ctx_t {
 
     persistence_t persistence;
 
-    uint32_t epoch_time;                                    /**< Epoch time in milliseconds, is updated on every ping but can be updated manually by calling wolk_update_epoch()
+    unsigned long epoch_time;                                    /**< Epoch time in milliseconds, is updated on every ping but can be updated manually by calling wolk_update_epoch()
                                                             Since this is updated by receiving the value from the platform, wolk_process must also be called*/
 };
 
