@@ -105,6 +105,21 @@ and it must to be called periodically.
 ```c
 wolk_process(&wolk, 5);
 ```
+**Getting the epoch:**
+
+Epoch time is stored in the wolk_ctx_t structure field named epoch_time and it's value is updated on every pong received.
+Optionally, you can update it by calling wolk_update_epoch(). Processing must be periodically called as this information is 
+received from the platform.
+```c
+wolk_update_epoch(&wolk);
+/*call processing until pong is received*/
+while (!(wolk.pong_received)) {
+    wolk_process(&wolk, 5);
+    digitalWrite(LED_BUILTIN, HIGH);
+    delay(1000);
+  }
+```
+
 **Disconnecting from the platform:**
 ```c
 wolk_disconnect(&wolk)
