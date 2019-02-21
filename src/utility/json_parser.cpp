@@ -22,6 +22,7 @@
 #include "size_definitions.h"
 #include "wolk_utils.h"
 #include "actuator_status.h"
+#include "Arduino.h"
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -574,4 +575,15 @@ bool json_serialize_keep_alive_message(const char* device_key, outbound_message_
     }
 
     return true;
+}
+
+bool json_deserialize_pong(char* buffer, size_t buffer_size, char* timestamp)
+{
+    char* tokens = strtok(buffer, "\"");
+    while ((strcmp(tokens, ":"))){
+        tokens = strtok(NULL, "\"");
+    }
+    tokens = strtok(NULL, "\"");
+
+    strcpy(time, tokens);
 }

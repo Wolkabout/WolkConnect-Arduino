@@ -41,8 +41,16 @@ uint32\+\_\+t {\bfseries milliseconds\+\_\+since\+\_\+last\+\_\+ping\+\_\+keep\+
 \mbox{\Hypertarget{struct__wolk__ctx__t_a65aec58259024398da781689ad05799a}\label{struct__wolk__ctx__t_a65aec58259024398da781689ad05799a}} 
 bool {\bfseries is\+\_\+initialized}
 \item 
+\mbox{\Hypertarget{struct__wolk__ctx__t_abeedd5d0c334aab47fd6aac270b8d1e0}\label{struct__wolk__ctx__t_abeedd5d0c334aab47fd6aac270b8d1e0}} 
+bool {\bfseries is\+\_\+connected}
+\item 
+\mbox{\Hypertarget{struct__wolk__ctx__t_a756475fe4cd97ed31ae3e665692c3f48}\label{struct__wolk__ctx__t_a756475fe4cd97ed31ae3e665692c3f48}} 
+bool {\bfseries pong\+\_\+received}
+\item 
 \mbox{\Hypertarget{struct__wolk__ctx__t_acedc150706ec304c5045f9c77b065ccd}\label{struct__wolk__ctx__t_acedc150706ec304c5045f9c77b065ccd}} 
 persistence\+\_\+t {\bfseries persistence}
+\item 
+unsigned long \hyperlink{struct__wolk__ctx__t_a0c63c52881404b0305e8b4dba0b0b6a6}{epoch\+\_\+time}
 \end{DoxyCompactItemize}
 
 
@@ -95,7 +103,13 @@ Authentication parameters for Wolk\+About IoT Platform. Obtained as a result of 
 \subsubsection{\texorpdfstring{device\+\_\+password}{device\_password}}
 {\footnotesize\ttfamily char \+\_\+wolk\+\_\+ctx\+\_\+t\+::device\+\_\+password\mbox{[}D\+E\+V\+I\+C\+E\+\_\+\+P\+A\+S\+S\+W\+O\+R\+D\+\_\+\+S\+I\+ZE\mbox{]}}
 
-Authentication parameters for Wolk\+About IoT Platform. Obtained as a result of device creation on the platform. \mbox{\Hypertarget{struct__wolk__ctx__t_ab98629a506ce39393254cf331189dc9a}\label{struct__wolk__ctx__t_ab98629a506ce39393254cf331189dc9a}} 
+Authentication parameters for Wolk\+About IoT Platform. Obtained as a result of device creation on the platform. \mbox{\Hypertarget{struct__wolk__ctx__t_a0c63c52881404b0305e8b4dba0b0b6a6}\label{struct__wolk__ctx__t_a0c63c52881404b0305e8b4dba0b0b6a6}} 
+\index{\+\_\+wolk\+\_\+ctx\+\_\+t@{\+\_\+wolk\+\_\+ctx\+\_\+t}!epoch\+\_\+time@{epoch\+\_\+time}}
+\index{epoch\+\_\+time@{epoch\+\_\+time}!\+\_\+wolk\+\_\+ctx\+\_\+t@{\+\_\+wolk\+\_\+ctx\+\_\+t}}
+\subsubsection{\texorpdfstring{epoch\+\_\+time}{epoch\_time}}
+{\footnotesize\ttfamily unsigned long \+\_\+wolk\+\_\+ctx\+\_\+t\+::epoch\+\_\+time}
+
+Epoch time in milliseconds, is updated on every ping but can be updated manually by calling \hyperlink{WolkConn_8h_afb2e5b566c8535cf38a7038909a36b6e}{wolk\+\_\+update\+\_\+epoch()} Since this is updated by receiving the value from the platform, wolk\+\_\+process must also be called \mbox{\Hypertarget{struct__wolk__ctx__t_ab98629a506ce39393254cf331189dc9a}\label{struct__wolk__ctx__t_ab98629a506ce39393254cf331189dc9a}} 
 \index{\+\_\+wolk\+\_\+ctx\+\_\+t@{\+\_\+wolk\+\_\+ctx\+\_\+t}!protocol@{protocol}}
 \index{protocol@{protocol}!\+\_\+wolk\+\_\+ctx\+\_\+t@{\+\_\+wolk\+\_\+ctx\+\_\+t}}
 \subsubsection{\texorpdfstring{protocol}{protocol}}

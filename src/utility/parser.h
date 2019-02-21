@@ -55,6 +55,8 @@ typedef struct {
                                                  configuration_command_t* first_configuration_command,
                                                  size_t num_config_items);
     bool (*serialize_keep_alive_message)(const char* device_key, outbound_message_t* outbound_message);
+
+    bool (*deserialize_pong)(char* buffer, size_t buffer_size, char* timestamp); 
 } parser_t;
 
 void initialize_parser(parser_t* parser, parser_type_t parser_type);
@@ -85,6 +87,8 @@ bool parser_serialize_keep_alive_message(parser_t* parser, const char* device_ke
                                          outbound_message_t* outbound_message);
 parser_type_t parser_get_type(parser_t* parser);
 bool parser_is_initialized(parser_t* parser);
+
+bool parser_deserialize_pong(parser_t* parser, char* buffer, size_t buffer_size, char* timestamp);
 
 #ifdef __cplusplus
 }

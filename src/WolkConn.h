@@ -44,8 +44,8 @@ extern "C" {
 #endif
 
 #define FW_VERSION_MAJOR 3 // number 0 -99
-#define FW_VERSION_MINOR 0 // number 0 -99
-#define FW_VERSION_PATCH 2 // number 0 -99
+#define FW_VERSION_MINOR 1 // number 0 -99
+#define FW_VERSION_PATCH 0 // number 0 -99
 
 
 /**
@@ -116,7 +116,7 @@ struct _wolk_ctx_t {
     char device_key[DEVICE_KEY_SIZE];                       /**<  Authentication parameters for WolkAbout IoT Platform. Obtained as a result of device creation on the platform.*/
     char device_password[DEVICE_PASSWORD_SIZE];             /**<  Authentication parameters for WolkAbout IoT Platform. Obtained as a result of device creation on the platform.*/
 
-    protocol_t protocol;                               /**<  Used protocol for communication with WolkAbout IoT Platform. @see protocol_type_t*/
+    protocol_t protocol;                                    /**<  Used protocol for communication with WolkAbout IoT Platform. @see protocol_type_t*/
     parser_t parser;
 
     const char** actuator_references;
@@ -127,8 +127,12 @@ struct _wolk_ctx_t {
 
     bool is_initialized;
     bool is_connected;
+    bool pong_received;
 
     persistence_t persistence;
+
+    unsigned long epoch_time;                                    /**< Epoch time in milliseconds, is updated on every ping but can be updated manually by calling wolk_update_epoch()
+                                                            Since this is updated by receiving the value from the platform, wolk_process must also be called*/
 };
 
 
@@ -356,6 +360,15 @@ WOLK_ERR_T wolk_publish(wolk_ctx_t* ctx);
  * @return Error code
  */
 WOLK_ERR_T wolk_disable_keep_alive(wolk_ctx_t* ctx);
+
+/**
+ * @brief Updates the epoch time variable
+ * 
+ * @param ctx Context
+ *
+ * @return Error code
+ */
+WOLK_ERR_T wolk_update_epoch(wolk_ctx_t* ctx);
 
 
 #ifdef __cplusplus

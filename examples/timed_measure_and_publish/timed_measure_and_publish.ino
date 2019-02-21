@@ -42,7 +42,7 @@ byte publishMinutes = (minutes + publishEvery) % 60;
 void setup_wifi() {
 
   delay(10);
-  // We start by connecting to a WiFi network
+  /* We start by connecting to a WiFi network*/
   WiFi.begin(ssid);
 
   if ( WiFi.status() != WL_CONNECTED) {

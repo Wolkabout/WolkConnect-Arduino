@@ -23,7 +23,7 @@
   <td id="projectlogo"><img alt="Logo" src="wolkLogo.png"/></td>
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">Arduino WolkConnect library
-   &#160;<span id="projectnumber">3.0.0</span>
+   &#160;<span id="projectnumber">3.1.0</span>
    </div>
   </td>
  </tr>
@@ -107,9 +107,17 @@ uint32_t&#160;</td><td class="memItemRight" valign="bottom"><b>milliseconds_sinc
 <tr class="memitem:a65aec58259024398da781689ad05799a"><td class="memItemLeft" align="right" valign="top"><a id="a65aec58259024398da781689ad05799a"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>is_initialized</b></td></tr>
 <tr class="separator:a65aec58259024398da781689ad05799a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abeedd5d0c334aab47fd6aac270b8d1e0"><td class="memItemLeft" align="right" valign="top"><a id="abeedd5d0c334aab47fd6aac270b8d1e0"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>is_connected</b></td></tr>
+<tr class="separator:abeedd5d0c334aab47fd6aac270b8d1e0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a756475fe4cd97ed31ae3e665692c3f48"><td class="memItemLeft" align="right" valign="top"><a id="a756475fe4cd97ed31ae3e665692c3f48"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>pong_received</b></td></tr>
+<tr class="separator:a756475fe4cd97ed31ae3e665692c3f48"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acedc150706ec304c5045f9c77b065ccd"><td class="memItemLeft" align="right" valign="top"><a id="acedc150706ec304c5045f9c77b065ccd"></a>
 persistence_t&#160;</td><td class="memItemRight" valign="bottom"><b>persistence</b></td></tr>
 <tr class="separator:acedc150706ec304c5045f9c77b065ccd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0c63c52881404b0305e8b4dba0b0b6a6"><td class="memItemLeft" align="right" valign="top">unsigned long&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct__wolk__ctx__t.html#a0c63c52881404b0305e8b4dba0b0b6a6">epoch_time</a></td></tr>
+<tr class="separator:a0c63c52881404b0305e8b4dba0b0b6a6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Field Documentation</h2>
 <a id="ac55ed80718abb1dca3027edda713ca57"></a>
@@ -199,6 +207,21 @@ persistence_t&#160;</td><td class="memItemRight" valign="bottom"><b>persistence<
       </table>
 </div><div class="memdoc">
 <p>Authentication parameters for WolkAbout IoT Platform. Obtained as a result of device creation on the platform. </p>
+
+</div>
+</div>
+<a id="a0c63c52881404b0305e8b4dba0b0b6a6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0c63c52881404b0305e8b4dba0b0b6a6">&#9670;&nbsp;</a></span>epoch_time</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">unsigned long _wolk_ctx_t::epoch_time</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Epoch time in milliseconds, is updated on every ping but can be updated manually by calling <a class="el" href="WolkConn_8h.html#afb2e5b566c8535cf38a7038909a36b6e" title="Updates the epoch time variable. ">wolk_update_epoch()</a> Since this is updated by receiving the value from the platform, wolk_process must also be called </p>
 
 </div>
 </div>

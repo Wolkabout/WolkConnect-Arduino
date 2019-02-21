@@ -124,6 +124,8 @@ WOLK_ERR_T wolk_init(wolk_ctx_t* ctx, actuation_handler_t actuation_handler, act
 
     ctx->is_initialized = true;
 
+    ctx->is_connected = false;
+
     return W_FALSE;
 
 }
@@ -155,8 +157,8 @@ WOLK_ERR_T wolk_connect (wolk_ctx_t *ctx)
     } 
     else 
     {
-        Serial.println("failed!");
-        //Serial.print(ctx->mqtt_client->state());
+        Serial.print("failed with error code ");
+        Serial.println(ctx->mqtt_client->state());
         ctx->is_connected = false;
     }
 
@@ -240,6 +242,15 @@ void callback(void *wolk, char* topic, byte*payload, unsigned int length)
         {
             _handle_configuration_command(ctx, &configuration_command);
         }
+    }
+    else if (strstr(topic, PONG_JSON))
+    {
+        ctx->pong_received = true;
+        uint32_t time;
+        char value[10];
+        parser_deserialize_pong(&ctx->parser, (char*)payload_str, (size_t)length, value);
+        value[10] = 0;
+        ctx->epoch_time = strtol(value, NULL, 10);
     }
 }
 
@@ -585,6 +596,7 @@ WOLK_ERR_T wolk_disable_keep_alive(wolk_ctx_t* ctx)
 
 static WOLK_ERR_T _ping_keep_alive(wolk_ctx_t* ctx, uint32_t tick)
 {
+
     if (!ctx->is_keep_alive_enabled) {
         return W_FALSE;
     }
@@ -600,6 +612,7 @@ static WOLK_ERR_T _ping_keep_alive(wolk_ctx_t* ctx, uint32_t tick)
     if (_publish(ctx, outbound_message.topic, outbound_message.payload) != W_FALSE) {
         return W_TRUE;
     }
+    ctx->pong_received = false;
 
     ctx->milliseconds_since_last_ping_keep_alive = 0;
     return W_FALSE;
@@ -627,18 +640,36 @@ WOLK_ERR_T wolk_publish(wolk_ctx_t* ctx)
     {
         if (persistence_is_empty(&ctx->persistence))
         {
-            return W_FALSE;
+            break;
         }
         if (!persistence_peek(&ctx->persistence, &outbound_message)) {
             continue;
         }
 
         if (_publish(ctx, outbound_message.topic, outbound_message.payload) != W_FALSE) {
+            Serial.println("Publish failed!");
             return W_TRUE;
         }
 
         persistence_pop(&ctx->persistence, &outbound_message);
     }
-
+    Serial.println("Published data!");
     return W_FALSE;
+}
+
+WOLK_ERR_T wolk_update_epoch(wolk_ctx_t* ctx)
+{
+    WOLK_ASSERT(ctx->is_connected == true);
+
+    ctx->pong_received = false;
+
+    outbound_message_t outbound_message;
+
+    outbound_message_make_from_keep_alive_message(&ctx->parser, ctx->device_key, &outbound_message);
+
+    if (_publish(ctx, outbound_message.topic, outbound_message.payload) != W_FALSE) {
+        return W_TRUE;
+    }
+
+    delay(100);
 }
