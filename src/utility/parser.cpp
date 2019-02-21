@@ -137,7 +137,7 @@ bool parser_is_initialized(parser_t* parser)
     return parser->is_initialized;
 }
 
-bool parser_deserialize_pong(parser_t* parser, char* buffer, size_t buffer_size, char* time)
+bool parser_deserialize_pong(parser_t* parser, char* buffer, size_t buffer_size, char* timestamp)
 {
     WOLK_ASSERT(parser);
     WOLK_ASSERT(buffer_size < PAYLOAD_SIZE);

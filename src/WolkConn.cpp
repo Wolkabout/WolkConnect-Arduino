@@ -125,7 +125,6 @@ WOLK_ERR_T wolk_init(wolk_ctx_t* ctx, actuation_handler_t actuation_handler, act
     ctx->is_initialized = true;
 
     ctx->is_connected = false;
-    //ctx->pong_received = false;
 
     return W_FALSE;
 
