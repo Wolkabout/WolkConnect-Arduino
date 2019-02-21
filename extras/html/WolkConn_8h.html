@@ -23,7 +23,7 @@
   <td id="projectlogo"><img alt="Logo" src="wolkLogo.png"/></td>
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">Arduino WolkConnect library
-   &#160;<span id="projectnumber">3.0.0</span>
+   &#160;<span id="projectnumber">3.1.0</span>
    </div>
   </td>
  </tr>
@@ -94,7 +94,7 @@ Macros</h2></td></tr>
 #define&#160;</td><td class="memItemRight" valign="bottom"><b>FW_VERSION_MINOR</b>&#160;&#160;&#160;0</td></tr>
 <tr class="separator:ae224d2fae5df95eef5b8b1638b714731"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aae3629364a426e08d6b4435b15abe5ef"><td class="memItemLeft" align="right" valign="top"><a id="aae3629364a426e08d6b4435b15abe5ef"></a>
-#define&#160;</td><td class="memItemRight" valign="bottom"><b>FW_VERSION_PATCH</b>&#160;&#160;&#160;0</td></tr>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>FW_VERSION_PATCH</b>&#160;&#160;&#160;2</td></tr>
 <tr class="separator:aae3629364a426e08d6b4435b15abe5ef"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
@@ -188,6 +188,9 @@ Functions</h2></td></tr>
 <tr class="memitem:ac04ee6d0e9cac773f77a57b89383c715"><td class="memItemLeft" align="right" valign="top"><a class="el" href="WolkConn_8h.html#a5e8017d60f3753b4d489aeb7d3392641">WOLK_ERR_T</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="WolkConn_8h.html#ac04ee6d0e9cac773f77a57b89383c715">wolk_disable_keep_alive</a> (<a class="el" href="WolkConn_8h.html#a0257b85c2973b7443a15679eb6ee3ed6">wolk_ctx_t</a> *ctx)</td></tr>
 <tr class="memdesc:ac04ee6d0e9cac773f77a57b89383c715"><td class="mdescLeft">&#160;</td><td class="mdescRight">Disables internal keep alive mechanism.  <a href="#ac04ee6d0e9cac773f77a57b89383c715">More...</a><br /></td></tr>
 <tr class="separator:ac04ee6d0e9cac773f77a57b89383c715"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afb2e5b566c8535cf38a7038909a36b6e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="WolkConn_8h.html#a5e8017d60f3753b4d489aeb7d3392641">WOLK_ERR_T</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="WolkConn_8h.html#afb2e5b566c8535cf38a7038909a36b6e">wolk_update_epoch</a> (<a class="el" href="WolkConn_8h.html#a0257b85c2973b7443a15679eb6ee3ed6">wolk_ctx_t</a> *ctx)</td></tr>
+<tr class="memdesc:afb2e5b566c8535cf38a7038909a36b6e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Updates the epoch time variable.  <a href="#afb2e5b566c8535cf38a7038909a36b6e">More...</a><br /></td></tr>
+<tr class="separator:afb2e5b566c8535cf38a7038909a36b6e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Header file with library function descriptions. </p>
@@ -1103,6 +1106,33 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Obratins configuration via configuration_provider and publishes it. If configuration can not be published, it is persisted. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">ctx</td><td>Context</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Error code </dd></dl>
+
+</div>
+</div>
+<a id="afb2e5b566c8535cf38a7038909a36b6e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afb2e5b566c8535cf38a7038909a36b6e">&#9670;&nbsp;</a></span>wolk_update_epoch()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="WolkConn_8h.html#a5e8017d60f3753b4d489aeb7d3392641">WOLK_ERR_T</a> wolk_update_epoch </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="WolkConn_8h.html#a0257b85c2973b7443a15679eb6ee3ed6">wolk_ctx_t</a> *&#160;</td>
+          <td class="paramname"><em>ctx</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Updates the epoch time variable. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">ctx</td><td>Context</td></tr>
