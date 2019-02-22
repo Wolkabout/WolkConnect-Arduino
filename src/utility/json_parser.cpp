@@ -585,5 +585,5 @@ bool json_deserialize_pong(char* buffer, size_t buffer_size, char* timestamp)
     }
     tokens = strtok(NULL, "\"");
 
-    strcpy(time, tokens);
+    strcpy(timestamp, tokens);
 }
