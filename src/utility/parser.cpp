@@ -142,6 +142,6 @@ bool parser_deserialize_pong(parser_t* parser, char* buffer, size_t buffer_size,
     WOLK_ASSERT(parser);
     WOLK_ASSERT(buffer_size < PAYLOAD_SIZE);
 
-    return parser->deserialize_pong(buffer, buffer_size, time);
+    return parser->deserialize_pong(buffer, buffer_size, timestamp);
 
 }
