@@ -129,7 +129,7 @@ Single actuation consists of the command to a device and feedback from the devic
 * **BUSY** - in the process of changing its value
 * **ERROR** - unable to comply
 
-To perform a successful actuation, user needs to know the actuator references he was required to enter in the manifest, on the Platform, to forward them during the actuation initialisation period. The user has to implement an actuation handler that will execute the commands that have been issued from WolkAbout IoT Platform. Then the user has to implement an actuation provider that will update WolkAbout IoT Platform with the current status of the actuator.
+To perform a successful actuation, user needs to know the actuator references he was required to enter in the device template, on the Platform, to forward them during the actuation initialisation period. The user has to implement an actuation handler that will execute the commands that have been issued from WolkAbout IoT Platform. Then the user has to implement an actuation provider that will update WolkAbout IoT Platform with the current status of the actuator.
 Publishing actuator statuses is performed immediately, but if the actuator takes time to be executed, eg. closing the gate, then the actuator status will update WolkAbout IoT Platform with the current values until it reaches the commanded value.
 If the device is unable to publish the actuator status, then the information will be stored on the device until the next successful publish attempt.
 

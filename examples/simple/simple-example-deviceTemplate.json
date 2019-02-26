@@ -1,8 +1,8 @@
 {
   "id": 663,
-  "name": "Simple example manifest",
+  "name": "Simple example device template",
   "protocol": "JsonSingleReferenceProtocol",
-  "description": "A minimal manifest with one sensor",
+  "description": "A minimal device template with one sensor",
   "deviceType": "STANDARD",
   "connectivityType": "MQTT_BROKER",
   "published": false,

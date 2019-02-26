@@ -91,10 +91,10 @@ Macros</h2></td></tr>
 #define&#160;</td><td class="memItemRight" valign="bottom"><b>FW_VERSION_MAJOR</b>&#160;&#160;&#160;3</td></tr>
 <tr class="separator:a5a209f781c62e738bb2f3868604fbe77"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae224d2fae5df95eef5b8b1638b714731"><td class="memItemLeft" align="right" valign="top"><a id="ae224d2fae5df95eef5b8b1638b714731"></a>
-#define&#160;</td><td class="memItemRight" valign="bottom"><b>FW_VERSION_MINOR</b>&#160;&#160;&#160;0</td></tr>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>FW_VERSION_MINOR</b>&#160;&#160;&#160;1</td></tr>
 <tr class="separator:ae224d2fae5df95eef5b8b1638b714731"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aae3629364a426e08d6b4435b15abe5ef"><td class="memItemLeft" align="right" valign="top"><a id="aae3629364a426e08d6b4435b15abe5ef"></a>
-#define&#160;</td><td class="memItemRight" valign="bottom"><b>FW_VERSION_PATCH</b>&#160;&#160;&#160;2</td></tr>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>FW_VERSION_PATCH</b>&#160;&#160;&#160;0</td></tr>
 <tr class="separator:aae3629364a426e08d6b4435b15abe5ef"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
@@ -210,7 +210,7 @@ Functions</h2></td></tr>
 <p>Declaration of actuator handler. Actuator reference and value are the pairs of data on the same place in their own arrays. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">reference</td><td>actuator references defined in manifest on the WolkAbout IoT Platform. </td></tr>
+    <tr><td class="paramname">reference</td><td>actuator references defined in device template on the WolkAbout IoT Platform. </td></tr>
     <tr><td class="paramname">value</td><td>value received from WolkAbout IoT Platform. </td></tr>
   </table>
   </dd>
@@ -233,7 +233,7 @@ Functions</h2></td></tr>
 <p>Declaration of actuator status. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">reference</td><td>actuator references defined in manifest on the WolkAbout IoT Platform </td></tr>
+    <tr><td class="paramname">reference</td><td>actuator references defined in device template on the WolkAbout IoT Platform </td></tr>
   </table>
   </dd>
 </dl>
@@ -255,7 +255,7 @@ Functions</h2></td></tr>
 <p>Declaration of configuration handler. Configuration reference and value are the pairs of data on the same place in their own arrays. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">reference</td><td>actuator references defined in the manifest on the WolkAbout IoT Platform </td></tr>
+    <tr><td class="paramname">reference</td><td>actuator references defined in the device template on the WolkAbout IoT Platform </td></tr>
     <tr><td class="paramname">value</td><td>actuator values received from the WolkAbout IoT Platform. </td></tr>
     <tr><td class="paramname">num_configuration_items</td><td>number of used configuration parameters </td></tr>
   </table>
@@ -279,7 +279,7 @@ Functions</h2></td></tr>
 <p>Declaration of configuration provider. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">reference</td><td>configuration references defined in the manifest on the WolkAbout IoT Platform </td></tr>
+    <tr><td class="paramname">reference</td><td>configuration references defined in the device template on the WolkAbout IoT Platform </td></tr>
     <tr><td class="paramname">value</td><td>configuration values received from the WolkAbout IoT Platform </td></tr>
     <tr><td class="paramname">num_configuration_items</td><td>number of used configuration parameters </td></tr>
   </table>

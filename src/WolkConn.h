@@ -66,14 +66,14 @@ enum WOLK_BOOL_T_values { W_FALSE = 0, W_TRUE = 1 };
  * @brief Declaration of actuator handler.
  * Actuator reference and value are the pairs of data on the same place in their own arrays.
  *
- * @param reference actuator references defined in manifest on the WolkAbout IoT Platform.
+ * @param reference actuator references defined in device template on the WolkAbout IoT Platform.
  * @param value value received from WolkAbout IoT Platform.
  */
 typedef void (*actuation_handler_t)(const char* reference, const char* value);
 /**
  * @brief Declaration of actuator status
  *
- * @param reference actuator references defined in manifest on the WolkAbout IoT Platform
+ * @param reference actuator references defined in device template on the WolkAbout IoT Platform
  */
 typedef actuator_status_t (*actuator_status_provider_t)(const char* reference);
 
@@ -81,7 +81,7 @@ typedef actuator_status_t (*actuator_status_provider_t)(const char* reference);
  * @brief Declaration of configuration handler.
  * Configuration reference and value are the pairs of data on the same place in their own arrays.
  *
- * @param reference actuator references defined in the manifest on the WolkAbout IoT Platform
+ * @param reference actuator references defined in the device template on the WolkAbout IoT Platform
  * @param value actuator values received from the WolkAbout IoT Platform.
  * @param num_configuration_items number of used configuration parameters
  */
@@ -90,7 +90,7 @@ typedef void (*configuration_handler_t)(char (*reference)[CONFIGURATION_REFERENC
 /**
  * @brief Declaration of configuration provider
  *
- * @param reference configuration references defined in the manifest on the WolkAbout IoT Platform
+ * @param reference configuration references defined in the device template on the WolkAbout IoT Platform
  * @param value configuration values received from the WolkAbout IoT Platform
  * @param num_configuration_items number of used configuration parameters
  */

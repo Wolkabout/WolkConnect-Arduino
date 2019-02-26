@@ -1,8 +1,8 @@
 {
   "id": 664,
-  "name": "Full example manifest",
+  "name": "Full example device template",
   "protocol": "JsonSingleReferenceProtocol",
-  "description": "This device manifest covers all the functionality provided by WolkConnect libraries",
+  "description": "This device template covers all the functionality provided by WolkConnect libraries",
   "deviceType": "STANDARD",
   "connectivityType": "MQTT_BROKER",
   "firmwareUpdateType": "DFU",
