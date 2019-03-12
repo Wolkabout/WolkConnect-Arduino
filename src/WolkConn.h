@@ -123,7 +123,7 @@ struct _wolk_ctx_t {
     uint32_t num_actuator_references;
 
     bool is_keep_alive_enabled;
-    uint32_t milliseconds_since_last_ping_keep_alive;
+    unsigned long millis_last_ping;
 
     bool is_initialized;
     bool is_connected;

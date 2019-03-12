@@ -41,11 +41,11 @@
 #define PONG_JSON "pong/"
 
 /*ping keep alive every 60 seconds*/
-#define PING_KEEP_ALIVE_INTERVAL 300
+#define PING_KEEP_ALIVE_INTERVAL 60000
 
 static const char* CONFIGURATION_COMMANDS_TOPIC_JSON = "configurations/commands/";
 
-static WOLK_ERR_T _ping_keep_alive(wolk_ctx_t* ctx, uint32_t tick);
+static WOLK_ERR_T _ping_keep_alive(wolk_ctx_t* ctx);
 
 static WOLK_ERR_T _subscribe (wolk_ctx_t *ctx, const char *topic);
 static void _parser_init(wolk_ctx_t* ctx, protocol_t protocol);
@@ -120,7 +120,7 @@ WOLK_ERR_T wolk_init(wolk_ctx_t* ctx, actuation_handler_t actuation_handler, act
     _parser_init (ctx, protocol);
 
     ctx->is_keep_alive_enabled = true;
-    ctx->milliseconds_since_last_ping_keep_alive = PING_KEEP_ALIVE_INTERVAL;
+    ctx->millis_last_ping = PING_KEEP_ALIVE_INTERVAL;
 
     ctx->is_initialized = true;
 
@@ -317,7 +317,7 @@ WOLK_ERR_T wolk_process (wolk_ctx_t *ctx, uint32_t tick)
         return W_TRUE;
     }
 
-    if (_ping_keep_alive(ctx, tick) != W_FALSE) {
+    if (_ping_keep_alive(ctx) != W_FALSE) {
         return W_TRUE;
     }
 
@@ -594,28 +594,30 @@ WOLK_ERR_T wolk_disable_keep_alive(wolk_ctx_t* ctx)
     return W_FALSE;
 }
 
-static WOLK_ERR_T _ping_keep_alive(wolk_ctx_t* ctx, uint32_t tick)
+static WOLK_ERR_T _ping_keep_alive(wolk_ctx_t* ctx)
 {
 
     if (!ctx->is_keep_alive_enabled) {
         return W_FALSE;
     }
 
-    if (ctx->milliseconds_since_last_ping_keep_alive < PING_KEEP_ALIVE_INTERVAL) {
-        ctx->milliseconds_since_last_ping_keep_alive += tick;
+    unsigned long currentMillis = millis();
+ 
+    if(currentMillis - ctx->millis_last_ping >= PING_KEEP_ALIVE_INTERVAL) {
+
+        ctx->millis_last_ping = currentMillis;
+
+        outbound_message_t outbound_message;
+        outbound_message_make_from_keep_alive_message(&ctx->parser, ctx->device_key, &outbound_message);
+    
+        if (_publish(ctx, outbound_message.topic, outbound_message.payload) != W_FALSE) {
+            return W_TRUE;
+        }
+        ctx->pong_received = false;
+
+        ctx->millis_last_ping = 0;
         return W_FALSE;
     }
-
-    outbound_message_t outbound_message;
-    outbound_message_make_from_keep_alive_message(&ctx->parser, ctx->device_key, &outbound_message);
-
-    if (_publish(ctx, outbound_message.topic, outbound_message.payload) != W_FALSE) {
-        return W_TRUE;
-    }
-    ctx->pong_received = false;
-
-    ctx->milliseconds_since_last_ping_keep_alive = 0;
-    return W_FALSE;
 }
 
 static void _parser_init(wolk_ctx_t* ctx, protocol_t protocol)
