@@ -23,7 +23,7 @@
   <td id="projectlogo"><img alt="Logo" src="wolkLogo.png"/></td>
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">Arduino WolkConnect library
-   &#160;<span id="projectnumber">3.1.0</span>
+   &#160;<span id="projectnumber">3.1.3</span>
    </div>
   </td>
  </tr>
@@ -94,7 +94,7 @@ Macros</h2></td></tr>
 #define&#160;</td><td class="memItemRight" valign="bottom"><b>FW_VERSION_MINOR</b>&#160;&#160;&#160;1</td></tr>
 <tr class="separator:ae224d2fae5df95eef5b8b1638b714731"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aae3629364a426e08d6b4435b15abe5ef"><td class="memItemLeft" align="right" valign="top"><a id="aae3629364a426e08d6b4435b15abe5ef"></a>
-#define&#160;</td><td class="memItemRight" valign="bottom"><b>FW_VERSION_PATCH</b>&#160;&#160;&#160;0</td></tr>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>FW_VERSION_PATCH</b>&#160;&#160;&#160;3</td></tr>
 <tr class="separator:aae3629364a426e08d6b4435b15abe5ef"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
@@ -152,9 +152,9 @@ Functions</h2></td></tr>
 <tr class="memitem:af174943365b8cddc1e6e9351996805c3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="WolkConn_8h.html#a5e8017d60f3753b4d489aeb7d3392641">WOLK_ERR_T</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="WolkConn_8h.html#af174943365b8cddc1e6e9351996805c3">wolk_disconnect</a> (<a class="el" href="WolkConn_8h.html#a0257b85c2973b7443a15679eb6ee3ed6">wolk_ctx_t</a> *ctx)</td></tr>
 <tr class="memdesc:af174943365b8cddc1e6e9351996805c3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Disconnect from WolkAbout IoT Platform.  <a href="#af174943365b8cddc1e6e9351996805c3">More...</a><br /></td></tr>
 <tr class="separator:af174943365b8cddc1e6e9351996805c3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a57a05d76cc96bc5de0ee0e9a23ca5a8e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="WolkConn_8h.html#a5e8017d60f3753b4d489aeb7d3392641">WOLK_ERR_T</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="WolkConn_8h.html#a57a05d76cc96bc5de0ee0e9a23ca5a8e">wolk_process</a> (<a class="el" href="WolkConn_8h.html#a0257b85c2973b7443a15679eb6ee3ed6">wolk_ctx_t</a> *ctx, uint32_t tick)</td></tr>
-<tr class="memdesc:a57a05d76cc96bc5de0ee0e9a23ca5a8e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Must be called periodically to keep the connection to the WolkAbout IoT platform alive, obtain and perform actuation requests. It also serves as a diagnostic tool for the MQTT client, printing it's state when an error occurs. Client state will be -3 if the connection is lost and -4 if the broker can't be reached.  <a href="#a57a05d76cc96bc5de0ee0e9a23ca5a8e">More...</a><br /></td></tr>
-<tr class="separator:a57a05d76cc96bc5de0ee0e9a23ca5a8e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adbbbac12de4fc548d18dc4125ec939a9"><td class="memItemLeft" align="right" valign="top"><a class="el" href="WolkConn_8h.html#a5e8017d60f3753b4d489aeb7d3392641">WOLK_ERR_T</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="WolkConn_8h.html#adbbbac12de4fc548d18dc4125ec939a9">wolk_process</a> (<a class="el" href="WolkConn_8h.html#a0257b85c2973b7443a15679eb6ee3ed6">wolk_ctx_t</a> *ctx)</td></tr>
+<tr class="memdesc:adbbbac12de4fc548d18dc4125ec939a9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Must be called periodically to keep the connection to the WolkAbout IoT platform alive, obtain and perform actuation requests. It also serves as a diagnostic tool for the MQTT client, printing it's state when an error occurs. Client state will be -3 if the connection is lost and -4 if the broker can't be reached.  <a href="#adbbbac12de4fc548d18dc4125ec939a9">More...</a><br /></td></tr>
+<tr class="separator:adbbbac12de4fc548d18dc4125ec939a9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5588d57c8ff9d6138f418803bbe064fb"><td class="memItemLeft" align="right" valign="top"><a class="el" href="WolkConn_8h.html#a5e8017d60f3753b4d489aeb7d3392641">WOLK_ERR_T</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="WolkConn_8h.html#a5588d57c8ff9d6138f418803bbe064fb">wolk_add_string_sensor_reading</a> (<a class="el" href="WolkConn_8h.html#a0257b85c2973b7443a15679eb6ee3ed6">wolk_ctx_t</a> *ctx, const char *reference, const char *value, uint32_t utc_time)</td></tr>
 <tr class="memdesc:a5588d57c8ff9d6138f418803bbe064fb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Add string reading.  <a href="#a5588d57c8ff9d6138f418803bbe064fb">More...</a><br /></td></tr>
 <tr class="separator:a5588d57c8ff9d6138f418803bbe064fb"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -986,8 +986,8 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a57a05d76cc96bc5de0ee0e9a23ca5a8e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a57a05d76cc96bc5de0ee0e9a23ca5a8e">&#9670;&nbsp;</a></span>wolk_process()</h2>
+<a id="adbbbac12de4fc548d18dc4125ec939a9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adbbbac12de4fc548d18dc4125ec939a9">&#9670;&nbsp;</a></span>wolk_process()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -996,18 +996,8 @@ Functions</h2></td></tr>
           <td class="memname"><a class="el" href="WolkConn_8h.html#a5e8017d60f3753b4d489aeb7d3392641">WOLK_ERR_T</a> wolk_process </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="WolkConn_8h.html#a0257b85c2973b7443a15679eb6ee3ed6">wolk_ctx_t</a> *&#160;</td>
-          <td class="paramname"><em>ctx</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
+          <td class="paramname"><em>ctx</em></td><td>)</td>
           <td></td>
-          <td class="paramtype">uint32_t&#160;</td>
-          <td class="paramname"><em>tick</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -1015,8 +1005,7 @@ Functions</h2></td></tr>
 <p>Must be called periodically to keep the connection to the WolkAbout IoT platform alive, obtain and perform actuation requests. It also serves as a diagnostic tool for the MQTT client, printing it's state when an error occurs. Client state will be -3 if the connection is lost and -4 if the broker can't be reached. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">ctx</td><td>Context </td></tr>
-    <tr><td class="paramname">tick</td><td>Period at which wolk_process is called</td></tr>
+    <tr><td class="paramname">ctx</td><td>Context</td></tr>
   </table>
   </dd>
 </dl>

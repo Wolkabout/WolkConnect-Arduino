@@ -45,7 +45,7 @@ extern "C" {
 
 #define FW_VERSION_MAJOR 3 // number 0 -99
 #define FW_VERSION_MINOR 1 // number 0 -99
-#define FW_VERSION_PATCH 0 // number 0 -99
+#define FW_VERSION_PATCH 3 // number 0 -99
 
 
 /**
@@ -231,11 +231,10 @@ WOLK_ERR_T wolk_disconnect (wolk_ctx_t *ctx);
  * Client state will be -3 if the connection is lost and -4 if the broker can't be reached. 
  *
  * @param ctx Context
- * @param tick Period at which wolk_process is called
  *
  * @return Error code
  */
-WOLK_ERR_T wolk_process (wolk_ctx_t *ctx, uint32_t tick);
+WOLK_ERR_T wolk_process (wolk_ctx_t *ctx);
 
 /** @brief Add string reading
  *

@@ -40,8 +40,7 @@
 
 #define PONG_JSON "pong/"
 
-/*ping keep alive every 60 seconds*/
-#define PING_KEEP_ALIVE_INTERVAL 60000
+const unsigned long ping_interval = 60000;
 
 static const char* CONFIGURATION_COMMANDS_TOPIC_JSON = "configurations/commands/";
 
@@ -120,7 +119,7 @@ WOLK_ERR_T wolk_init(wolk_ctx_t* ctx, actuation_handler_t actuation_handler, act
     _parser_init (ctx, protocol);
 
     ctx->is_keep_alive_enabled = true;
-    ctx->millis_last_ping = PING_KEEP_ALIVE_INTERVAL;
+    ctx->millis_last_ping = ping_interval;
 
     ctx->is_initialized = true;
 
@@ -303,7 +302,7 @@ static void _handle_actuator_command(wolk_ctx_t* ctx, actuator_command_t* comman
         }
 }
 
-WOLK_ERR_T wolk_process (wolk_ctx_t *ctx, uint32_t tick)
+WOLK_ERR_T wolk_process (wolk_ctx_t *ctx)
 {
     /* Sanity check */
     WOLK_ASSERT(ctx->is_initialized == true);
@@ -603,7 +602,7 @@ static WOLK_ERR_T _ping_keep_alive(wolk_ctx_t* ctx)
 
     unsigned long currentMillis = millis();
  
-    if(currentMillis - ctx->millis_last_ping >= PING_KEEP_ALIVE_INTERVAL) {
+    if(currentMillis - ctx->millis_last_ping > ping_interval) {
 
         ctx->millis_last_ping = currentMillis;
 
@@ -615,9 +614,10 @@ static WOLK_ERR_T _ping_keep_alive(wolk_ctx_t* ctx)
         }
         ctx->pong_received = false;
 
-        ctx->millis_last_ping = 0;
         return W_FALSE;
     }
+
+    return W_FALSE;
 }
 
 static void _parser_init(wolk_ctx_t* ctx, protocol_t protocol)
