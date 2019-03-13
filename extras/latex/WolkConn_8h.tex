@@ -20,7 +20,7 @@ struct \hyperlink{struct__wolk__ctx__t}{\+\_\+wolk\+\_\+ctx\+\_\+t}
 \#define {\bfseries F\+W\+\_\+\+V\+E\+R\+S\+I\+O\+N\+\_\+\+M\+I\+N\+OR}~1
 \item 
 \mbox{\Hypertarget{WolkConn_8h_aae3629364a426e08d6b4435b15abe5ef}\label{WolkConn_8h_aae3629364a426e08d6b4435b15abe5ef}} 
-\#define {\bfseries F\+W\+\_\+\+V\+E\+R\+S\+I\+O\+N\+\_\+\+P\+A\+T\+CH}~0
+\#define {\bfseries F\+W\+\_\+\+V\+E\+R\+S\+I\+O\+N\+\_\+\+P\+A\+T\+CH}~3
 \end{DoxyCompactItemize}
 \subsection*{Typedefs}
 \begin{DoxyCompactItemize}
@@ -67,7 +67,7 @@ enum {\bfseries W\+O\+L\+K\+\_\+\+B\+O\+O\+L\+\_\+\+T\+\_\+values} \{ {\bfseries
 \begin{DoxyCompactList}\small\item\em Connect to Wolk\+About IoT Platform. \end{DoxyCompactList}\item 
 \hyperlink{WolkConn_8h_a5e8017d60f3753b4d489aeb7d3392641}{W\+O\+L\+K\+\_\+\+E\+R\+R\+\_\+T} \hyperlink{WolkConn_8h_af174943365b8cddc1e6e9351996805c3}{wolk\+\_\+disconnect} (\hyperlink{WolkConn_8h_a0257b85c2973b7443a15679eb6ee3ed6}{wolk\+\_\+ctx\+\_\+t} $\ast$ctx)
 \begin{DoxyCompactList}\small\item\em Disconnect from Wolk\+About IoT Platform. \end{DoxyCompactList}\item 
-\hyperlink{WolkConn_8h_a5e8017d60f3753b4d489aeb7d3392641}{W\+O\+L\+K\+\_\+\+E\+R\+R\+\_\+T} \hyperlink{WolkConn_8h_a57a05d76cc96bc5de0ee0e9a23ca5a8e}{wolk\+\_\+process} (\hyperlink{WolkConn_8h_a0257b85c2973b7443a15679eb6ee3ed6}{wolk\+\_\+ctx\+\_\+t} $\ast$ctx, uint32\+\_\+t tick)
+\hyperlink{WolkConn_8h_a5e8017d60f3753b4d489aeb7d3392641}{W\+O\+L\+K\+\_\+\+E\+R\+R\+\_\+T} \hyperlink{WolkConn_8h_adbbbac12de4fc548d18dc4125ec939a9}{wolk\+\_\+process} (\hyperlink{WolkConn_8h_a0257b85c2973b7443a15679eb6ee3ed6}{wolk\+\_\+ctx\+\_\+t} $\ast$ctx)
 \begin{DoxyCompactList}\small\item\em Must be called periodically to keep the connection to the Wolk\+About IoT platform alive, obtain and perform actuation requests. It also serves as a diagnostic tool for the M\+Q\+TT client, printing it\textquotesingle{}s state when an error occurs. Client state will be -\/3 if the connection is lost and -\/4 if the broker can\textquotesingle{}t be reached. \end{DoxyCompactList}\item 
 \hyperlink{WolkConn_8h_a5e8017d60f3753b4d489aeb7d3392641}{W\+O\+L\+K\+\_\+\+E\+R\+R\+\_\+T} \hyperlink{WolkConn_8h_a5588d57c8ff9d6138f418803bbe064fb}{wolk\+\_\+add\+\_\+string\+\_\+sensor\+\_\+reading} (\hyperlink{WolkConn_8h_a0257b85c2973b7443a15679eb6ee3ed6}{wolk\+\_\+ctx\+\_\+t} $\ast$ctx, const char $\ast$reference, const char $\ast$value, uint32\+\_\+t utc\+\_\+time)
 \begin{DoxyCompactList}\small\item\em Add string reading. \end{DoxyCompactList}\item 
@@ -501,11 +501,11 @@ Initializes persistence mechanism with in-\/memory implementation.
 \begin{DoxyReturn}{Returns}
 Error code 
 \end{DoxyReturn}
-\mbox{\Hypertarget{WolkConn_8h_a57a05d76cc96bc5de0ee0e9a23ca5a8e}\label{WolkConn_8h_a57a05d76cc96bc5de0ee0e9a23ca5a8e}} 
+\mbox{\Hypertarget{WolkConn_8h_adbbbac12de4fc548d18dc4125ec939a9}\label{WolkConn_8h_adbbbac12de4fc548d18dc4125ec939a9}} 
 \index{Wolk\+Conn.\+h@{Wolk\+Conn.\+h}!wolk\+\_\+process@{wolk\+\_\+process}}
 \index{wolk\+\_\+process@{wolk\+\_\+process}!Wolk\+Conn.\+h@{Wolk\+Conn.\+h}}
 \subsubsection{\texorpdfstring{wolk\+\_\+process()}{wolk\_process()}}
-{\footnotesize\ttfamily \hyperlink{WolkConn_8h_a5e8017d60f3753b4d489aeb7d3392641}{W\+O\+L\+K\+\_\+\+E\+R\+R\+\_\+T} wolk\+\_\+process (\begin{DoxyParamCaption}\item[{\hyperlink{WolkConn_8h_a0257b85c2973b7443a15679eb6ee3ed6}{wolk\+\_\+ctx\+\_\+t} $\ast$}]{ctx,  }\item[{uint32\+\_\+t}]{tick }\end{DoxyParamCaption})}
+{\footnotesize\ttfamily \hyperlink{WolkConn_8h_a5e8017d60f3753b4d489aeb7d3392641}{W\+O\+L\+K\+\_\+\+E\+R\+R\+\_\+T} wolk\+\_\+process (\begin{DoxyParamCaption}\item[{\hyperlink{WolkConn_8h_a0257b85c2973b7443a15679eb6ee3ed6}{wolk\+\_\+ctx\+\_\+t} $\ast$}]{ctx }\end{DoxyParamCaption})}
 
 
 
@@ -513,9 +513,7 @@ Must be called periodically to keep the connection to the Wolk\+About IoT platfo
 
 
 \begin{DoxyParams}{Parameters}
-{\em ctx} & Context \\
-\hline
-{\em tick} & Period at which wolk\+\_\+process is called\\
+{\em ctx} & Context\\
 \hline
 \end{DoxyParams}
 \begin{DoxyReturn}{Returns}

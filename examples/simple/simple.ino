@@ -80,7 +80,7 @@ void loop() {
       delay(10000);
     };
   }
-  if(wolk_process(&wolk, 5) == W_TRUE)
+  if(wolk_process(&wolk) == W_TRUE)
   {
     reconnect_to_platform();
   }
