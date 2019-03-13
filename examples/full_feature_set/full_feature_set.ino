@@ -173,5 +173,4 @@ void loop() {
     reconnect_to_platform();
   }
 
-  delay(1000);
 }
