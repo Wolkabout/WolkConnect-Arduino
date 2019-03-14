@@ -136,7 +136,7 @@ wolk_disconnect(&wolk)
 
 # Important note
 
-When implementing the `loop()` function, bear in mind that calls to `wolk_process` need to occur in intervals of less than 15 seconds apart in order to maintain the connection.
+When implementing the `loop()` function, bear in mind that calls to `wolk_process` need to occur in intervals of less than a minute apart in order to maintain the connection.
 Acquiring sensor readings and other business logic should preferably be called on timed interrupts.
 
 # Known issues
