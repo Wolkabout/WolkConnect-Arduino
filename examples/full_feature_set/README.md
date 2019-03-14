@@ -141,7 +141,20 @@ Acquiring sensor readings and other business logic should preferably be called o
 
 # Known issues
 
-When connecting MKR1000 or Node MCU to a busy or unstable WiFi network, MQTT client might lose connection often. 
+When connecting MKR1000 or Node MCU to a busy or unstable WiFi network, MQTT client might lose connection often. MQTT client state will return -3 error code.
 The example handles this situation by reconnecting to the WiFi and the platform. 
-MQTT client state will return -3 error code.
 If the broker can't be reached MQTT Client state will return -4 error code.
+Here is a list of possible MQTT state codes:
+
+|Code| Error             | 
+|----|-------------------|
+|-4  |connection timeout |
+|-3  |connection lost    |
+|-2  |connect failed     |
+|-1  |disconected        |
+| 0  |connected          |
+| 1  |bad protocol       |
+| 2  |bad client id      |
+| 3  |unavailable        |
+| 4  |bad credentials    |
+| 5  |unauthorized       |
