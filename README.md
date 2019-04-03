@@ -34,7 +34,7 @@ Following libraries are required in order to run WolkConnect-Arduino examples
 
   * WiFi101 library, available in [Library Manager](https://www.arduino.cc/en/Guide/Libraries).
   * WolkConnect library, available in [Library Manager](https://www.arduino.cc/en/Guide/Libraries).
-  Alternatively you can import it it as a .zip library in the Arduino IDE.
+  Alternatively you can import it as a .zip library in the Arduino IDE.
 
 Example Usage
 -------------
