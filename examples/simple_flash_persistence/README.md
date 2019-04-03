@@ -108,7 +108,7 @@ wolk_publish(&wolk);
 Fuction `wolk_process(wolk_ctx_t *ctx)` is non-blocking in order to comply with cooperative scheduling,
 and it must to be called periodically.
 ```c
-wolk_process(&wolk, 5);
+wolk_process(&wolk);
 ```
 **Disconnecting from the platform:**
 ```c
