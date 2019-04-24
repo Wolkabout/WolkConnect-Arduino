@@ -189,7 +189,7 @@ Functions</h2></td></tr>
 <tr class="memdesc:ac04ee6d0e9cac773f77a57b89383c715"><td class="mdescLeft">&#160;</td><td class="mdescRight">Disables internal keep alive mechanism.  <a href="#ac04ee6d0e9cac773f77a57b89383c715">More...</a><br /></td></tr>
 <tr class="separator:ac04ee6d0e9cac773f77a57b89383c715"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afb2e5b566c8535cf38a7038909a36b6e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="WolkConn_8h.html#a5e8017d60f3753b4d489aeb7d3392641">WOLK_ERR_T</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="WolkConn_8h.html#afb2e5b566c8535cf38a7038909a36b6e">wolk_update_epoch</a> (<a class="el" href="WolkConn_8h.html#a0257b85c2973b7443a15679eb6ee3ed6">wolk_ctx_t</a> *ctx)</td></tr>
-<tr class="memdesc:afb2e5b566c8535cf38a7038909a36b6e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Requests the epoch time from the platform and awaits reply. Blocking - it awaits the data before it continues.  <a href="#afb2e5b566c8535cf38a7038909a36b6e">More...</a><br /></td></tr>
+<tr class="memdesc:afb2e5b566c8535cf38a7038909a36b6e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Requests the epoch time from the platform and awaits reply. If the reply did not arrive within 60 seconds it returns W_TRUE.  <a href="#afb2e5b566c8535cf38a7038909a36b6e">More...</a><br /></td></tr>
 <tr class="separator:afb2e5b566c8535cf38a7038909a36b6e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
@@ -1121,7 +1121,7 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Requests the epoch time from the platform and awaits reply. Blocking - it awaits the data before it continues. </p>
+<p>Requests the epoch time from the platform and awaits reply. If the reply did not arrive within 60 seconds it returns W_TRUE. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">ctx</td><td>Context</td></tr>

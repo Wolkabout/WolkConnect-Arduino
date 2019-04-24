@@ -92,7 +92,7 @@ enum {\bfseries W\+O\+L\+K\+\_\+\+B\+O\+O\+L\+\_\+\+T\+\_\+values} \{ {\bfseries
 \hyperlink{WolkConn_8h_a5e8017d60f3753b4d489aeb7d3392641}{W\+O\+L\+K\+\_\+\+E\+R\+R\+\_\+T} \hyperlink{WolkConn_8h_ac04ee6d0e9cac773f77a57b89383c715}{wolk\+\_\+disable\+\_\+keep\+\_\+alive} (\hyperlink{WolkConn_8h_a0257b85c2973b7443a15679eb6ee3ed6}{wolk\+\_\+ctx\+\_\+t} $\ast$ctx)
 \begin{DoxyCompactList}\small\item\em Disables internal keep alive mechanism. \end{DoxyCompactList}\item 
 \hyperlink{WolkConn_8h_a5e8017d60f3753b4d489aeb7d3392641}{W\+O\+L\+K\+\_\+\+E\+R\+R\+\_\+T} \hyperlink{WolkConn_8h_afb2e5b566c8535cf38a7038909a36b6e}{wolk\+\_\+update\+\_\+epoch} (\hyperlink{WolkConn_8h_a0257b85c2973b7443a15679eb6ee3ed6}{wolk\+\_\+ctx\+\_\+t} $\ast$ctx)
-\begin{DoxyCompactList}\small\item\em Requests the epoch time from the platform and awaits reply. Blocking -\/ it awaits the data before it continues. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\begin{DoxyCompactList}\small\item\em Requests the epoch time from the platform and awaits reply. If the reply did not arrive within 60 seconds it returns W\+\_\+\+T\+R\+UE. \end{DoxyCompactList}\end{DoxyCompactItemize}
 
 
 \subsection{Detailed Description}
@@ -583,7 +583,7 @@ Error code
 
 
 
-Requests the epoch time from the platform and awaits reply. Blocking -\/ it awaits the data before it continues. 
+Requests the epoch time from the platform and awaits reply. If the reply did not arrive within 60 seconds it returns W\+\_\+\+T\+R\+UE. 
 
 
 \begin{DoxyParams}{Parameters}

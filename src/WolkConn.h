@@ -362,7 +362,7 @@ WOLK_ERR_T wolk_disable_keep_alive(wolk_ctx_t* ctx);
 
 /**
  * @brief Requests the epoch time from the platform and awaits reply.
- *  Blocking - it awaits the data before it continues.
+ *  If the reply did not arrive within 60 seconds it returns W_TRUE.
  * 
  * @param ctx Context
  *
