@@ -20,7 +20,7 @@ struct \hyperlink{struct__wolk__ctx__t}{\+\_\+wolk\+\_\+ctx\+\_\+t}
 \#define {\bfseries F\+W\+\_\+\+V\+E\+R\+S\+I\+O\+N\+\_\+\+M\+I\+N\+OR}~1
 \item 
 \mbox{\Hypertarget{WolkConn_8h_aae3629364a426e08d6b4435b15abe5ef}\label{WolkConn_8h_aae3629364a426e08d6b4435b15abe5ef}} 
-\#define {\bfseries F\+W\+\_\+\+V\+E\+R\+S\+I\+O\+N\+\_\+\+P\+A\+T\+CH}~3
+\#define {\bfseries F\+W\+\_\+\+V\+E\+R\+S\+I\+O\+N\+\_\+\+P\+A\+T\+CH}~4
 \end{DoxyCompactItemize}
 \subsection*{Typedefs}
 \begin{DoxyCompactItemize}
@@ -86,13 +86,13 @@ enum {\bfseries W\+O\+L\+K\+\_\+\+B\+O\+O\+L\+\_\+\+T\+\_\+values} \{ {\bfseries
 \hyperlink{WolkConn_8h_a5e8017d60f3753b4d489aeb7d3392641}{W\+O\+L\+K\+\_\+\+E\+R\+R\+\_\+T} \hyperlink{WolkConn_8h_aa510c9f8df1d095d4e1aef9b7fdaf600}{wolk\+\_\+publish\+\_\+actuator\+\_\+status} (\hyperlink{WolkConn_8h_a0257b85c2973b7443a15679eb6ee3ed6}{wolk\+\_\+ctx\+\_\+t} $\ast$ctx, const char $\ast$reference)
 \begin{DoxyCompactList}\small\item\em Obtains actuator status via actuator\+\_\+status\+\_\+provider\+\_\+t and publishes it. If actuator status can not be published, it is persisted. \end{DoxyCompactList}\item 
 \hyperlink{WolkConn_8h_a5e8017d60f3753b4d489aeb7d3392641}{W\+O\+L\+K\+\_\+\+E\+R\+R\+\_\+T} \hyperlink{WolkConn_8h_a15b0b13f1572c4645fd346e0d66d531e}{wolk\+\_\+publish\+\_\+configuration} (\hyperlink{WolkConn_8h_a0257b85c2973b7443a15679eb6ee3ed6}{wolk\+\_\+ctx\+\_\+t} $\ast$ctx)
-\begin{DoxyCompactList}\small\item\em Obratins configuration via configuration\+\_\+provider and publishes it. If configuration can not be published, it is persisted. \end{DoxyCompactList}\item 
+\begin{DoxyCompactList}\small\item\em Obtains configuration via configuration\+\_\+provider and publishes it. If configuration can not be published, it is persisted. \end{DoxyCompactList}\item 
 \hyperlink{WolkConn_8h_a5e8017d60f3753b4d489aeb7d3392641}{W\+O\+L\+K\+\_\+\+E\+R\+R\+\_\+T} \hyperlink{WolkConn_8h_ac5e7ddb346ea4b9a7cc4511d3728be09}{wolk\+\_\+publish} (\hyperlink{WolkConn_8h_a0257b85c2973b7443a15679eb6ee3ed6}{wolk\+\_\+ctx\+\_\+t} $\ast$ctx)
 \begin{DoxyCompactList}\small\item\em Publish accumulated sensor readings, and alarms. \end{DoxyCompactList}\item 
 \hyperlink{WolkConn_8h_a5e8017d60f3753b4d489aeb7d3392641}{W\+O\+L\+K\+\_\+\+E\+R\+R\+\_\+T} \hyperlink{WolkConn_8h_ac04ee6d0e9cac773f77a57b89383c715}{wolk\+\_\+disable\+\_\+keep\+\_\+alive} (\hyperlink{WolkConn_8h_a0257b85c2973b7443a15679eb6ee3ed6}{wolk\+\_\+ctx\+\_\+t} $\ast$ctx)
 \begin{DoxyCompactList}\small\item\em Disables internal keep alive mechanism. \end{DoxyCompactList}\item 
 \hyperlink{WolkConn_8h_a5e8017d60f3753b4d489aeb7d3392641}{W\+O\+L\+K\+\_\+\+E\+R\+R\+\_\+T} \hyperlink{WolkConn_8h_afb2e5b566c8535cf38a7038909a36b6e}{wolk\+\_\+update\+\_\+epoch} (\hyperlink{WolkConn_8h_a0257b85c2973b7443a15679eb6ee3ed6}{wolk\+\_\+ctx\+\_\+t} $\ast$ctx)
-\begin{DoxyCompactList}\small\item\em Updates the epoch time variable. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\begin{DoxyCompactList}\small\item\em Requests the epoch time from the platform and awaits reply. Blocking -\/ it awaits the data before it continues. \end{DoxyCompactList}\end{DoxyCompactItemize}
 
 
 \subsection{Detailed Description}
@@ -565,7 +565,7 @@ Error code
 
 
 
-Obratins configuration via configuration\+\_\+provider and publishes it. If configuration can not be published, it is persisted. 
+Obtains configuration via configuration\+\_\+provider and publishes it. If configuration can not be published, it is persisted. 
 
 
 \begin{DoxyParams}{Parameters}
@@ -583,7 +583,7 @@ Error code
 
 
 
-Updates the epoch time variable. 
+Requests the epoch time from the platform and awaits reply. Blocking -\/ it awaits the data before it continues. 
 
 
 \begin{DoxyParams}{Parameters}

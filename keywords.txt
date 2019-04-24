@@ -51,6 +51,8 @@ wolk_disable_keep_alive						KEYWORD2
 
 wolk_disconnect								KEYWORD2
 
+wolk_update_epoch							KEYWORD2
+
 
 WOLK_UNUSED									KEYWORD2
 WOLK_ASSERT									KEYWORD2

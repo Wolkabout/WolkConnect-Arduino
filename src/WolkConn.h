@@ -45,7 +45,7 @@ extern "C" {
 
 #define FW_VERSION_MAJOR 3 // number 0 -99
 #define FW_VERSION_MINOR 1 // number 0 -99
-#define FW_VERSION_PATCH 3 // number 0 -99
+#define FW_VERSION_PATCH 4 // number 0 -99
 
 
 /**
@@ -333,7 +333,7 @@ WOLK_ERR_T wolk_add_alarm(wolk_ctx_t* ctx, const char* reference, bool state, ui
 WOLK_ERR_T wolk_publish_actuator_status (wolk_ctx_t *ctx,const char *reference);
  
  /**
- *@brief Obratins configuration via configuration_provider and publishes it.
+ *@brief Obtains configuration via configuration_provider and publishes it.
  * If configuration can not be published, it is persisted.
  *
  *@param ctx Context
@@ -361,7 +361,8 @@ WOLK_ERR_T wolk_publish(wolk_ctx_t* ctx);
 WOLK_ERR_T wolk_disable_keep_alive(wolk_ctx_t* ctx);
 
 /**
- * @brief Updates the epoch time variable
+ * @brief Requests the epoch time from the platform and awaits reply.
+ *  Blocking - it awaits the data before it continues.
  * 
  * @param ctx Context
  *

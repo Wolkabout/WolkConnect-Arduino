@@ -674,4 +674,14 @@ WOLK_ERR_T wolk_update_epoch(wolk_ctx_t* ctx)
     }
 
     delay(100);
+
+    while (!(ctx->pong_received)) {
+        wolk_process(ctx);
+        digitalWrite(LED_BUILTIN, HIGH);
+        delay(1000);
+    }
+    digitalWrite(LED_BUILTIN, LOW);
+    wolk_disconnect(ctx);
+
+    return W_FALSE;
 }
