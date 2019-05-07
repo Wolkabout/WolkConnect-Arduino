@@ -39,6 +39,7 @@
 #define LASTWILL_MESSAGE_JSON "Gone offline"
 
 #define PONG_JSON "pong/"
+#define EPOCH_WAIT 60000
 
 const unsigned long ping_interval = 60000;
 
@@ -674,4 +675,20 @@ WOLK_ERR_T wolk_update_epoch(wolk_ctx_t* ctx)
     }
 
     delay(100);
+
+    unsigned long currentMillis = millis();
+
+    while (millis() - currentMillis < EPOCH_WAIT) {
+        wolk_process(ctx);
+        digitalWrite(LED_BUILTIN, HIGH);
+        if(ctx->pong_received){
+            digitalWrite(LED_BUILTIN, LOW);
+            wolk_disconnect(ctx);
+            return W_FALSE;
+        }
+    }
+
+    Serial.println("Epoch time not received");
+
+    return W_TRUE;
 }
