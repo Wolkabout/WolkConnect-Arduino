@@ -72,10 +72,6 @@ void setup() {
   gmtime_r(&now, &timeinfo);
   Serial.print("Current time: ");
   Serial.print(asctime(&timeinfo));
-  
-  //BearSSL::X509List cert(ca_cert);
-  //espClient.setTrustAnchors(&cert);
-  //client.setCACert(ca_cert);
 
   // Load root certificate in DER format into WiFiClientSecure object
   bool res = espClient.setCACert_P(caCert, caCertLen);
