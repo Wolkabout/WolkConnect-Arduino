@@ -62,7 +62,7 @@ enum {
     /*used in publish actuator status*/
     READINGS_BUFFER_SIZE = 192,
 
-    STORE_SIZE = 64
+    STORE_SIZE = 16
 
 };
 
