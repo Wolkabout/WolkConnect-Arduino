@@ -25,25 +25,14 @@
 extern "C" {
 #endif
 
-typedef enum {
-    CONFIGURATION_COMMAND_TYPE_CURRENT = 0,
-    CONFIGURATION_COMMAND_TYPE_SET,
-
-    CONFIGURATION_COMMAND_TYPE_UNKNOWN
-} configuration_command_type_t;
-
 typedef struct {
-    configuration_command_type_t type;
-
     char reference[CONFIGURATION_ITEMS_SIZE][CONFIGURATION_REFERENCE_SIZE];
     char value[CONFIGURATION_ITEMS_SIZE][CONFIGURATION_VALUE_SIZE];
 
     size_t num_configuration_items;
 } configuration_command_t;
 
-void configuration_command_init(configuration_command_t* command, configuration_command_type_t type);
-
-configuration_command_type_t configuration_command_get_type(configuration_command_t* command);
+void configuration_command_init(configuration_command_t* command);
 
 void configuration_command_add(configuration_command_t* command, char* reference, char* value);
 

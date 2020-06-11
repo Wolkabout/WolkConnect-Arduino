@@ -32,18 +32,18 @@
 
 #define READINGS_PATH_JSON "readings/"
 
-#define ACTUATORS_STATUS_TOPIC_JSON "actuators/status/"
-#define ACTUATORS_COMMANDS_TOPIC_JSON "actuators/commands/"
+#define ACTUATORS_STATUS_TOPIC_JSON "d2p/actuator_status/"
+#define ACTUATORS_SET_TOPIC_JSON "p2d/actuator_set/"
 
 #define LASTWILL_TOPIC_JSON "lastwill/"
 #define LASTWILL_MESSAGE_JSON "Gone offline"
 
-#define PONG_JSON "pong/"
+#define PONG_JSON "pong/d/"
 #define EPOCH_WAIT 60000
 
 const unsigned long ping_interval = 60000;
 
-static const char* CONFIGURATION_COMMANDS_TOPIC_JSON = "configurations/commands/";
+static const char* CONFIGURATION_SET_TOPIC_JSON = "p2d/configuration_set/";
 
 static WOLK_ERR_T _ping_keep_alive(wolk_ctx_t* ctx);
 
@@ -172,9 +172,10 @@ WOLK_ERR_T wolk_connect (wolk_ctx_t *ctx)
             const char* str = ctx->actuator_references[i];
             memset (pub_topic, 0, TOPIC_SIZE);
 
-            strcpy(pub_topic,ACTUATORS_COMMANDS_TOPIC_JSON);
+            strcpy(pub_topic,ACTUATORS_SET_TOPIC_JSON);
+            strcat(pub_topic,"d/");
             strcat(pub_topic,ctx->device_key);
-            strcat(pub_topic,"/");
+            strcat(pub_topic,"/r/");
             strcat(pub_topic,str);
 
             if (_subscribe (ctx, pub_topic) != W_FALSE)
@@ -183,7 +184,8 @@ WOLK_ERR_T wolk_connect (wolk_ctx_t *ctx)
             }
         }
         memset(topic_buf, '\0', TOPIC_SIZE);
-        strcpy(&topic_buf[0], CONFIGURATION_COMMANDS_TOPIC_JSON);
+        strcpy(&topic_buf[0], CONFIGURATION_SET_TOPIC_JSON);
+        strcat(&topic_buf[0], "d/");
         strcat(&topic_buf[0], ctx->device_key);
 
         if (_subscribe(ctx, topic_buf) != W_FALSE) 
@@ -193,6 +195,7 @@ WOLK_ERR_T wolk_connect (wolk_ctx_t *ctx)
 
         memset(topic_buf, '\0', TOPIC_SIZE);
         strcpy(&topic_buf[0], PONG_JSON);
+        strcat(&topic_buf[0], "d/");
         strcat(&topic_buf[0], ctx->device_key);
 
         if (_subscribe(ctx, topic_buf) != W_FALSE) 
@@ -209,7 +212,7 @@ WOLK_ERR_T wolk_connect (wolk_ctx_t *ctx)
     }
 
     configuration_command_t configuration_command;
-    configuration_command_init(&configuration_command, CONFIGURATION_COMMAND_TYPE_CURRENT);
+    configuration_command_init(&configuration_command);
     _handle_configuration_command(ctx, &configuration_command);
 
     return W_FALSE;
@@ -223,7 +226,7 @@ void callback(void *wolk, char* topic, byte*payload, unsigned int length)
 
     memcpy(payload_str, payload, length);
 
-    if (strstr(topic, ACTUATORS_COMMANDS_TOPIC_JSON) != NULL)
+    if (strstr(topic, ACTUATORS_SET_TOPIC_JSON) != NULL)
     {
         actuator_command_t actuator_command;
         const size_t num_deserialized_commands = parser_deserialize_actuator_commands(&ctx->parser, topic, strlen(topic), (char*)payload_str, (size_t)length, &actuator_command, 1);
@@ -233,7 +236,7 @@ void callback(void *wolk, char* topic, byte*payload, unsigned int length)
         }
         
     }
-    else if (strstr(topic, CONFIGURATION_COMMANDS_TOPIC_JSON)) 
+    else if (strstr(topic, CONFIGURATION_SET_TOPIC_JSON))
     {
         configuration_command_t configuration_command;
         const size_t num_deserialized_commands = parser_deserialize_configuration_commands(&ctx->parser, (char*)payload_str, (size_t)length, &configuration_command, 1);
@@ -256,51 +259,21 @@ void callback(void *wolk, char* topic, byte*payload, unsigned int length)
 
 static void _handle_configuration_command(wolk_ctx_t* ctx, configuration_command_t* configuration_command)
 {
-    switch (configuration_command_get_type(configuration_command)) 
+    if (ctx->configuration_handler != NULL)
     {
-    case CONFIGURATION_COMMAND_TYPE_SET:
-        if (ctx->configuration_handler != NULL) 
-        {
-            ctx->configuration_handler(configuration_command_get_references(configuration_command),
-                                       configuration_command_get_values(configuration_command),
-                                       configuration_command_get_number_of_items(configuration_command));
-        }
-
-        /* Fallthrough */
-        /* break; */
-
-    case CONFIGURATION_COMMAND_TYPE_CURRENT:
-        wolk_publish_configuration(ctx);
-        break;
-            
-    case CONFIGURATION_COMMAND_TYPE_UNKNOWN:
-        break;
+        ctx->configuration_handler(configuration_command_get_references(configuration_command),
+                                   configuration_command_get_values(configuration_command),
+                                   configuration_command_get_number_of_items(configuration_command));
     }
 }
 
 static void _handle_actuator_command(wolk_ctx_t* ctx, actuator_command_t* command)
 {
-    switch(actuator_command_get_type(command))
+
+    if(ctx->actuation_handler != NULL)
     {
-        case ACTUATOR_COMMAND_TYPE_SET:
-        if(ctx->actuation_handler != NULL)
-            {
-                ctx->actuation_handler(actuator_command_get_reference(command), actuator_command_get_value(command));
-            }
-
-        /* Fallthrough */
-        /* break; */
-        case ACTUATOR_COMMAND_TYPE_STATUS:
-            if(ctx->actuator_status_provider != NULL)
-            {
-                wolk_publish_actuator_status(ctx, actuator_command_get_reference(command));
-            }
-
-        break;
-
-        case ACTUATOR_COMMAND_TYPE_UNKNOWN:
-        break;
-        }
+        ctx->actuation_handler(actuator_command_get_reference(command), actuator_command_get_value(command));
+    }
 }
 
 WOLK_ERR_T wolk_process (wolk_ctx_t *ctx)
@@ -624,7 +597,7 @@ static WOLK_ERR_T _ping_keep_alive(wolk_ctx_t* ctx)
 static void _parser_init(wolk_ctx_t* ctx, protocol_t protocol)
 {
     switch (protocol) {
-    case PROTOCOL_JSON_SINGLE:
+    case PROTOCOL_WOLKABOUT:
         initialize_parser(&ctx->parser, PARSER_TYPE_JSON);
         break;
 
