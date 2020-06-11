@@ -28,7 +28,6 @@
 #include "utility/actuator_status.h"
 #include "utility/outbound_message.h"
 #include "utility/outbound_message_factory.h"
-#include "utility/dtostrf_fix.h"
 #include "utility/wolk_utils.h"
 
 #include "utility/in_memory_persistence.h"
@@ -36,6 +35,7 @@
 
 #include "Arduino.h"
 
+#include <avr/dtostrf.h>
 #include <stdbool.h>
 #include <stdint.h>
 /** @endcond */
