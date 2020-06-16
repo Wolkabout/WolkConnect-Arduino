@@ -19,7 +19,7 @@ install:
    - arduino --install-boards "arduino:sam"
 
 script:
-   - cd "Wolkabout/WolkConnect-Arduino"
+   - cd "${HOME}/Wolkabout/WolkConnect-Arduino"
    - BOARD="arduino:sam:arduino_mkr1000"
    - arduino --verbose-build --verify --board ${BOARD} mysketch/mysketch.ino
 
