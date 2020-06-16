@@ -17,11 +17,11 @@ before_install:
 install:
    - arduino --install-library "WiFi101"
    - arduino --install-library "WolkConnect"
-   - arduino --install-boards "arduino:sam"
+   - arduino --install-boards "arduino:samd"
 
 script:
    - cd "/home/travis/build/Wolkabout/WolkConnect-Arduino"
-   - BOARD="arduino:sam:arduino_uno"
+   - BOARD="arduino:samd:arduino_mkr1000"
    - arduino --verbose-build --verify --board ${BOARD} mysketch/mysketch.ino
 
 
