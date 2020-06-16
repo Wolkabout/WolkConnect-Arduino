@@ -11,12 +11,13 @@ before_install:
    - IDEDIR="${HOME}/arduino_ide"
    - LIBDIR="${IDEDIR}/portable/sketchbook/libraries"
    - mkdir -p "${LIBDIR}"
+   - cp -r /home/travis/build/Wolkabout/WolkConnect-Arduino "${LIBDIR}"
    - export PATH="${IDEDIR}:${PATH}"
    - cd ${IDEDIR}
    - which arduino
 install:
    - arduino --install-library "WiFi101"
-   - arduino --install-library "WolkConnect"
+   #- arduino --install-library "WolkConnect"
    - arduino --install-boards "arduino:samd"
 
 script:
