@@ -21,7 +21,7 @@ install:
 
 script:
    - cd "/home/travis/build/Wolkabout/WolkConnect-Arduino"
-   - BOARD="arduino:sam:arduino_mkr_1000"
+   - BOARD="arduino:sam:mkr1000"
    - arduino --verbose-build --verify --board ${BOARD} mysketch/mysketch.ino
 
 
