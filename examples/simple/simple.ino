@@ -53,7 +53,7 @@ void setup() {
   setup_wifi();
 
   wolk_init(&wolk, NULL, NULL, NULL, NULL,
-            device_key, device_password, &client, hostname, portno, PROTOCOL_JSON_SINGLE, NULL, NULL);
+            device_key, device_password, &client, hostname, portno, PROTOCOL_WOLKABOUT, NULL, NULL);
 
   wolk_init_in_memory_persistence(&wolk, &outbound_messages, sizeof(outbound_messages), false);
 
