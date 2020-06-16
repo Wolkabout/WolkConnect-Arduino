@@ -23,7 +23,8 @@ install:
 script:
    - cd "/home/travis/build/Wolkabout/WolkConnect-Arduino"
    - BOARD="arduino:samd:mkr1000"
-   - arduino --verbose-build --verify --board ${BOARD} examples/simple/simple.ino
+   #- arduino --verbose-build --verify --board ${BOARD} examples/simple/simple.ino
+   - arduino --verbose-build --verify --board ${BOARD} src/WolkConn.cpp
 
 
 
