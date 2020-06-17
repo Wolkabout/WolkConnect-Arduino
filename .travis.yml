@@ -17,7 +17,6 @@ before_install:
    - which arduino
 install:
    - arduino --install-library "WiFi101"
-   #- arduino --install-library "WolkConnect"
    - arduino --install-boards "arduino:samd"
 
 script:
