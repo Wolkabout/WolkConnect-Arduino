@@ -24,10 +24,7 @@ script:
    - cd "/home/travis/build/Wolkabout/WolkConnect-Arduino"
    - BOARD="arduino:samd:mkr1000"
    - arduino --verbose-build --verify --board ${BOARD} examples/simple/simple.ino
-   #- arduino --verbose-build --verify --board ${BOARD} examples/e8266-SSL/e8266-SSL.ino
    - arduino --verbose-build --verify --board ${BOARD} examples/full_feature_set/full_feature_set.ino
-   #- arduino --verbose-build --verify --board ${BOARD} examples/simple_flash_persistence/simple_flash_persistence.ino
-   #- arduino --verbose-build --verify --board ${BOARD} examples/timed_measure_and_publish/timed_measure_and_publish.ino
    
 
 
