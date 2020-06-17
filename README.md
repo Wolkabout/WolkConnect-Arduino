@@ -26,7 +26,7 @@ provide socket to WolkAbout IoT platform.
 Provided examples are made for Genuino MKR1000. Porting to other Arduino boards is done by replacing MKR1000 WiFi library with a library that fits the selected board.
 
 Supported protocol(s):
-* JSON single (PROTOCOL_JSON_SINGLE)
+* JSON (PROTOCOL_WOLKABOUT)
 
 Prerequisite
 ------
@@ -66,7 +66,7 @@ wolk_init(&wolk                 //ctx Context
           &client,              //MQQT Client
           hostname,             //MQQT Server
           portno,               //Port to connect to
-          PROTOCOL_JSON_SINGLE, //Protocol specified for device
+          PROTOCOL_WOLKABOUT,   //Protocol specified for device
           NULL,                 //Array of strings containing references of actuators that device possess
           NULL);                //Number of actuator references contained in actuator_references
 ```
