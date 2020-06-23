@@ -22,7 +22,7 @@
 #include "size_definitions.h"
 #include "wolk_utils.h"
 #include "actuator_status.h"
-#include "Arduino.h"
+//#include "Arduino.h"
 
 #include <stdbool.h>
 #include <stddef.h>

@@ -1,3 +1,16 @@
+#include "gtest/gtest.h"
+
+#include "outbound_message_factory.h"
+#include "outbound_message.h"
+#include "parser.h"
+#include "reading.h"
+#include "wolk_utils.h"
+
+#include <stdbool.h>
+#include <stddef.h>
+#include <string.h>
+
+
 TEST(outboundMessageMakeFromReadings, OneReading)
 {
     parser_t parser;
@@ -13,4 +26,9 @@ TEST(outboundMessageMakeFromReadings, OneReading)
     outbound_message_t outbound_message;
     outbound_message_make_from_readings(&parser, "xjlsmn6q89cm030r", &reading, 1, &outbound_message);
     EXPECT_EQ(outbound_message_get_topic(&outbound_message), "d2p/sensor_reading/d/xjlsmn6q89cm030r/");
+}
+
+int main(int argc, char **argv) {
+  ::testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
 }
