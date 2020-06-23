@@ -25,10 +25,10 @@ TEST(outboundMessageMakeFromReadings, OneReading)
 
     outbound_message_t outbound_message;
     outbound_message_make_from_readings(&parser, "xjlsmn6q89cm030r", &reading, 1, &outbound_message);
-    EXPECT_EQ(outbound_message_get_topic(&outbound_message), "d2p/sensor_reading/d/xjlsmn6q89cm030r/");
+    EXPECT_STREQ(outbound_message_get_topic(&outbound_message), "d2p/sensor_reading/d/xjlsmn6q89cm030r/r/T");
 }
-
+/*
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
-}
+}*/
