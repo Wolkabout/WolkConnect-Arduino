@@ -38,7 +38,7 @@
 #define LASTWILL_TOPIC "lastwill/"
 #define LASTWILL_MESSAGE "Gone offline"
 
-#define PONG "pong/d/"
+#define PONG "pong/"
 #define EPOCH_WAIT 60000
 
 const unsigned long ping_interval = 60000;

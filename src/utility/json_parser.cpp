@@ -509,7 +509,7 @@ bool json_serialize_keep_alive_message(const char* device_key, outbound_message_
     outbound_message_init(outbound_message, "", "");
 
     /* Serialize topic */
-    if (snprintf(outbound_message->topic, WOLK_ARRAY_LENGTH(outbound_message->topic), "ping/d/%s", device_key)
+    if (snprintf(outbound_message->topic, WOLK_ARRAY_LENGTH(outbound_message->topic), "ping/%s", device_key)
         >= (int)WOLK_ARRAY_LENGTH(outbound_message->topic)) {
         return false;
     }
