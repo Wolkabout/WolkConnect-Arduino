@@ -1,7 +1,7 @@
 {
   "id": 904,
   "name": "Full-example",
-  "protocol": "JsonSingleReferenceProtocol",
+  "protocol": "JsonProtocol",
   "description": "This device template covers all the functionality provided by WolkConnect libraries",
   "deviceType": "STANDARD",
   "connectivityType": "MQTT_BROKER",
