@@ -20,12 +20,19 @@
 
 #include <string.h>
 
-void configuration_command_init(configuration_command_t* command)
+void configuration_command_init(configuration_command_t* command, configuration_command_type_t type)
 {
     /* Sanity check */
     WOLK_ASSERT(command);
 
+    command->type = type;
+
     command->num_configuration_items = 0;
+}
+
+configuration_command_type_t configuration_command_get_type(configuration_command_t* command)
+{
+    return command->type;
 }
 
 void configuration_command_add(configuration_command_t* command, char* reference, char* value)

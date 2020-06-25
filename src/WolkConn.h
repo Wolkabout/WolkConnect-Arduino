@@ -129,6 +129,8 @@ struct _wolk_ctx_t {
     bool is_connected;
     bool pong_received;
 
+    uint64_t utc;
+
     persistence_t persistence;
 
     unsigned long epoch_time;                                    /**< Epoch time in milliseconds, is updated on every ping but can be updated manually by calling wolk_update_epoch()
@@ -370,6 +372,14 @@ WOLK_ERR_T wolk_disable_keep_alive(wolk_ctx_t* ctx);
  */
 WOLK_ERR_T wolk_update_epoch(wolk_ctx_t* ctx);
 
+/**
+ * @brief Get last received UTC from platform
+ *
+ * @param ctx Context
+ *
+ * @return UTC in miliseconds
+ */
+uint64_t wolk_request_timestamp(wolk_ctx_t* ctx);
 
 #ifdef __cplusplus
 }

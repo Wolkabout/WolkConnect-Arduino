@@ -212,7 +212,7 @@ WOLK_ERR_T wolk_connect (wolk_ctx_t *ctx)
     }
 
     configuration_command_t configuration_command;
-    configuration_command_init(&configuration_command);
+    configuration_command_init(&configuration_command, CONFIGURATION_COMMAND_TYPE_CURRENT);
     _handle_configuration_command(ctx, &configuration_command);
 
     return W_FALSE;
@@ -259,21 +259,52 @@ void callback(void *wolk, char* topic, byte*payload, unsigned int length)
 
 static void _handle_configuration_command(wolk_ctx_t* ctx, configuration_command_t* configuration_command)
 {
-    if (ctx->configuration_handler != NULL)
-    {
-        ctx->configuration_handler(configuration_command_get_references(configuration_command),
-                                   configuration_command_get_values(configuration_command),
-                                   configuration_command_get_number_of_items(configuration_command));
-    }
+    switch (configuration_command_get_type(configuration_command))
+        {
+        case CONFIGURATION_COMMAND_TYPE_SET:
+            if (ctx->configuration_handler != NULL)
+            {
+                ctx->configuration_handler(configuration_command_get_references(configuration_command),
+                                           configuration_command_get_values(configuration_command),
+                                           configuration_command_get_number_of_items(configuration_command));
+            }
+
+            /* Fallthrough */
+            /* break; */
+
+        case CONFIGURATION_COMMAND_TYPE_CURRENT:
+            wolk_publish_configuration(ctx);
+            break;
+
+        case CONFIGURATION_COMMAND_TYPE_UNKNOWN:
+            break;
+        }
 }
 
 static void _handle_actuator_command(wolk_ctx_t* ctx, actuator_command_t* command)
 {
 
-    if(ctx->actuation_handler != NULL)
-    {
-        ctx->actuation_handler(actuator_command_get_reference(command), actuator_command_get_value(command));
-    }
+    switch(actuator_command_get_type(command))
+        {
+            case ACTUATOR_COMMAND_TYPE_SET:
+            if(ctx->actuation_handler != NULL)
+                {
+                    ctx->actuation_handler(actuator_command_get_reference(command), actuator_command_get_value(command));
+                }
+
+            /* Fallthrough */
+            /* break; */
+            case ACTUATOR_COMMAND_TYPE_STATUS:
+                if(ctx->actuator_status_provider != NULL)
+                {
+                    wolk_publish_actuator_status(ctx, actuator_command_get_reference(command));
+                }
+
+            break;
+
+            case ACTUATOR_COMMAND_TYPE_UNKNOWN:
+            break;
+            }
 }
 
 WOLK_ERR_T wolk_process (wolk_ctx_t *ctx)
@@ -664,4 +695,9 @@ WOLK_ERR_T wolk_update_epoch(wolk_ctx_t* ctx)
     Serial.println("Epoch time not received");
 
     return W_TRUE;
+}
+
+uint64_t wolk_request_timestamp(wolk_ctx_t* ctx)
+{
+    return ctx->utc;
 }
