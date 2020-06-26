@@ -4,6 +4,7 @@ env:
   global:
    - IDEVER="1.8.10"
 before_install:
+   - sudo apt-get install libgtest-dev
    - "echo $PWD"
    - wget -O arduino.tar.xz https://downloads.arduino.cc/arduino-${IDEVER}-linux64.tar.xz
    - tar xf arduino.tar.xz
