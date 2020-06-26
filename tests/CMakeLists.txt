@@ -20,4 +20,7 @@ include_directories(../src/ ../src/utility/)
 add_executable(${PROJECT_NAME} parser.cpp ${SOURCES})
 #target_link_libraries(${PROJECT_NAME} ${LIB}libgtest_main.a ${LIB}libgtest.a ${LIB}libgmock_main.a ${LIB}libgmock.a)
 #target_link_libraries(${PROJECT_NAME} ${LIB}libgtest.a ${LIB}libgtest_main.a pthread)
-target_link_libraries(${PROJECT_NAME} gtest gtest_main pthread)
+# Locate GTest
+find_package(GTest REQUIRED)
+include_directories(${GTEST_INCLUDE_DIRS})
+target_link_libraries(${PROJECT_NAME} ${GTEST_LIBRARIES} pthread)
