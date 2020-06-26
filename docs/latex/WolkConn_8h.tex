@@ -1,5 +1,5 @@
-\hypertarget{WolkConn_8h}{}\section{/home/lbozic/\+Arduino/libraries/\+Wolk\+Connect-\/\+Arduino/src/\+Wolk\+Conn.h File Reference}
-\label{WolkConn_8h}\index{/home/lbozic/\+Arduino/libraries/\+Wolk\+Connect-\/\+Arduino/src/\+Wolk\+Conn.\+h@{/home/lbozic/\+Arduino/libraries/\+Wolk\+Connect-\/\+Arduino/src/\+Wolk\+Conn.\+h}}
+\hypertarget{WolkConn_8h}{}\section{/home/mvukovic/\+Wolk\+Connect-\/\+Arduino/src/\+Wolk\+Conn.h File Reference}
+\label{WolkConn_8h}\index{/home/mvukovic/\+Wolk\+Connect-\/\+Arduino/src/\+Wolk\+Conn.\+h@{/home/mvukovic/\+Wolk\+Connect-\/\+Arduino/src/\+Wolk\+Conn.\+h}}
 
 
 Header file with library function descriptions.  
@@ -46,8 +46,8 @@ typedef struct \hyperlink{struct__wolk__ctx__t}{\+\_\+wolk\+\_\+ctx\+\_\+t} \hyp
 \begin{DoxyCompactItemize}
 \item 
 \mbox{\Hypertarget{WolkConn_8h_a91e19fa4fff461493e1a41f7c7aa4e5f}\label{WolkConn_8h_a91e19fa4fff461493e1a41f7c7aa4e5f}} 
-enum \hyperlink{WolkConn_8h_a91e19fa4fff461493e1a41f7c7aa4e5f}{protocol\+\_\+t} \{ {\bfseries P\+R\+O\+T\+O\+C\+O\+L\+\_\+\+J\+S\+O\+N\+\_\+\+S\+I\+N\+G\+LE} = 0
- \}\begin{DoxyCompactList}\small\item\em Supported protocols, Wolk\+Connect libararies currently support only P\+R\+O\+T\+O\+C\+O\+L\+\_\+\+J\+S\+O\+N\+\_\+\+S\+I\+N\+G\+LE. \end{DoxyCompactList}
+enum \hyperlink{WolkConn_8h_a91e19fa4fff461493e1a41f7c7aa4e5f}{protocol\+\_\+t} \{ {\bfseries P\+R\+O\+T\+O\+C\+O\+L\+\_\+\+W\+O\+L\+K\+A\+B\+O\+UT} = 0
+ \}\begin{DoxyCompactList}\small\item\em Supported protocols, Wolk\+Connect libararies currently support only P\+R\+O\+T\+O\+C\+O\+L\+\_\+\+W\+O\+L\+K\+A\+B\+O\+UT. \end{DoxyCompactList}
 \item 
 \mbox{\Hypertarget{WolkConn_8h_a19b47d3264771c75e27cf2b2617546af}\label{WolkConn_8h_a19b47d3264771c75e27cf2b2617546af}} 
 enum {\bfseries W\+O\+L\+K\+\_\+\+B\+O\+O\+L\+\_\+\+T\+\_\+values} \{ {\bfseries W\+\_\+\+F\+A\+L\+SE} = 0, 
@@ -92,7 +92,9 @@ enum {\bfseries W\+O\+L\+K\+\_\+\+B\+O\+O\+L\+\_\+\+T\+\_\+values} \{ {\bfseries
 \hyperlink{WolkConn_8h_a5e8017d60f3753b4d489aeb7d3392641}{W\+O\+L\+K\+\_\+\+E\+R\+R\+\_\+T} \hyperlink{WolkConn_8h_ac04ee6d0e9cac773f77a57b89383c715}{wolk\+\_\+disable\+\_\+keep\+\_\+alive} (\hyperlink{WolkConn_8h_a0257b85c2973b7443a15679eb6ee3ed6}{wolk\+\_\+ctx\+\_\+t} $\ast$ctx)
 \begin{DoxyCompactList}\small\item\em Disables internal keep alive mechanism. \end{DoxyCompactList}\item 
 \hyperlink{WolkConn_8h_a5e8017d60f3753b4d489aeb7d3392641}{W\+O\+L\+K\+\_\+\+E\+R\+R\+\_\+T} \hyperlink{WolkConn_8h_afb2e5b566c8535cf38a7038909a36b6e}{wolk\+\_\+update\+\_\+epoch} (\hyperlink{WolkConn_8h_a0257b85c2973b7443a15679eb6ee3ed6}{wolk\+\_\+ctx\+\_\+t} $\ast$ctx)
-\begin{DoxyCompactList}\small\item\em Requests the epoch time from the platform and awaits reply. If the reply did not arrive within 60 seconds it returns W\+\_\+\+T\+R\+UE. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\begin{DoxyCompactList}\small\item\em Requests the epoch time from the platform and awaits reply. If the reply did not arrive within 60 seconds it returns W\+\_\+\+T\+R\+UE. \end{DoxyCompactList}\item 
+uint64\+\_\+t \hyperlink{WolkConn_8h_a85ee7218477d1627ec604d7a64bee81d}{wolk\+\_\+request\+\_\+timestamp} (\hyperlink{WolkConn_8h_a0257b85c2973b7443a15679eb6ee3ed6}{wolk\+\_\+ctx\+\_\+t} $\ast$ctx)
+\begin{DoxyCompactList}\small\item\em Get last received U\+TC from platform. \end{DoxyCompactList}\end{DoxyCompactItemize}
 
 
 \subsection{Detailed Description}
@@ -574,6 +576,24 @@ Obtains configuration via configuration\+\_\+provider and publishes it. If confi
 \end{DoxyParams}
 \begin{DoxyReturn}{Returns}
 Error code 
+\end{DoxyReturn}
+\mbox{\Hypertarget{WolkConn_8h_a85ee7218477d1627ec604d7a64bee81d}\label{WolkConn_8h_a85ee7218477d1627ec604d7a64bee81d}} 
+\index{Wolk\+Conn.\+h@{Wolk\+Conn.\+h}!wolk\+\_\+request\+\_\+timestamp@{wolk\+\_\+request\+\_\+timestamp}}
+\index{wolk\+\_\+request\+\_\+timestamp@{wolk\+\_\+request\+\_\+timestamp}!Wolk\+Conn.\+h@{Wolk\+Conn.\+h}}
+\subsubsection{\texorpdfstring{wolk\+\_\+request\+\_\+timestamp()}{wolk\_request\_timestamp()}}
+{\footnotesize\ttfamily uint64\+\_\+t wolk\+\_\+request\+\_\+timestamp (\begin{DoxyParamCaption}\item[{\hyperlink{WolkConn_8h_a0257b85c2973b7443a15679eb6ee3ed6}{wolk\+\_\+ctx\+\_\+t} $\ast$}]{ctx }\end{DoxyParamCaption})}
+
+
+
+Get last received U\+TC from platform. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em ctx} & Context\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+U\+TC in miliseconds 
 \end{DoxyReturn}
 \mbox{\Hypertarget{WolkConn_8h_afb2e5b566c8535cf38a7038909a36b6e}\label{WolkConn_8h_afb2e5b566c8535cf38a7038909a36b6e}} 
 \index{Wolk\+Conn.\+h@{Wolk\+Conn.\+h}!wolk\+\_\+update\+\_\+epoch@{wolk\+\_\+update\+\_\+epoch}}

@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.13"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Arduino WolkConnect library: /home/lbozic/Arduino/libraries/WolkConnect-Arduino/src/WolkConn.h File Reference</title>
+<title>Arduino WolkConnect library: /home/mvukovic/WolkConnect-Arduino/src/WolkConn.h File Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -23,7 +23,7 @@
   <td id="projectlogo"><img alt="Logo" src="wolkLogo.png"/></td>
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">Arduino WolkConnect library
-   &#160;<span id="projectnumber">3.1.4</span>
+   &#160;<span id="projectnumber">4.0.0</span>
    </div>
   </td>
  </tr>
@@ -126,8 +126,8 @@ typedef struct <a class="el" href="struct__wolk__ctx__t.html">_wolk_ctx_t</a>&#1
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="enum-members"></a>
 Enumerations</h2></td></tr>
-<tr class="memitem:a91e19fa4fff461493e1a41f7c7aa4e5f"><td class="memItemLeft" align="right" valign="top"><a id="a91e19fa4fff461493e1a41f7c7aa4e5f"></a>enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="WolkConn_8h.html#a91e19fa4fff461493e1a41f7c7aa4e5f">protocol_t</a> { <b>PROTOCOL_JSON_SINGLE</b> = 0
- }<tr class="memdesc:a91e19fa4fff461493e1a41f7c7aa4e5f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Supported protocols, WolkConnect libararies currently support only PROTOCOL_JSON_SINGLE. <br /></td></tr>
+<tr class="memitem:a91e19fa4fff461493e1a41f7c7aa4e5f"><td class="memItemLeft" align="right" valign="top"><a id="a91e19fa4fff461493e1a41f7c7aa4e5f"></a>enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="WolkConn_8h.html#a91e19fa4fff461493e1a41f7c7aa4e5f">protocol_t</a> { <b>PROTOCOL_WOLKABOUT</b> = 0
+ }<tr class="memdesc:a91e19fa4fff461493e1a41f7c7aa4e5f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Supported protocols, WolkConnect libararies currently support only PROTOCOL_WOLKABOUT. <br /></td></tr>
 </td></tr>
 <tr class="separator:a91e19fa4fff461493e1a41f7c7aa4e5f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a19b47d3264771c75e27cf2b2617546af"><td class="memItemLeft" align="right" valign="top"><a id="a19b47d3264771c75e27cf2b2617546af"></a>enum &#160;</td><td class="memItemRight" valign="bottom"><b>WOLK_BOOL_T_values</b> { <b>W_FALSE</b> = 0, 
@@ -191,6 +191,9 @@ Functions</h2></td></tr>
 <tr class="memitem:afb2e5b566c8535cf38a7038909a36b6e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="WolkConn_8h.html#a5e8017d60f3753b4d489aeb7d3392641">WOLK_ERR_T</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="WolkConn_8h.html#afb2e5b566c8535cf38a7038909a36b6e">wolk_update_epoch</a> (<a class="el" href="WolkConn_8h.html#a0257b85c2973b7443a15679eb6ee3ed6">wolk_ctx_t</a> *ctx)</td></tr>
 <tr class="memdesc:afb2e5b566c8535cf38a7038909a36b6e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Requests the epoch time from the platform and awaits reply. If the reply did not arrive within 60 seconds it returns W_TRUE.  <a href="#afb2e5b566c8535cf38a7038909a36b6e">More...</a><br /></td></tr>
 <tr class="separator:afb2e5b566c8535cf38a7038909a36b6e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a85ee7218477d1627ec604d7a64bee81d"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="WolkConn_8h.html#a85ee7218477d1627ec604d7a64bee81d">wolk_request_timestamp</a> (<a class="el" href="WolkConn_8h.html#a0257b85c2973b7443a15679eb6ee3ed6">wolk_ctx_t</a> *ctx)</td></tr>
+<tr class="memdesc:a85ee7218477d1627ec604d7a64bee81d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get last received UTC from platform.  <a href="#a85ee7218477d1627ec604d7a64bee81d">More...</a><br /></td></tr>
+<tr class="separator:a85ee7218477d1627ec604d7a64bee81d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Header file with library function descriptions. </p>
@@ -1102,6 +1105,33 @@ Functions</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Error code </dd></dl>
+
+</div>
+</div>
+<a id="a85ee7218477d1627ec604d7a64bee81d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a85ee7218477d1627ec604d7a64bee81d">&#9670;&nbsp;</a></span>wolk_request_timestamp()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint64_t wolk_request_timestamp </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="WolkConn_8h.html#a0257b85c2973b7443a15679eb6ee3ed6">wolk_ctx_t</a> *&#160;</td>
+          <td class="paramname"><em>ctx</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Get last received UTC from platform. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">ctx</td><td>Context</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>UTC in miliseconds </dd></dl>
 
 </div>
 </div>
