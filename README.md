@@ -26,7 +26,7 @@ provide socket to WolkAbout IoT platform.
 Provided examples are made for Genuino MKR1000. Porting to other Arduino boards is done by replacing MKR1000 WiFi library with a library that fits the selected board.
 
 Supported protocol(s):
-* JSON (PROTOCOL_WOLKABOUT)
+* WOLKABOUT PROTOCOL
 
 Prerequisite
 ------
