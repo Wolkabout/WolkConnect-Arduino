@@ -699,5 +699,5 @@ WOLK_ERR_T wolk_update_epoch(wolk_ctx_t* ctx)
 
 uint64_t wolk_request_timestamp(wolk_ctx_t* ctx)
 {
-    return ctx->utc;
+    return ctx->epoch_time;
 }
