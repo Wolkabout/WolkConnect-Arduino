@@ -76,8 +76,3 @@ TEST(OutboundMessage, OutboundMessageMakeFromKeepAliveMessage)
     EXPECT_STREQ(outbound_message_get_topic(&outbound_message), "ping/xjlsmn6q89cm030r");
     EXPECT_STREQ(outbound_message_get_payload(&outbound_message), "");
 }
-/*
-int main(int argc, char **argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}*/
