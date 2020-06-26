@@ -21,6 +21,9 @@ install:
    - arduino --install-boards "arduino:samd"
 
 script:
+   - cd "/home/travis/build/Wolkabout/WolkConnect-Arduino/tests/"
+   - cmake .
+   - make
    - cd "/home/travis/build/Wolkabout/WolkConnect-Arduino"
    - BOARD="arduino:samd:mkr1000"
    - arduino --verbose-build --verify --board ${BOARD} examples/simple/simple.ino
