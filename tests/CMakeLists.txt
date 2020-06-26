@@ -17,7 +17,7 @@ file(GLOB SOURCES "../src/utility/*.cpp")
 #)
 
 include_directories(../src/ ../src/utility/)
-add_executable(${PROJECT_NAME} parser.cpp ${SOURCES})
+add_executable(${PROJECT_NAME} OutboundMessageFactoryTest.cpp ${SOURCES})
 #target_link_libraries(${PROJECT_NAME} ${LIB}libgtest_main.a ${LIB}libgtest.a ${LIB}libgmock_main.a ${LIB}libgmock.a)
 #target_link_libraries(${PROJECT_NAME} ${LIB}libgtest.a ${LIB}libgtest_main.a pthread)
 # Locate GTest
