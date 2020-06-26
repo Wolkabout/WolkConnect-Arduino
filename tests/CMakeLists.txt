@@ -23,4 +23,4 @@ add_executable(${PROJECT_NAME} OutboundMessageFactoryTest.cpp ${SOURCES})
 # Locate GTest
 find_package(GTest REQUIRED)
 include_directories(${GTEST_INCLUDE_DIRS})
-target_link_libraries(${PROJECT_NAME} ${GTEST_LIBRARIES} pthread)
+target_link_libraries(${PROJECT_NAME} gtest gtest_main pthread)
