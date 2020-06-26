@@ -5,7 +5,7 @@ file(GLOB SOURCES "../src/utility/*.cpp")
 file(GLOB TESTS "../tests/*.cpp")
 
 include_directories(../src/ ../src/utility/)
-#add_executable(${PROJECT_NAME} OutboundMessageFactoryTest.cpp ${SOURCES})
+
 add_executable(${PROJECT_NAME} ${TESTS} ${SOURCES})
 
 # Locate GTest
