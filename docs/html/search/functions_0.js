@@ -17,5 +17,6 @@ var searchData=
   ['wolk_5fpublish',['wolk_publish',['../WolkConn_8h.html#ac5e7ddb346ea4b9a7cc4511d3728be09',1,'WolkConn.h']]],
   ['wolk_5fpublish_5factuator_5fstatus',['wolk_publish_actuator_status',['../WolkConn_8h.html#aa510c9f8df1d095d4e1aef9b7fdaf600',1,'WolkConn.h']]],
   ['wolk_5fpublish_5fconfiguration',['wolk_publish_configuration',['../WolkConn_8h.html#a15b0b13f1572c4645fd346e0d66d531e',1,'WolkConn.h']]],
+  ['wolk_5frequest_5ftimestamp',['wolk_request_timestamp',['../WolkConn_8h.html#a85ee7218477d1627ec604d7a64bee81d',1,'WolkConn.h']]],
   ['wolk_5fupdate_5fepoch',['wolk_update_epoch',['../WolkConn_8h.html#afb2e5b566c8535cf38a7038909a36b6e',1,'WolkConn.h']]]
 ];

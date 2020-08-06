@@ -38,6 +38,7 @@ actuator_command_type_t actuator_command_get_type(actuator_command_t* command)
     return command->type;
 }
 
+
 char* actuator_command_get_reference(actuator_command_t* command)
 {
     return command->reference;

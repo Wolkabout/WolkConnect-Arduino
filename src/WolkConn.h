@@ -28,7 +28,6 @@
 #include "utility/actuator_status.h"
 #include "utility/outbound_message.h"
 #include "utility/outbound_message_factory.h"
-#include "utility/dtostrf_fix.h"
 #include "utility/wolk_utils.h"
 
 #include "utility/in_memory_persistence.h"
@@ -36,6 +35,7 @@
 
 #include "Arduino.h"
 
+#include <avr/dtostrf.h>
 #include <stdbool.h>
 #include <stdint.h>
 /** @endcond */
@@ -49,9 +49,9 @@ extern "C" {
 
 
 /**
- * @brief Supported protocols, WolkConnect libararies currently support only PROTOCOL_JSON_SINGLE
+ * @brief Supported protocols, WolkConnect libararies currently support only PROTOCOL_WOLKABOUT
  */
-typedef enum { PROTOCOL_JSON_SINGLE = 0 } protocol_t;
+typedef enum { PROTOCOL_WOLKABOUT = 0 } protocol_t;
 /**
  * @brief WOLK_ERR_T Boolean used for error handling in Wolk connection module
  */
@@ -370,6 +370,14 @@ WOLK_ERR_T wolk_disable_keep_alive(wolk_ctx_t* ctx);
  */
 WOLK_ERR_T wolk_update_epoch(wolk_ctx_t* ctx);
 
+/**
+ * @brief Get last received UTC from platform
+ *
+ * @param ctx Context
+ *
+ * @return UTC in miliseconds
+ */
+uint64_t wolk_request_timestamp(wolk_ctx_t* ctx);
 
 #ifdef __cplusplus
 }

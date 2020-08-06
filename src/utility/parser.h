@@ -32,7 +32,7 @@ extern "C" {
 #endif
 
 typedef enum {
-    PARSER_TYPE_JSON
+    PARSER_TYPE
 } parser_type_t;
 
 typedef struct {

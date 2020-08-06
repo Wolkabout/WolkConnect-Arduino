@@ -30,20 +30,20 @@
 #define BOOL_FALSE "false"
 #define BOOL_TRUE "true"
 
-#define READINGS_PATH_JSON "readings/"
+#define READINGS_PATH "readings/"
 
-#define ACTUATORS_STATUS_TOPIC_JSON "actuators/status/"
-#define ACTUATORS_COMMANDS_TOPIC_JSON "actuators/commands/"
+#define ACTUATORS_STATUS_TOPIC "d2p/actuator_status/"
+#define ACTUATORS_SET_TOPIC "p2d/actuator_set/"
 
-#define LASTWILL_TOPIC_JSON "lastwill/"
-#define LASTWILL_MESSAGE_JSON "Gone offline"
+#define LASTWILL_TOPIC "lastwill/"
+#define LASTWILL_MESSAGE "Gone offline"
 
-#define PONG_JSON "pong/"
+#define PONG "pong/"
 #define EPOCH_WAIT 60000
 
 const unsigned long ping_interval = 60000;
 
-static const char* CONFIGURATION_COMMANDS_TOPIC_JSON = "configurations/commands/";
+static const char* CONFIGURATION_SET_TOPIC = "p2d/configuration_set/";
 
 static WOLK_ERR_T _ping_keep_alive(wolk_ctx_t* ctx);
 
@@ -85,7 +85,7 @@ WOLK_ERR_T wolk_init(wolk_ctx_t* ctx, actuation_handler_t actuation_handler, act
     WOLK_ASSERT(strlen(device_key) < DEVICE_KEY_SIZE);
     WOLK_ASSERT(strlen(device_password) < DEVICE_PASSWORD_SIZE);
 
-    WOLK_ASSERT(protocol == PROTOCOL_JSON_SINGLE);
+    WOLK_ASSERT(protocol == PROTOCOL_SINGLE);
 
     if (num_actuator_references > 0 && (actuation_handler == NULL || actuator_status_provider == NULL)) {
         WOLK_ASSERT(false);
@@ -139,10 +139,10 @@ WOLK_ERR_T wolk_connect (wolk_ctx_t *ctx)
     char sub_topic[TOPIC_SIZE];
     char client_id[TOPIC_SIZE];
 
-    if (ctx->parser.type == PARSER_TYPE_JSON)
+    if (ctx->parser.type == PARSER_TYPE)
     {
         memset (lastwill_topic, 0, TOPIC_SIZE);
-        strcpy (lastwill_topic, LASTWILL_TOPIC_JSON);
+        strcpy (lastwill_topic, LASTWILL_TOPIC);
         strcat (lastwill_topic, ctx->device_key);
     }
     memset (client_id, 0, TOPIC_SIZE);
@@ -150,7 +150,7 @@ WOLK_ERR_T wolk_connect (wolk_ctx_t *ctx)
 
     Serial.print("Attempting MQTT connection...");
     // Attempt to connect
-    if (ctx->mqtt_client->connect(client_id, ctx->device_key, ctx->device_password, lastwill_topic, NULL, NULL, LASTWILL_MESSAGE_JSON)) 
+    if (ctx->mqtt_client->connect(client_id, ctx->device_key, ctx->device_password, lastwill_topic, NULL, NULL, LASTWILL_MESSAGE))
     {
         Serial.println("connected!");
         ctx->is_connected = true;
@@ -165,16 +165,17 @@ WOLK_ERR_T wolk_connect (wolk_ctx_t *ctx)
     char pub_topic[TOPIC_SIZE];
     char topic_buf[TOPIC_SIZE];
     int i;
-    if (ctx->parser.type == PARSER_TYPE_JSON)
+    if (ctx->parser.type == PARSER_TYPE)
     {
         for (i = 0; i < ctx->num_actuator_references ; i++)
         {
             const char* str = ctx->actuator_references[i];
             memset (pub_topic, 0, TOPIC_SIZE);
 
-            strcpy(pub_topic,ACTUATORS_COMMANDS_TOPIC_JSON);
+            strcpy(pub_topic,ACTUATORS_SET_TOPIC);
+            strcat(pub_topic,"d/");
             strcat(pub_topic,ctx->device_key);
-            strcat(pub_topic,"/");
+            strcat(pub_topic,"/r/");
             strcat(pub_topic,str);
 
             if (_subscribe (ctx, pub_topic) != W_FALSE)
@@ -183,7 +184,8 @@ WOLK_ERR_T wolk_connect (wolk_ctx_t *ctx)
             }
         }
         memset(topic_buf, '\0', TOPIC_SIZE);
-        strcpy(&topic_buf[0], CONFIGURATION_COMMANDS_TOPIC_JSON);
+        strcpy(&topic_buf[0], CONFIGURATION_SET_TOPIC);
+        strcat(&topic_buf[0], "d/");
         strcat(&topic_buf[0], ctx->device_key);
 
         if (_subscribe(ctx, topic_buf) != W_FALSE) 
@@ -192,7 +194,8 @@ WOLK_ERR_T wolk_connect (wolk_ctx_t *ctx)
         }
 
         memset(topic_buf, '\0', TOPIC_SIZE);
-        strcpy(&topic_buf[0], PONG_JSON);
+        strcpy(&topic_buf[0], PONG);
+        strcat(&topic_buf[0], "d/");
         strcat(&topic_buf[0], ctx->device_key);
 
         if (_subscribe(ctx, topic_buf) != W_FALSE) 
@@ -223,7 +226,7 @@ void callback(void *wolk, char* topic, byte*payload, unsigned int length)
 
     memcpy(payload_str, payload, length);
 
-    if (strstr(topic, ACTUATORS_COMMANDS_TOPIC_JSON) != NULL)
+    if (strstr(topic, ACTUATORS_SET_TOPIC) != NULL)
     {
         actuator_command_t actuator_command;
         const size_t num_deserialized_commands = parser_deserialize_actuator_commands(&ctx->parser, topic, strlen(topic), (char*)payload_str, (size_t)length, &actuator_command, 1);
@@ -233,7 +236,7 @@ void callback(void *wolk, char* topic, byte*payload, unsigned int length)
         }
         
     }
-    else if (strstr(topic, CONFIGURATION_COMMANDS_TOPIC_JSON)) 
+    else if (strstr(topic, CONFIGURATION_SET_TOPIC))
     {
         configuration_command_t configuration_command;
         const size_t num_deserialized_commands = parser_deserialize_configuration_commands(&ctx->parser, (char*)payload_str, (size_t)length, &configuration_command, 1);
@@ -243,7 +246,7 @@ void callback(void *wolk, char* topic, byte*payload, unsigned int length)
             _handle_configuration_command(ctx, &configuration_command);
         }
     }
-    else if (strstr(topic, PONG_JSON))
+    else if (strstr(topic, PONG))
     {
         ctx->pong_received = true;
         uint32_t time;
@@ -256,51 +259,52 @@ void callback(void *wolk, char* topic, byte*payload, unsigned int length)
 
 static void _handle_configuration_command(wolk_ctx_t* ctx, configuration_command_t* configuration_command)
 {
-    switch (configuration_command_get_type(configuration_command)) 
-    {
-    case CONFIGURATION_COMMAND_TYPE_SET:
-        if (ctx->configuration_handler != NULL) 
+    switch (configuration_command_get_type(configuration_command))
         {
-            ctx->configuration_handler(configuration_command_get_references(configuration_command),
-                                       configuration_command_get_values(configuration_command),
-                                       configuration_command_get_number_of_items(configuration_command));
+        case CONFIGURATION_COMMAND_TYPE_SET:
+            if (ctx->configuration_handler != NULL)
+            {
+                ctx->configuration_handler(configuration_command_get_references(configuration_command),
+                                           configuration_command_get_values(configuration_command),
+                                           configuration_command_get_number_of_items(configuration_command));
+            }
+
+            /* Fallthrough */
+            /* break; */
+
+        case CONFIGURATION_COMMAND_TYPE_CURRENT:
+            wolk_publish_configuration(ctx);
+            break;
+
+        case CONFIGURATION_COMMAND_TYPE_UNKNOWN:
+            break;
         }
-
-        /* Fallthrough */
-        /* break; */
-
-    case CONFIGURATION_COMMAND_TYPE_CURRENT:
-        wolk_publish_configuration(ctx);
-        break;
-            
-    case CONFIGURATION_COMMAND_TYPE_UNKNOWN:
-        break;
-    }
 }
 
 static void _handle_actuator_command(wolk_ctx_t* ctx, actuator_command_t* command)
 {
+
     switch(actuator_command_get_type(command))
-    {
-        case ACTUATOR_COMMAND_TYPE_SET:
-        if(ctx->actuation_handler != NULL)
-            {
-                ctx->actuation_handler(actuator_command_get_reference(command), actuator_command_get_value(command));
+        {
+            case ACTUATOR_COMMAND_TYPE_SET:
+            if(ctx->actuation_handler != NULL)
+                {
+                    ctx->actuation_handler(actuator_command_get_reference(command), actuator_command_get_value(command));
+                }
+
+            /* Fallthrough */
+            /* break; */
+            case ACTUATOR_COMMAND_TYPE_STATUS:
+                if(ctx->actuator_status_provider != NULL)
+                {
+                    wolk_publish_actuator_status(ctx, actuator_command_get_reference(command));
+                }
+
+            break;
+
+            case ACTUATOR_COMMAND_TYPE_UNKNOWN:
+            break;
             }
-
-        /* Fallthrough */
-        /* break; */
-        case ACTUATOR_COMMAND_TYPE_STATUS:
-            if(ctx->actuator_status_provider != NULL)
-            {
-                wolk_publish_actuator_status(ctx, actuator_command_get_reference(command));
-            }
-
-        break;
-
-        case ACTUATOR_COMMAND_TYPE_UNKNOWN:
-        break;
-        }
 }
 
 WOLK_ERR_T wolk_process (wolk_ctx_t *ctx)
@@ -561,10 +565,10 @@ WOLK_ERR_T wolk_disconnect(wolk_ctx_t *ctx)
     char lastwill_topic[TOPIC_SIZE];
 
     memset (lastwill_topic, 0, TOPIC_SIZE);
-    strcpy (lastwill_topic, LASTWILL_TOPIC_JSON);
+    strcpy (lastwill_topic, LASTWILL_TOPIC);
     strcat (lastwill_topic, ctx->device_key);
 
-    ctx->mqtt_client->publish(lastwill_topic, LASTWILL_MESSAGE_JSON);
+    ctx->mqtt_client->publish(lastwill_topic, LASTWILL_MESSAGE);
     ctx->mqtt_client->disconnect();
     ctx->is_connected = false;
     return W_FALSE;
@@ -624,8 +628,8 @@ static WOLK_ERR_T _ping_keep_alive(wolk_ctx_t* ctx)
 static void _parser_init(wolk_ctx_t* ctx, protocol_t protocol)
 {
     switch (protocol) {
-    case PROTOCOL_JSON_SINGLE:
-        initialize_parser(&ctx->parser, PARSER_TYPE_JSON);
+    case PROTOCOL_WOLKABOUT:
+        initialize_parser(&ctx->parser, PARSER_TYPE);
         break;
 
     default:
@@ -691,4 +695,9 @@ WOLK_ERR_T wolk_update_epoch(wolk_ctx_t* ctx)
     Serial.println("Epoch time not received");
 
     return W_TRUE;
+}
+
+uint64_t wolk_request_timestamp(wolk_ctx_t* ctx)
+{
+    return ctx->epoch_time;
 }

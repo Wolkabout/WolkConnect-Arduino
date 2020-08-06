@@ -1,7 +1,7 @@
 {
   "id": 883,
   "name": "Simple-example",
-  "protocol": "JsonSingleReferenceProtocol",
+  "protocol": "JsonProtocol",
   "description": "A minimal template with one sensor",
   "deviceType": "STANDARD",
   "connectivityType": "MQTT_BROKER",

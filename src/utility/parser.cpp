@@ -32,7 +32,7 @@ void initialize_parser(parser_t* parser, parser_type_t parser_type)
 
     switch(parser->type)
     {
-    case PARSER_TYPE_JSON:
+    case PARSER_TYPE:
         parser->serialize_readings = json_serialize_readings;
         parser->deserialize_commands = json_deserialize_commands;
         parser->deserialize_actuator_commands = json_deserialize_actuator_commands;

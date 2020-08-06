@@ -22,7 +22,7 @@
 #include "size_definitions.h"
 #include "wolk_utils.h"
 #include "actuator_status.h"
-#include "Arduino.h"
+//#include "Arduino.h"
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -30,9 +30,9 @@
 #include <stdio.h>
 #include <string.h>
 
-static const char* READINGS_TOPIC = "readings/";
-static const char* ACTUATORS_STATUS_TOPIC = "actuators/status/";
-static const char* EVENTS_TOPIC = "events/";
+static const char* READINGS_TOPIC = "d2p/sensor_reading/";
+static const char* ACTUATORS_STATUS_TOPIC = "d2p/actuator_status/";
+static const char* EVENTS_TOPIC = "d2p/events/";
 
 enum {
 
@@ -197,60 +197,60 @@ static bool json_token_str_equal(const char *json, jsmntok_t *tok, const char *s
 static bool deserialize_command(char* buffer, actuator_command_t* command)
 {
     jsmn_parser parser;
-    jsmntok_t tokens[10]; /* No more than 10 JSON token(s) are expected, check jsmn documentation for token definition */
-    int i;
-    int parser_result;
+        jsmntok_t tokens[10]; /* No more than 10 JSON token(s) are expected, check jsmn documentation for token definition */
+        int i;
+        int parser_result;
 
-    char command_buffer[COMMAND_MAX_SIZE];
-    char value_buffer[READING_SIZE];
+        char command_buffer[COMMAND_MAX_SIZE];
+        char value_buffer[READING_SIZE];
 
-    memset (command_buffer, 0, COMMAND_MAX_SIZE);
-    memset (value_buffer, 0, READING_SIZE);
+        memset (command_buffer, 0, COMMAND_MAX_SIZE);
+        memset (value_buffer, 0, READING_SIZE);
 
-    jsmn_init(&parser);
-    parser_result = jsmn_parse(&parser, buffer, strlen(buffer), tokens, WOLK_ARRAY_LENGTH(tokens));
-
-
-    /* Received JSON must be valid, and top level element must be object*/
-    if (parser_result < 1 || tokens[0].type != JSMN_OBJECT || parser_result >= (int) WOLK_ARRAY_LENGTH(tokens)) {
-        return false;
-    }
+        jsmn_init(&parser);
+        parser_result = jsmn_parse(&parser, buffer, strlen(buffer), tokens, WOLK_ARRAY_LENGTH(tokens));
 
 
-
-    for (i = 1; i < parser_result; i++) {
-        if (json_token_str_equal(buffer, &tokens[i], "command")) {
-            strncpy(command_buffer,  buffer + tokens[i + 1].start, tokens[i + 1].end - tokens[i + 1].start);
-            // if (snprintf(command_buffer, WOLK_ARRAY_LENGTH(command_buffer), "%.*s", tokens[i + 1].end - tokens[i + 1].start,
-            //              buffer + tokens[i + 1].start) >= (int)WOLK_ARRAY_LENGTH(command_buffer)) {
-            //     return false;
-            // }
-
-            i++;
-        } else if (json_token_str_equal(buffer, &tokens[i], "value")) {
-            // if (snprintf(value_buffer, WOLK_ARRAY_LENGTH(value_buffer), "%.*s", tokens[i + 1].end - tokens[i + 1].start,
-            //              buffer + tokens[i + 1].start) >= (int)WOLK_ARRAY_LENGTH(value_buffer)) {
-            //     return false;
-            // }
-
-            strncpy(value_buffer, buffer + tokens[i + 1].start, tokens[i + 1].end - tokens[i + 1].start);
-
-            i++;
-
-        } else {
+        /* Received JSON must be valid, and top level element must be object*/
+        if (parser_result < 1 || tokens[0].type != JSMN_OBJECT || parser_result >= (int) WOLK_ARRAY_LENGTH(tokens)) {
             return false;
         }
-    }
 
-    if (strcmp(command_buffer, "STATUS") == 0) {
-        actuator_command_init(command, ACTUATOR_COMMAND_TYPE_STATUS, "", "");
-    } else if (strcmp(command_buffer, "SET") == 0) {
-        actuator_command_init(command, ACTUATOR_COMMAND_TYPE_SET, "", value_buffer);
-    } else {
-        actuator_command_init(command, ACTUATOR_COMMAND_TYPE_UNKNOWN, "", value_buffer);
-    }
 
-    return true;
+
+        for (i = 1; i < parser_result; i++) {
+            if (json_token_str_equal(buffer, &tokens[i], "command")) {
+                strncpy(command_buffer,  buffer + tokens[i + 1].start, tokens[i + 1].end - tokens[i + 1].start);
+                // if (snprintf(command_buffer, WOLK_ARRAY_LENGTH(command_buffer), "%.*s", tokens[i + 1].end - tokens[i + 1].start,
+                //              buffer + tokens[i + 1].start) >= (int)WOLK_ARRAY_LENGTH(command_buffer)) {
+                //     return false;
+                // }
+
+                i++;
+            } else if (json_token_str_equal(buffer, &tokens[i], "value")) {
+                // if (snprintf(value_buffer, WOLK_ARRAY_LENGTH(value_buffer), "%.*s", tokens[i + 1].end - tokens[i + 1].start,
+                //              buffer + tokens[i + 1].start) >= (int)WOLK_ARRAY_LENGTH(value_buffer)) {
+                //     return false;
+                // }
+
+                strncpy(value_buffer, buffer + tokens[i + 1].start, tokens[i + 1].end - tokens[i + 1].start);
+
+                i++;
+
+            } else {
+                return false;
+            }
+        }
+
+        if (strcmp(command_buffer, "actuator_status") == 0) {
+            actuator_command_init(command, ACTUATOR_COMMAND_TYPE_STATUS, "", "");
+        } else if (strcmp(command_buffer, "actuator_set") == 0) {
+            actuator_command_init(command, ACTUATOR_COMMAND_TYPE_SET, "", value_buffer);
+        } else {
+            actuator_command_init(command, ACTUATOR_COMMAND_TYPE_UNKNOWN, "", value_buffer);
+        }
+
+        return true;
 }
 
 size_t json_deserialize_commands(char* buffer, size_t buffer_size, actuator_command_t* commands_buffer, size_t commands_buffer_size)
@@ -266,59 +266,63 @@ static bool deserialize_actuator_command(char* topic, size_t topic_size, char* b
 {
     WOLK_UNUSED(topic_size);
 
-    jsmn_parser parser;
-    jsmntok_t tokens[10]; /* No more than 10 JSON token(s) are expected, check
-                             jsmn documentation for token definition */
-    jsmn_init(&parser);
-    int parser_result = jsmn_parse(&parser, buffer, buffer_size, tokens, WOLK_ARRAY_LENGTH(tokens));
+        jsmn_parser parser;
+        jsmntok_t tokens[10]; /* No more than 10 JSON token(s) are expected, check
+                                 jsmn documentation for token definition */
+        jsmn_init(&parser);
+        int parser_result = jsmn_parse(&parser, buffer, buffer_size, tokens, WOLK_ARRAY_LENGTH(tokens));
 
-    /* Received JSON must be valid, and top level element must be object */
-    if (parser_result < 1 || tokens[0].type != JSMN_OBJECT || parser_result >= (int)WOLK_ARRAY_LENGTH(tokens)) {
-        return false;
-    }
-
-    /* Obtain command type and value */
-    char command_buffer[COMMAND_MAX_SIZE];
-    char value_buffer[READING_SIZE];
-    for (int i = 1; i < parser_result; i++) {
-        if (json_token_str_equal(buffer, &tokens[i], "command")) {
-            if (snprintf(command_buffer, WOLK_ARRAY_LENGTH(command_buffer), "%.*s",
-                         tokens[i + 1].end - tokens[i + 1].start, buffer + tokens[i + 1].start)
-                >= (int)WOLK_ARRAY_LENGTH(command_buffer)) {
-                return false;
-            }
-
-            i++;
-        } else if (json_token_str_equal(buffer, &tokens[i], "value")) {
-            if (snprintf(value_buffer, WOLK_ARRAY_LENGTH(value_buffer), "%.*s", tokens[i + 1].end - tokens[i + 1].start,
-                         buffer + tokens[i + 1].start)
-                >= (int)WOLK_ARRAY_LENGTH(value_buffer)) {
-                return false;
-            }
-
-            i++;
-
-        } else {
+        /* Received JSON must be valid, and top level element must be object */
+        if (parser_result < 1 || tokens[0].type != JSMN_OBJECT || parser_result >= (int)WOLK_ARRAY_LENGTH(tokens)) {
             return false;
         }
-    }
 
-    /* Obtain actuator reference */
-    char* reference_start = strrchr(topic, '/');
-    if (reference_start == NULL) {
-        return false;
-    }
+        char command_buffer[COMMAND_MAX_SIZE];
+        char value_buffer[READING_SIZE];
 
-    if (strcmp(command_buffer, "STATUS") == 0) {
-        actuator_command_init(command, ACTUATOR_COMMAND_TYPE_STATUS, "", "");
-    } else if (strcmp(command_buffer, "SET") == 0) {
-        actuator_command_init(command, ACTUATOR_COMMAND_TYPE_SET, "", value_buffer);
-    } else {
-        actuator_command_init(command, ACTUATOR_COMMAND_TYPE_UNKNOWN, "", value_buffer);
-    }
+        /* Obtain reference */
+        char* reference_start = strrchr(topic, '/');
+        if (reference_start == NULL) {
+            return false;
+        }
 
-    strncpy(&command->reference[0], reference_start + 1, MANIFEST_ITEM_REFERENCE_SIZE);
-    return true;
+        /*Obtain command type*/
+        char* command_start = strchr(topic, '/');
+        if (command_start == NULL) {
+            return false;
+        }
+        strncpy(command_buffer, strtok(command_start, "/"), COMMAND_MAX_SIZE);
+        if (strlen(command_buffer) == NULL) {
+            return false;
+        }
+
+        /*Obtain values*/
+        for (int i = 1; i < parser_result; i++) {
+            if (json_token_str_equal(buffer, &tokens[i], "value")) {
+                if (snprintf(value_buffer, WOLK_ARRAY_LENGTH(value_buffer), "%.*s", tokens[i + 1].end - tokens[i + 1].start,
+                             buffer + tokens[i + 1].start)
+                    >= (int)WOLK_ARRAY_LENGTH(value_buffer)) {
+                    return false;
+                }
+
+                i++;
+
+            } else {
+                return false;
+            }
+        }
+
+        /*Init actuation*/
+        if (strcmp(command_buffer, "actuator_status") == 0) {
+            actuator_command_init(command, ACTUATOR_COMMAND_TYPE_STATUS, "", "");
+        } else if (strcmp(command_buffer, "actuator_set") == 0) {
+            actuator_command_init(command, ACTUATOR_COMMAND_TYPE_SET, "", value_buffer);
+        } else {
+            actuator_command_init(command, ACTUATOR_COMMAND_TYPE_UNKNOWN, "", value_buffer);
+        }
+
+        strncpy(&command->reference[0], reference_start + 1, MANIFEST_ITEM_REFERENCE_SIZE);
+        return true;
 }
 
 size_t json_deserialize_actuator_commands(char* topic, size_t topic_size, char* buffer, size_t buffer_size,
@@ -345,22 +349,25 @@ bool json_serialize_readings_topic(reading_t* first_Reading, size_t num_readings
     switch (reading_type) {
     case READING_TYPE_SENSOR:
         strcpy(buffer, READINGS_TOPIC);
+        strcat(buffer, "d/");
         strcat(buffer, device_key);
-        strcat(buffer, "/");
+        strcat(buffer, "/r/");
         strcat(buffer, manifest_item_get_reference(manifest_item));
         break;
 
     case READING_TYPE_ACTUATOR:
         strcpy(buffer, ACTUATORS_STATUS_TOPIC);
+        strcat(buffer, "d/");
         strcat(buffer, device_key);
-        strcat(buffer, "/");
+        strcat(buffer, "/r/");
         strcat(buffer, manifest_item_get_reference(manifest_item));
         break;
 
     case READING_TYPE_ALARM:
         strcpy(buffer, EVENTS_TOPIC);
+        strcat(buffer, "d/");
         strcat(buffer, device_key);
-        strcat(buffer, "/");
+        strcat(buffer, "/r/");
         strcat(buffer, manifest_item_get_reference(manifest_item));
         break;
 
@@ -403,7 +410,7 @@ size_t json_serialize_configuration(const char* device_key, char (*reference)[CO
     outbound_message_init(outbound_message, "", "");
 
     /* Serialize topic */
-    if (snprintf(outbound_message->topic, WOLK_ARRAY_LENGTH(outbound_message->topic), "configurations/current/%s",
+    if (snprintf(outbound_message->topic, WOLK_ARRAY_LENGTH(outbound_message->topic), "d2p/configuration_get/d/%s",
                  device_key)
         >= (int)WOLK_ARRAY_LENGTH(outbound_message->topic)) {
         return 0;
@@ -472,9 +479,6 @@ size_t json_deserialize_configuration_command(char* buffer, size_t buffer_size,
 
     size_t num_deserialized_config_items = 0;
 
-    char command_buffer[COMMAND_MAX_SIZE];
-    memset(commands_buffer, '\0', WOLK_ARRAY_LENGTH(command_buffer));
-
     jsmn_init(&parser);
     int num_json_tokens = jsmn_parse(&parser, buffer, buffer_size, &tokens[0], WOLK_ARRAY_LENGTH(tokens));
 
@@ -483,82 +487,31 @@ size_t json_deserialize_configuration_command(char* buffer, size_t buffer_size,
         return num_deserialized_config_items;
     }
 
-    for (int i = 1; i < num_json_tokens; i += 2) {
-        if (!json_token_str_equal(buffer, &tokens[i], "command")) {
+    configuration_command_init(current_config_command, CONFIGURATION_COMMAND_TYPE_SET);
+
+    for (int i = 0; i < num_json_tokens; i += 2) {
+        if (i + 1 >= num_json_tokens || tokens[i + 1].type != JSMN_STRING) {
             continue;
         }
 
-        if (snprintf(command_buffer, WOLK_ARRAY_LENGTH(command_buffer), "%.*s", tokens[i + 1].end - tokens[i + 1].start,
-                     buffer + tokens[i + 1].start)
-            >= (int)WOLK_ARRAY_LENGTH(command_buffer)) {
-            continue;
-        }
+        num_deserialized_config_items++;
 
-        if (strcmp(command_buffer, "CURRENT") == 0) {
-            configuration_command_init(current_config_command, CONFIGURATION_COMMAND_TYPE_CURRENT);
-            ++num_deserialized_config_items;
-            break;
-        } else if (strcmp(command_buffer, "SET") == 0) {
-            configuration_command_init(current_config_command, CONFIGURATION_COMMAND_TYPE_SET);
-            ++num_deserialized_config_items;
-            break;
-        }
-    }
+        char configuration_item_reference[CONFIGURATION_REFERENCE_SIZE];
+        char configuration_item_value[CONFIGURATION_VALUE_SIZE];
 
-    if (num_deserialized_config_items == 0) {
-        return num_deserialized_config_items;
-    }
-
-    for (int i = 1; i < num_json_tokens; i += 2) {
-        if (!json_token_str_equal(buffer, &tokens[i], "values")) {
-            continue;
-        }
-
-        if (i + 1 >= num_json_tokens || tokens[i + 1].type != JSMN_OBJECT) {
-            continue;
-        }
-
-        char data_buffer[PARSER_INTERNAL_BUFFER_SIZE];
-        memset(data_buffer, '\0', WOLK_ARRAY_LENGTH(data_buffer));
-
-        size_t data_buffer_size = sizeof(data_buffer);
-
-        if (snprintf(data_buffer, WOLK_ARRAY_LENGTH(data_buffer), "%.*s", tokens[i + 1].end - tokens[i + 1].start,
-                     buffer + tokens[i + 1].start)
-            >= (int)WOLK_ARRAY_LENGTH(data_buffer)) {
-            return 0;
-        }
-
-        jsmn_parser values_parser;
-        jsmn_init(&values_parser);
-
-        jsmntok_t values_tokens[50];
-        int num_values_json_tokens =
-            jsmn_parse(&values_parser, data_buffer, data_buffer_size, &values_tokens[0], WOLK_ARRAY_LENGTH(tokens));
-
-        if (num_values_json_tokens < 1 || values_tokens[0].type != JSMN_OBJECT) {
-            return 0;
-        }
-
-        for (int j = 1; j < num_values_json_tokens; j += 2) {
-            char configuration_item_reference[CONFIGURATION_REFERENCE_SIZE];
-            char configuration_item_value[CONFIGURATION_VALUE_SIZE];
-
-            if (snprintf(configuration_item_reference, WOLK_ARRAY_LENGTH(configuration_item_reference), "%.*s",
-                         values_tokens[j].end - values_tokens[j].start, data_buffer + values_tokens[j].start)
+        if (snprintf(configuration_item_reference, WOLK_ARRAY_LENGTH(configuration_item_reference), "%.*s",
+                     tokens[i + 1].end - tokens[i + 1].start, buffer + tokens[i + 1].start)
                 >= (int)WOLK_ARRAY_LENGTH(configuration_item_reference)) {
-                continue;
-            }
-
-            if (snprintf(configuration_item_value, WOLK_ARRAY_LENGTH(configuration_item_value), "%.*s",
-                         values_tokens[j + 1].end - values_tokens[j + 1].start,
-                         data_buffer + values_tokens[j + 1].start)
-                >= (int)WOLK_ARRAY_LENGTH(configuration_item_value)) {
-                continue;
-            }
-
-            configuration_command_add(current_config_command, configuration_item_reference, configuration_item_value);
+            continue;
         }
+
+        if (snprintf(configuration_item_value, WOLK_ARRAY_LENGTH(configuration_item_value), "%.*s",
+                     tokens[i + 2].end - tokens[i + 2].start, buffer + tokens[i + 2].start)
+                >= (int)WOLK_ARRAY_LENGTH(configuration_item_value)) {
+            continue;
+        }
+
+        configuration_command_add(current_config_command, configuration_item_reference, configuration_item_value);
     }
 
     return num_deserialized_config_items;
