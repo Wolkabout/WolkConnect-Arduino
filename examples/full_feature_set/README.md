@@ -41,7 +41,8 @@ Example Usage
 
 **Initialize WolkConnect-Arduino Connector**
 
-Create a device on WolkAbout IoT platform by importing the provided `full-example-deviceTemplate.json` file located in the `examples/full_feature_set` folder. This device template fits `FullExample.ino` and demonstrates the sending of sensor readings, actuations and configurations.
+Create a device on WolkAbout IoT Platform by using the *Full example* device type that is available on the platform. 
+This device type fits `FullExample.ino` and demonstrates the sending of sensor readings, actuations and configurations.
 
 ```c
 static const char *device_key = "device_key";
