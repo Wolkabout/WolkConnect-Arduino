@@ -41,7 +41,8 @@ Example Usage
 
 **Initialize WolkConnect-Arduino Connector**
 
-Create a device on WolkAbout IoT platform by importing the provided `simple-example-deviceTemplate.json` file located in the `examples/simple` folder. This device template fits `SimpleExample.ino` and demonstrates the sending of a temperature sensor reading.
+Create a device on WolkAbout IoT Platform by using the *Simple example* device type that is available on the platform. 
+This device type fits `SimpleExample.ino` and demonstrates the periodic sending of a temperature sensor reading.
 
 ```c
 static const char *device_key = "device_key";
