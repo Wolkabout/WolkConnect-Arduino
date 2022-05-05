@@ -15,6 +15,9 @@
                                                 ╚═╝  ╚═╝╚═╝  ╚═╝╚═════╝  ╚═════╝ ╚═╝╚═╝  ╚═══╝ ╚═════╝ 
                                                                                                        
 ```
+# IMPORTANT
+**Compatible up to WolkAbout Platform 21.GA version.**
+
 ----
 # WolkConnect-Arduino
 WolkAbout Arduino Connector library for connecting IP based Arduino devices to [WolkAbout IoT platform](https://demo.wolkabout.com/#/login).
