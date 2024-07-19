@@ -55,6 +55,13 @@ static void callback(void *wolk, char* topic, byte* payload, unsigned int length
 static void _handle_actuator_command(wolk_ctx_t* ctx, actuator_command_t* actuator_command);
 static void _handle_configuration_command(wolk_ctx_t* ctx, configuration_command_t* configuration_command);
 
+static char *dtostrf(double val, signed char width, unsigned char prec, char *sout);
+
+char *dtostrf(double val, signed char width, unsigned char prec, char *sout) {
+    sprintf(sout, "%*.*f", width, prec, val);
+    return sout;
+}
+
 WOLK_ERR_T wolk_init_in_memory_persistence(wolk_ctx_t* ctx, void* storage, uint32_t size, bool wrap)
 {
     in_memory_persistence_init(storage, size, wrap);

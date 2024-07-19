@@ -35,9 +35,9 @@
 
 #include "Arduino.h"
 
-#include <avr/dtostrf.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdlib.h>
 /** @endcond */
 #ifdef __cplusplus
 extern "C" {
