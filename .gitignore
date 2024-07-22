@@ -1,0 +1,8 @@
+# Covers Clion IDE
+.idea
+
+# mpeltonen/sbt-idea plugin
+.idea_modules/
+
+# File-based project format
+*.iws
