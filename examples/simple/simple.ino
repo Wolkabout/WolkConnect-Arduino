@@ -1,19 +1,25 @@
-#include <WiFi101.h>
+// #include <WiFi101.h>
+#include <WiFi.h>
 
 #include "WolkConn.h"
 #include "MQTTClient.h"
 
-const char* ssid = "wifi_ssid";
-const char* wifi_pass = "wifi_password";
+// const char* ssid = "Cpku";
+// const char* wifi_pass = "Welcome26";
 
-const char *device_key = "device_key";
-const char *device_password = "device_password";
-const char* hostname = "api-demo.wolkabout.com";
-int portno = 2883;
+const char* ssid = "guest";
+const char* wifi_pass = "g3tm3int0";
+
+const char *device_key = "wca";
+const char *device_password = "OLCHCJKC8M";
+const char* hostname = "showcase.wolkabout.com";
+int portno = 2883; //unsecure
 
 /* WolkConnect-Arduino Connector context */
 static wolk_ctx_t wolk;
 outbound_message_t outbound_messages[STORE_SIZE];
+
+int counter = 0;
 
 WiFiClient espClient;
 PubSubClient client(espClient);
@@ -27,11 +33,9 @@ void setup_wifi() {
   Serial.println(ssid);
   WiFi.begin(ssid, wifi_pass);
 
-  if ( WiFi.status() != WL_CONNECTED) {
-    while (WiFi.begin(ssid, wifi_pass) != WL_CONNECTED) {
-      Serial.print(".");
-      delay(4000);
-    }
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
   }
 
   Serial.println("");
@@ -49,8 +53,11 @@ void reconnect_to_platform()
 
 void setup() {
   Serial.begin(9600);
+    neopixelWrite(38, 0, RGB_BRIGHTNESS, 0); // Red
 
   setup_wifi();
+
+  neopixelWrite(38, 0, 0, RGB_BRIGHTNESS); // Blue
 
   wolk_init(&wolk, NULL, NULL, NULL, NULL,
             device_key, device_password, &client, hostname, portno, PROTOCOL_WOLKABOUT, NULL, NULL);
@@ -60,16 +67,20 @@ void setup() {
   wolk_connect(&wolk);
 
   delay(1000);
-  
-  wolk_add_numeric_sensor_reading(&wolk, "T", 23.4, 0);
-
-  wolk_publish(&wolk);
-
-  delay(500);
-
 }
 
 void loop() {
+  counter += 1;
+  if(counter > 5)
+  {
+    neopixelWrite(38, RGB_BRIGHTNESS, 0, 0); // Green
+    Serial.println("Sending to platform!");
+    wolk_add_numeric_sensor_reading(&wolk, "PLCTagTemp", counter, 0);
+    wolk_publish(&wolk);
+    counter = 0;
+    neopixelWrite(38, 0, 0, 0); // Black (Off)
+  }
+  delay(1000);
 
   if (Serial.available() > 0)
   {
