@@ -48,18 +48,17 @@ static const char* CONFIGURATION_SET_TOPIC = "p2d/configuration_set/";
 static WOLK_ERR_T _ping_keep_alive(wolk_ctx_t* ctx);
 
 static WOLK_ERR_T _subscribe (wolk_ctx_t *ctx, const char *topic);
-static void _parser_init(wolk_ctx_t* ctx, protocol_t protocol);
 static WOLK_ERR_T _publish (wolk_ctx_t *ctx, char *topic, char *readings);
 static void callback(void *wolk, char* topic, byte* payload, unsigned int length);
 
 static void _handle_actuator_command(wolk_ctx_t* ctx, actuator_command_t* actuator_command);
 static void _handle_configuration_command(wolk_ctx_t* ctx, configuration_command_t* configuration_command);
 
-static char *dtostrf(double val, signed char width, unsigned char prec, char *sout);
+static char *_double_to_string(double input, signed char width, unsigned char precision, char *output);
 
-char *dtostrf(double val, signed char width, unsigned char prec, char *sout) {
-    sprintf(sout, "%*.*f", width, prec, val);
-    return sout;
+char *_double_to_string(double input, signed char width, unsigned char precision, char *output) {
+    sprintf(output, "%*.*f", width, precision, input);
+    return output;
 }
 
 WOLK_ERR_T wolk_init_in_memory_persistence(wolk_ctx_t* ctx, void* storage, uint32_t size, bool wrap)
@@ -81,7 +80,7 @@ WOLK_ERR_T wolk_init_custom_persistence(wolk_ctx_t* ctx, persistence_push_t push
 WOLK_ERR_T wolk_init(wolk_ctx_t* ctx, actuation_handler_t actuation_handler, actuator_status_provider_t actuator_status_provider,
                     configuration_handler_t configuration_handler, configuration_provider_t configuration_provider,
                     const char* device_key, const char* device_password, PubSubClient *client, 
-                    const char *server, int port, protocol_t protocol, const char** actuator_references,
+                    const char *server, int port, const char** actuator_references,
                     uint32_t num_actuator_references)
 {
     /* Sanity check */
@@ -123,8 +122,7 @@ WOLK_ERR_T wolk_init(wolk_ctx_t* ctx, actuation_handler_t actuation_handler, act
     ctx->actuator_references = actuator_references;
     ctx->num_actuator_references = num_actuator_references;
 
-    ctx->protocol = protocol;
-    _parser_init (ctx, protocol);
+    initialize_parser(&ctx->parser, PARSER_TYPE);
 
     ctx->is_keep_alive_enabled = true;
     ctx->millis_last_ping = ping_interval;
@@ -155,7 +153,7 @@ WOLK_ERR_T wolk_connect (wolk_ctx_t *ctx)
     memset (client_id, 0, TOPIC_SIZE);
     sprintf(client_id,"%s%d",ctx->device_key,rand() % 1000);
 
-    Serial.print("Attempting MQTT connection...");
+    Serial.println("Attempting MQTT connection...");
     // Attempt to connect
     if (ctx->mqtt_client->connect(client_id, ctx->device_key, ctx->device_password, lastwill_topic, NULL, NULL, LASTWILL_MESSAGE))
     {
@@ -382,7 +380,7 @@ WOLK_ERR_T wolk_add_multi_value_string_sensor_reading(wolk_ctx_t* ctx, const cha
 
 }
 
-WOLK_ERR_T wolk_add_numeric_sensor_reading(wolk_ctx_t *ctx,const char *reference,double value, uint32_t utc_time)
+WOLK_ERR_T wolk_add_numeric_sensor_reading(wolk_ctx_t *ctx, const char *reference, double value, uint32_t utc_time)
 {
     /* Sanity check */
     WOLK_ASSERT(ctx->is_initialized == true);
@@ -392,7 +390,7 @@ WOLK_ERR_T wolk_add_numeric_sensor_reading(wolk_ctx_t *ctx,const char *reference
 
     char value_str[PAYLOAD_SIZE];
     memset (value_str, 0, PAYLOAD_SIZE);
-    dtostrf(value, 4, 2, value_str);
+    _double_to_string(value, 4, 2, value_str);
 
     reading_t reading;
     reading_init(&reading, &numeric_sensor);
@@ -401,6 +399,8 @@ WOLK_ERR_T wolk_add_numeric_sensor_reading(wolk_ctx_t *ctx,const char *reference
 
     outbound_message_t outbound_message;
     outbound_message_make_from_readings(&ctx->parser, ctx->device_key, &reading, 1, &outbound_message);
+    Serial.println(outbound_message.payload);
+    Serial.println(outbound_message.topic);
 
     return persistence_push(&ctx->persistence, &outbound_message) ? W_FALSE : W_TRUE;
 
@@ -425,7 +425,7 @@ WOLK_ERR_T wolk_add_multi_value_numeric_sensor_reading(wolk_ctx_t* ctx, const ch
     {
         char value_str[PAYLOAD_SIZE];
         memset (value_str, 0, PAYLOAD_SIZE);
-        dtostrf(values[i], 4, 2, value_str);
+        _double_to_string(values[i], 4, 2, value_str);
 
         reading_set_data_at(&reading, value_str, i);
     }
@@ -484,26 +484,6 @@ WOLK_ERR_T wolk_add_multi_value_bool_sensor_reading(wolk_ctx_t* ctx, const char*
 
     outbound_message_t outbound_message;
     outbound_message_make_from_readings(&ctx->parser, ctx->device_key, &reading, 1, &outbound_message);
-
-    return persistence_push(&ctx->persistence, &outbound_message) ? W_FALSE : W_TRUE;
-
-}
-
-WOLK_ERR_T wolk_add_alarm(wolk_ctx_t* ctx, const char* reference, bool state, uint32_t utc_time)
-{
-    /* Sanity check */
-    WOLK_ASSERT(ctx->is_initialized == true);
-
-    manifest_item_t alarm;
-    manifest_item_init(&alarm, reference, READING_TYPE_ALARM, DATA_TYPE_STRING);
-
-    reading_t alarm_reading;
-    reading_init(&alarm_reading, &alarm);
-    reading_set_rtc(&alarm_reading, utc_time);
-    reading_set_data(&alarm_reading, (state==true ? "ON" : "OFF"));
-
-    outbound_message_t outbound_message;
-    outbound_message_make_from_readings(&ctx->parser, ctx->device_key, &alarm_reading, 1, &outbound_message);
 
     return persistence_push(&ctx->persistence, &outbound_message) ? W_FALSE : W_TRUE;
 
@@ -630,19 +610,6 @@ static WOLK_ERR_T _ping_keep_alive(wolk_ctx_t* ctx)
     }
 
     return W_FALSE;
-}
-
-static void _parser_init(wolk_ctx_t* ctx, protocol_t protocol)
-{
-    switch (protocol) {
-    case PROTOCOL_WOLKABOUT:
-        initialize_parser(&ctx->parser, PARSER_TYPE);
-        break;
-
-    default:
-        /* Sanity check */
-        WOLK_ASSERT(false);
-    }
 }
 
 WOLK_ERR_T wolk_publish(wolk_ctx_t* ctx)

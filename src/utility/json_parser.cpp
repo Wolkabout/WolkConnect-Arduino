@@ -22,7 +22,6 @@
 #include "size_definitions.h"
 #include "wolk_utils.h"
 #include "actuator_status.h"
-//#include "Arduino.h"
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -30,9 +29,13 @@
 #include <stdio.h>
 #include <string.h>
 
-static const char* READINGS_TOPIC = "d2p/sensor_reading/";
-static const char* ACTUATORS_STATUS_TOPIC = "d2p/actuator_status/";
-static const char* EVENTS_TOPIC = "d2p/events/";
+/* Topic root path size */
+#define TOPIC_DIRECTION_SIZE 4
+#define TOPIC_MESSAGE_TYPE_SIZE 64
+
+const char JSON_P2D_TOPIC[TOPIC_DIRECTION_SIZE] = "p2d";
+const char JSON_D2P_TOPIC[TOPIC_DIRECTION_SIZE] = "d2p";
+const char JSON_FEED_VALUES_MESSAGE_TOPIC[TOPIC_MESSAGE_TYPE_SIZE] = "feed_values";
 
 enum {
 
@@ -70,14 +73,14 @@ static bool serialize_sensor(reading_t* reading, char* buffer, size_t buffer_siz
 
     if (reading_get_rtc(reading) > 0)
     {
-        if(snprintf(buffer, buffer_size, "{\"utc\":%u,\"data\":\"%s\"}", reading_get_rtc(reading),data_buffer) >= (int)buffer_size) 
+        if(snprintf(buffer, buffer_size, "[{\"%s\":%s,\"timestamp\":%u}]", reading->manifest_item.reference, data_buffer,reading_get_rtc(reading)) >= (int)buffer_size)
         {
             return false;
         }
-    } 
+    }
     else if (reading_get_rtc(reading) == 0)
     {
-        if(snprintf(buffer, buffer_size, "{\"data\":\"%s\"}",data_buffer) >= (int)buffer_size) 
+        if(snprintf(buffer, buffer_size, "[{\"%s\":%s}]", reading->manifest_item.reference, data_buffer) >= (int)buffer_size)
         {
             return false;
         }
@@ -126,25 +129,6 @@ static bool serialize_actuator(reading_t* reading, char* buffer, size_t buffer_s
     return true;
 }
 
-static bool serialize_alarm(reading_t* reading, char* buffer, size_t buffer_size)
-{
-    char data_buffer[PARSER_INTERNAL_BUFFER_SIZE];
-    if (!reading_get_delimited_data(reading, data_buffer, PARSER_INTERNAL_BUFFER_SIZE)) {
-        return false;
-    }
-
-    if (reading_get_rtc(reading) > 0
-        && snprintf(buffer, buffer_size, "{\"utc\":%u,\"data\":\"%s\"}", reading_get_rtc(reading), data_buffer)
-               >= (int)buffer_size) {
-        return false;
-    } else if (reading_get_rtc(reading) == 0
-               && snprintf(buffer, buffer_size, "{\"data\":\"%s\"}", data_buffer) >= (int)buffer_size) {
-        return false;
-    }
-
-    return true;
-}
-
 static bool serialize_reading(reading_t* reading, char* buffer, size_t buffer_size)
 {
     switch(manifest_item_get_reading_type(reading_get_manifest_item(reading))) {
@@ -153,9 +137,6 @@ static bool serialize_reading(reading_t* reading, char* buffer, size_t buffer_si
 
     case READING_TYPE_ACTUATOR:
         return serialize_actuator(reading, buffer, buffer_size);
-
-    case READING_TYPE_ALARM:
-        return serialize_alarm(reading, buffer, buffer_size);
 
     default:
         /* Sanity check*/
@@ -348,27 +329,19 @@ bool json_serialize_readings_topic(reading_t* first_Reading, size_t num_readings
 
     switch (reading_type) {
     case READING_TYPE_SENSOR:
-        strcpy(buffer, READINGS_TOPIC);
-        strcat(buffer, "d/");
+        strcpy(buffer, JSON_D2P_TOPIC);
+        strcat(buffer, "/");
         strcat(buffer, device_key);
-        strcat(buffer, "/r/");
-        strcat(buffer, manifest_item_get_reference(manifest_item));
-        break;
+        strcat(buffer, "/");
+        strcat(buffer, JSON_FEED_VALUES_MESSAGE_TOPIC);
+            break;
 
-    case READING_TYPE_ACTUATOR:
-        strcpy(buffer, ACTUATORS_STATUS_TOPIC);
-        strcat(buffer, "d/");
+        case READING_TYPE_ACTUATOR:
+        strcpy(buffer, JSON_P2D_TOPIC);
+        strcat(buffer, "/");
         strcat(buffer, device_key);
-        strcat(buffer, "/r/");
-        strcat(buffer, manifest_item_get_reference(manifest_item));
-        break;
-
-    case READING_TYPE_ALARM:
-        strcpy(buffer, EVENTS_TOPIC);
-        strcat(buffer, "d/");
-        strcat(buffer, device_key);
-        strcat(buffer, "/r/");
-        strcat(buffer, manifest_item_get_reference(manifest_item));
+        strcat(buffer, "/");
+        strcat(buffer, JSON_FEED_VALUES_MESSAGE_TOPIC);
         break;
 
     default:

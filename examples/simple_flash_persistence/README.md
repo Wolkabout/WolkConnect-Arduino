@@ -67,7 +67,6 @@ wolk_init(&wolk                 //ctx Context
           &client,              //MQQT Client
           hostname,             //MQQT Server
           portno,               //Port to connect to
-          PROTOCOL_WOLKABOUT, //Protocol specified for device
           NULL,                 //Array of strings containing references of actuators that device possess
           NULL);                //Number of actuator references contained in actuator_references
 ```

@@ -49,10 +49,6 @@ extern "C" {
 
 
 /**
- * @brief Supported protocols, WolkConnect libararies currently support only PROTOCOL_WOLKABOUT
- */
-typedef enum { PROTOCOL_WOLKABOUT = 0 } protocol_t;
-/**
  * @brief WOLK_ERR_T Boolean used for error handling in Wolk connection module
  */
 typedef unsigned char WOLK_ERR_T;
@@ -116,7 +112,6 @@ struct _wolk_ctx_t {
     char device_key[DEVICE_KEY_SIZE];                       /**<  Authentication parameters for WolkAbout IoT Platform. Obtained as a result of device creation on the platform.*/
     char device_password[DEVICE_PASSWORD_SIZE];             /**<  Authentication parameters for WolkAbout IoT Platform. Obtained as a result of device creation on the platform.*/
 
-    protocol_t protocol;                                    /**<  Used protocol for communication with WolkAbout IoT Platform. @see protocol_type_t*/
     parser_t parser;
 
     const char** actuator_references;
@@ -153,7 +148,6 @@ struct _wolk_ctx_t {
  * @param client MQQT Client
  * @param server MQQT Server
  * @param port Port to connect to
- * @param protocol Protocol specified for device
  * @param actuator_references Array of strings containing references of
  * actuators that device possess
  * @param num_actuator_references Number of actuator references contained in
@@ -164,7 +158,7 @@ struct _wolk_ctx_t {
 WOLK_ERR_T wolk_init(wolk_ctx_t* ctx, actuation_handler_t actuation_handler, actuator_status_provider_t actuator_status_provider,
                     configuration_handler_t configuration_handler, configuration_provider_t configuration_provider,
                     const char* device_key, const char* device_password, PubSubClient *client, 
-                    const char *server, int port, protocol_t protocol, const char** actuator_references,
+                    const char *server, int port, const char** actuator_references,
                     uint32_t num_actuator_references);
 /**
  * @brief Initializes persistence mechanism with in-memory implementation
@@ -202,7 +196,7 @@ WOLK_ERR_T wolk_init_custom_persistence(wolk_ctx_t* ctx, persistence_push_t push
  *  1. Context must be initialized via wolk_init(wolk_ctx_t* ctx, actuation_handler_t actuation_handler, actuator_status_provider_t actuator_status_provider,
  *                   configuration_handler_t configuration_handler, configuration_provider_t configuration_provider,
  *                   const char* device_key, const char* device_password, PubSubClient *client, 
- *                   const char *server, int port, protocol_t protocol, const char** actuator_references,
+ *                   const char *server, int port, const char** actuator_references,
  *                   uint32_t num_actuator_references)
  *  2. Persistence must be initialized using
  *      wolk_initialize_in_memory_persistence(wolk_ctx_t *ctx, void* storage,
@@ -308,18 +302,6 @@ WOLK_ERR_T wolk_add_bool_sensor_reading(wolk_ctx_t *ctx,const char *reference,bo
  */
 WOLK_ERR_T wolk_add_multi_value_bool_sensor_reading(wolk_ctx_t* ctx, const char* reference, bool* values,
                                                     uint16_t values_size, uint32_t utc_time);
-
-/**
- * @brief Add alarm
- *
- * @param ctx Context
- * @param reference Alarm reference
- * @param message Alarm message
- * @param utc_time UTC time when alarm was risen [seconds]
- *
- * @return Error code
- */
-WOLK_ERR_T wolk_add_alarm(wolk_ctx_t* ctx, const char* reference, bool state, uint32_t utc_time);
 
 /**
  * @brief Obtains actuator status via actuator_status_provider_t and publishes

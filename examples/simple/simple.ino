@@ -4,16 +4,13 @@
 #include "WolkConn.h"
 #include "MQTTClient.h"
 
-// const char* ssid = "Cpku";
-// const char* wifi_pass = "Welcome26";
+const char* ssid = "";
+const char* wifi_pass = "";
 
-const char* ssid = "guest";
-const char* wifi_pass = "g3tm3int0";
-
-const char *device_key = "wca";
-const char *device_password = "OLCHCJKC8M";
-const char* hostname = "showcase.wolkabout.com";
-int portno = 2883; //unsecure
+const char *device_key = "";
+const char *device_password = "";
+const char* hostname = "";
+int portno = 8883;
 
 /* WolkConnect-Arduino Connector context */
 static wolk_ctx_t wolk;
@@ -53,20 +50,22 @@ void reconnect_to_platform()
 
 void setup() {
   Serial.begin(9600);
-    neopixelWrite(38, 0, RGB_BRIGHTNESS, 0); // Red
+  neopixelWrite(38, 0, RGB_BRIGHTNESS, 0); // Red
 
   setup_wifi();
 
   neopixelWrite(38, 0, 0, RGB_BRIGHTNESS); // Blue
 
   wolk_init(&wolk, NULL, NULL, NULL, NULL,
-            device_key, device_password, &client, hostname, portno, PROTOCOL_WOLKABOUT, NULL, NULL);
+            device_key, device_password, &client, hostname, portno, NULL, NULL);
 
   wolk_init_in_memory_persistence(&wolk, &outbound_messages, sizeof(outbound_messages), false);
 
   wolk_connect(&wolk);
 
+  randomSeed(analogRead(0));
   delay(1000);
+  Serial.println("-------------------------------");
 }
 
 void loop() {
@@ -75,24 +74,29 @@ void loop() {
   {
     neopixelWrite(38, RGB_BRIGHTNESS, 0, 0); // Green
     Serial.println("Sending to platform!");
-    wolk_add_numeric_sensor_reading(&wolk, "PLCTagTemp", counter, 0);
+    if(wolk_add_numeric_sensor_reading(&wolk, "PLCTagTemp", random(300), 0))
+    {
+      Serial.println("Failed to serialise reading!");
+    }
     wolk_publish(&wolk);
     counter = 0;
     neopixelWrite(38, 0, 0, 0); // Black (Off)
   }
   delay(1000);
 
-  if (Serial.available() > 0)
-  {
-    wolk_disconnect(&wolk);
-    Serial.println("Disconnected!");
-    while (true)
-    {
-      delay(10000);
-    };
-  }
+  // if (Serial.available() > 0)
+  // {
+  //   wolk_disconnect(&wolk);
+  //   Serial.println("Disconnected!");
+  //   while (true)
+  //   {
+  //     delay(10000);
+  //   };
+  // }
+
   if(wolk_process(&wolk) == W_TRUE)
   {
+    Serial.println("Reconnecting to platform...");
     reconnect_to_platform();
   }
 

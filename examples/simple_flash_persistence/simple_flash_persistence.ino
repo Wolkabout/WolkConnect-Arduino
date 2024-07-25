@@ -152,7 +152,7 @@ void setup() {
   setup_wifi();
 
   wolk_init(&wolk, NULL, NULL, NULL, NULL,
-            device_key, device_password, &client, hostname, portno, PROTOCOL_WOLKABOUT, NULL, NULL);
+            device_key, device_password, &client, hostname, portno, NULL, NULL);
 
   /*Initialize custom persistence*/
   wolk_init_custom_persistence(&wolk, _push, _peek, _pop, _is_empty);

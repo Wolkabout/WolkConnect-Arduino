@@ -131,7 +131,7 @@ void setup() {
   setup_wifi();
 
   wolk_init(&wolk, actuation_handler, actuator_status_provider, configuration_handler, configuration_provider,
-            device_key, device_password, &client, hostname, portno, PROTOCOL_WOLKABOUT, actuator_refs, NUM_ACTUATORS);
+            device_key, device_password, &client, hostname, portno, actuator_refs, NUM_ACTUATORS);
 
   wolk_init_in_memory_persistence(&wolk, &outbound_messages, sizeof(outbound_messages), false);
   
@@ -145,8 +145,6 @@ void setup() {
 
   // Multi-value sensor reading
   wolk_add_multi_value_numeric_sensor_reading(&wolk, "ACL", accl_readings, 3, 0);
-
-  wolk_add_alarm(&wolk, "HH", true, 0);
 
   wolk_publish(&wolk);
   

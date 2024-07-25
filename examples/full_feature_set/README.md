@@ -67,7 +67,6 @@ wolk_init(&wolk                            //ctx Context
           &client,                         //MQQT Client
           hostname,                        //MQQT Server
           portno,                          //Port to connect to
-          PROTOCOL_WOLKABOUT,            //Protocol specified for device
           actuator_refs,                   //Array of strings containing references of actuators that device possess
           2);                              //Number of actuator references contained in actuator_references
 ```
@@ -93,11 +92,6 @@ wolk_add_numeric_sensor_reading(&wolk, "T", 25.6, 0);
 
 // Multi-value sensor reading
 wolk_add_multi_value_numeric_sensor_reading(&wolk, "ACL", accl_readings, 3, 0);
-```
-
-**Adding events:**
-```c
-wolk_add_alarm(&wolk, "HH", true, 0);
 ```
 
 **Data publish strategy:**

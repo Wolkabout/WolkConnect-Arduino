@@ -83,7 +83,7 @@ void setup() {
   }
   
   wolk_init(&wolk, NULL, NULL, NULL, NULL,
-            device_key, device_password, &client, hostname, portno, PROTOCOL_WOLKABOUT, NULL, NULL);
+            device_key, device_password, &client, hostname, portno, NULL, NULL);
 
   wolk_init_in_memory_persistence(&wolk, &outbound_messages, sizeof(outbound_messages), false);
 
