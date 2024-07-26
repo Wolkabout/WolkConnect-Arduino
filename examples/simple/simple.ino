@@ -17,12 +17,12 @@ static wolk_ctx_t wolk;
 outbound_message_t outbound_messages[STORE_SIZE];
 
 int counter = 0;
+wolk_numeric_feeds_t feed = {0};
 
 WiFiClient espClient;
 PubSubClient client(espClient);
 
 void setup_wifi() {
-
   delay(10);
   // We start by connecting to a WiFi network
   Serial.println();
@@ -41,11 +41,12 @@ void setup_wifi() {
   Serial.println(WiFi.localIP());
 }
 
-void reconnect_to_platform()
+bool reconnect_to_platform()
 {
+  Serial.println("Reconnecting to platform...");
   setup_wifi();
   
-  wolk_connect(&wolk);
+  return wolk_connect(&wolk);
 }
 
 void setup() {
@@ -56,15 +57,18 @@ void setup() {
 
   neopixelWrite(38, 0, 0, RGB_BRIGHTNESS); // Blue
 
-  wolk_init(&wolk, NULL, NULL, NULL, NULL,
-            device_key, device_password, &client, hostname, portno, NULL, NULL);
+  wolk_init(&wolk, device_key, device_password, &client, hostname, portno, PUSH, NULL, NULL, NULL);
 
   wolk_init_in_memory_persistence(&wolk, &outbound_messages, sizeof(outbound_messages), false);
 
-  wolk_connect(&wolk);
-
+  if(wolk_connect(&wolk))
+  {
+    while(reconnect_to_platform())
+    {
+      delay(5000);
+    }
+  }
   randomSeed(analogRead(0));
-  delay(1000);
   Serial.println("-------------------------------");
 }
 
@@ -74,7 +78,8 @@ void loop() {
   {
     neopixelWrite(38, RGB_BRIGHTNESS, 0, 0); // Green
     Serial.println("Sending to platform!");
-    if(wolk_add_numeric_sensor_reading(&wolk, "PLCTagTemp", random(300), 0))
+    feed.value = random(300);
+    if(wolk_add_numeric_feed(&wolk, "PLCTagTemp", &feed, 1))
     {
       Serial.println("Failed to serialise reading!");
     }
@@ -94,10 +99,9 @@ void loop() {
   //   };
   // }
 
-  if(wolk_process(&wolk) == W_TRUE)
-  {
-    Serial.println("Reconnecting to platform...");
-    reconnect_to_platform();
-  }
+  // if(wolk_process(&wolk) == W_TRUE)
+  // {
+  //   reconnect_to_platform();
+  // }
 
 }

@@ -17,7 +17,7 @@
 #ifndef PERSISTENCE_H
 #define PERSISTENCE_H
 
-#include "outbound_message.h"
+#include "model/outbound_message.h"
 
 #include <stdbool.h>
 #include <stddef.h>

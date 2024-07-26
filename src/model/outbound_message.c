@@ -14,30 +14,27 @@
  * limitations under the License.
  */
 
-#ifndef IN_MEMORY_PERSISTENCE_H
-#define IN_MEMORY_PERSISTENCE_H
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "model/outbound_message.h"
+#include "utility/wolk_utils.h"
 
-#include <stdbool.h>
-#include <stdint.h>
+#include <string.h>
 
-void in_memory_persistence_init(void* storage, uint32_t num_elements, bool wrap);
+void outbound_message_init(outbound_message_t* outbound_message, const char* topic, const char* payload)
+{
+    /* Sanity check */
+    WOLK_ASSERT(strlen(topic) <= TOPIC_SIZE);
+    WOLK_ASSERT(strlen(payload) <= PAYLOAD_SIZE);
 
-bool in_memory_persistence_push(outbound_message_t* outbound_message);
-
-bool in_memory_persistence_peek(outbound_message_t* outbound_message);
-
-bool in_memory_persistence_pop(outbound_message_t* outbound_message);
-
-bool in_memory_persistence_is_empty(void);
-
-#ifdef __cplusplus
+    strcpy(outbound_message->topic, topic);
+    strcpy(outbound_message->payload, payload);
 }
-#endif
 
-#endif
+char* outbound_message_get_topic(outbound_message_t* outbound_message)
+{
+    return outbound_message->topic;
+}
+
+char* outbound_message_get_payload(outbound_message_t* outbound_message)
+{
+    return outbound_message->payload;
+}

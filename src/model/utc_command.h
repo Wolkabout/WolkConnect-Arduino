@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 WolkAbout Technology s.r.o.
+ * Copyright 2020 WolkAbout Technology s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,30 +14,15 @@
  * limitations under the License.
  */
 
-#ifndef IN_MEMORY_PERSISTENCE_H
-#define IN_MEMORY_PERSISTENCE_H
+#ifndef WOLKCONNECTOR_C_UTC_COMMAND_H
+#define WOLKCONNECTOR_C_UTC_COMMAND_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#include "model/outbound_message.h"
-
-#include <stdbool.h>
 #include <stdint.h>
 
-void in_memory_persistence_init(void* storage, uint32_t num_elements, bool wrap);
+typedef struct {
+    uint64_t utc;
+} utc_command_t;
 
-bool in_memory_persistence_push(outbound_message_t* outbound_message);
+uint64_t utc_command_get(utc_command_t* utc_command);
 
-bool in_memory_persistence_peek(outbound_message_t* outbound_message);
-
-bool in_memory_persistence_pop(outbound_message_t* outbound_message);
-
-bool in_memory_persistence_is_empty(void);
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif
+#endif // WOLKCONNECTOR_C_UTC_COMMAND_H

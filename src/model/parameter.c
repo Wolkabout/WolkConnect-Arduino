@@ -14,27 +14,21 @@
  * limitations under the License.
  */
 
-#include "outbound_message.h"
-#include "wolk_utils.h"
+#include "model/parameter.h"
+#include "utility/wolk_utils.h"
 
 #include <string.h>
 
-void outbound_message_init(outbound_message_t* outbound_message, const char* topic, const char* payload)
+void parameter_init(parameter_t* message, char* name, char* value)
+{
+    strcpy(message->name, name);
+    parameter_set_value(message, value);
+}
+
+void parameter_set_value(parameter_t* message, char* buffer)
 {
     /* Sanity check */
-    WOLK_ASSERT(strlen(topic) <= TOPIC_SIZE);
-    WOLK_ASSERT(strlen(payload) <= PAYLOAD_SIZE);
+    WOLK_ASSERT(strlen(buffer) < CONFIGURATION_VALUE_SIZE);
 
-    strcpy(outbound_message->topic, topic);
-    strcpy(outbound_message->payload, payload);
-}
-
-char* outbound_message_get_topic(outbound_message_t* outbound_message)
-{
-    return outbound_message->topic;
-}
-
-char* outbound_message_get_payload(outbound_message_t* outbound_message)
-{
-    return outbound_message->payload;
+    strcpy(message->value, buffer);
 }

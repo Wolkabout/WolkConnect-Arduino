@@ -15,7 +15,7 @@
  */
 
 #include "persistence.h"
-#include "outbound_message.h"
+#include "model/outbound_message.h"
 #include "wolk_utils.h"
 
 #include <stdbool.h>

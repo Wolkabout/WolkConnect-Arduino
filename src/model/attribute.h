@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 WolkAbout Technology s.r.o.
+ * Copyright 2022 WolkAbout Technology s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,30 +14,25 @@
  * limitations under the License.
  */
 
-#ifndef ACTUATOR_STATUS_H
-#define ACTUATOR_STATUS_H
+#ifndef ATTRIBUTE_H
+#define ATTRIBUTE_H
 
-#include "size_definitions.h"
+#include "utility/size_definitions.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-typedef enum { ACTUATOR_STATE_READY = 0, ACTUATOR_STATE_BUSY, ACTUATOR_STATE_ERROR } actuator_state_t;
-
 typedef struct {
-    char value[READING_SIZE];
-    actuator_state_t state;
-} actuator_status_t;
+    char name[ITEM_NAME_SIZE];
+    char data_type[ITEM_DATA_TYPE_SIZE];
+    char value[FEED_ELEMENT_SIZE];
+} attribute_t;
 
-void actuator_status_init(actuator_status_t* actuator_status, char* value, actuator_state_t state);
-
-char* actuator_status_get_value(actuator_status_t* actuator_status);
-
-actuator_state_t actuator_status_get_state(actuator_status_t* actuator_status);
+void attribute_init(attribute_t* attribute, char* name, char* data_type, char* value);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif
+#endif // ATTRIBUTE_H

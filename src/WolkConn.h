@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 WolkAbout Technology s.r.o.
+ * Copyright 2024 WolkAbout Technology s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,15 +23,16 @@
 /** @cond */
 #include "MQTTClient.h"
 #include "utility/WolkQueue.h"
-#include "utility/parser.h"
+#include "protocol/parser.h"
 #include "utility/size_definitions.h"
-#include "utility/actuator_status.h"
-#include "utility/outbound_message.h"
-#include "utility/outbound_message_factory.h"
+#include "model/outbound_message.h"
+#include "model/outbound_message_factory.h"
 #include "utility/wolk_utils.h"
+#include "model/parameter.h"
 
 #include "utility/in_memory_persistence.h"
 #include "utility/persistence.h"
+#include "model/feed.h"
 
 #include "Arduino.h"
 
@@ -42,11 +43,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#define FW_VERSION_MAJOR 3 // number 0 -99
-#define FW_VERSION_MINOR 1 // number 0 -99
-#define FW_VERSION_PATCH 4 // number 0 -99
-
 
 /**
  * @brief WOLK_ERR_T Boolean used for error handling in Wolk connection module
@@ -59,43 +55,60 @@ typedef unsigned char WOLK_BOOL_T;
 enum WOLK_BOOL_T_values { W_FALSE = 0, W_TRUE = 1 };
 
 /**
- * @brief Declaration of actuator handler.
- * Actuator reference and value are the pairs of data on the same place in their own arrays.
- *
- * @param reference actuator references defined in device template on the WolkAbout IoT Platform.
- * @param value value received from WolkAbout IoT Platform.
+ * @brief  WolkAbout IoT Platform numeric feed type.
  */
-typedef void (*actuation_handler_t)(const char* reference, const char* value);
-/**
- * @brief Declaration of actuator status
- *
- * @param reference actuator references defined in device template on the WolkAbout IoT Platform
- */
-typedef actuator_status_t (*actuator_status_provider_t)(const char* reference);
+typedef struct wolk_numeric_feeds_t {
+    double value;
+    uint64_t utc_time;
+} wolk_numeric_feeds_t;
 
 /**
- * @brief Declaration of configuration handler.
- * Configuration reference and value are the pairs of data on the same place in their own arrays.
- *
- * @param reference actuator references defined in the device template on the WolkAbout IoT Platform
- * @param value actuator values received from the WolkAbout IoT Platform.
- * @param num_configuration_items number of used configuration parameters
+ * @brief  WolkAbout IoT Platform string feed type.
  */
-typedef void (*configuration_handler_t)(char (*reference)[CONFIGURATION_REFERENCE_SIZE],
-                                        char (*value)[CONFIGURATION_VALUE_SIZE], size_t num_configuration_items);
+typedef struct wolk_string_feeds_t {
+    char* value;
+    uint64_t utc_time;
+} wolk_string_feeds_t;
+
 /**
- * @brief Declaration of configuration provider
- *
- * @param reference configuration references defined in the device template on the WolkAbout IoT Platform
- * @param value configuration values received from the WolkAbout IoT Platform
- * @param num_configuration_items number of used configuration parameters
+ * @brief  WolkAbout IoT Platform boolean feed type.
  */
-typedef size_t (*configuration_provider_t)(char (*reference)[CONFIGURATION_REFERENCE_SIZE],
-                                           char (*value)[CONFIGURATION_VALUE_SIZE], size_t max_num_configuration_items);
+typedef struct wolk_boolean_feeds_t {
+    bool value;
+    uint64_t utc_time;
+} wolk_boolean_feeds_t;
+
+typedef feed_t wolk_feed_t;
+typedef feed_registration_t wolk_feed_registration_t;
+typedef parameter_t wolk_parameter_t;
+typedef attribute_t wolk_attribute_t;
+
 /**
- * @brief  WolkAbout IoT Platform connector context.
- * Most of the parameters are used to initialize WolkConnect library forwarding to wolk_init().
+ * @brief Declaration of feed value handler.
+ *
+ * @param feeds feeds received as name:value pairs from WolkAbout IoT Platform.
+ * @param number_of_feeds number fo received feeds.
  */
+typedef void (*feed_handler_t)(wolk_feed_t* feeds, size_t number_of_feeds);
+
+/**
+ * @brief Declaration of parameter handler.
+ *
+ * @param parameter_message Parameters received as name:value pairs from WolkAbout IoT Platform.
+ * @param number_of_parameters number of received parameters
+ */
+typedef void (*parameter_handler_t)(wolk_parameter_t* parameter_message, size_t number_of_parameters);
+
+/**
+ * @brief Declaration of details synchronization handler. It will be called as a response on the
+ * wolk_details_synchronization() call. It will give list of the all feeds and attributes from the platform.
+ *
+ * @param parameter_message Parameters received as name:value pairs from WolkAbout IoT Platform.
+ * @param number_of_parameters number of received parameters
+ */
+typedef void (*details_synchronization_handler_t)(wolk_feed_registration_t* feeds, size_t number_of_received_feeds,
+                                                  wolk_attribute_t* attributes, size_t number_of_received_attributes);
+
 
 typedef struct _wolk_ctx_t wolk_ctx_t;
 
@@ -103,19 +116,23 @@ struct _wolk_ctx_t {
     int sock;
     PubSubClient *mqtt_client;
 
-    actuation_handler_t actuation_handler;                  /**< Callback for handling received actuation from WolkAbout IoT Platform. @see actuation_handler_t*/
-    actuator_status_provider_t actuator_status_provider;    /**< Callback for providing the current actuator status to WolkAbout IoT Platform. @see actuator_status_provider_t*/
+    outbound_mode_t outbound_mode;
 
-    configuration_handler_t configuration_handler;          /**< Callback for handling received configuration from WolkAbout IoT Platform. @see configuration_handler_t*/
-    configuration_provider_t configuration_provider;        /**< Callback for providing the current configuration status to WolkAbout IoT Platform. @see configuration_provider_t*/
+    feed_handler_t feed_handler; /**< Callback for handling incoming feeds from WolkAbout IoT Platform.
+                                              @see feed_handler_t*/
+
+    parameter_handler_t parameter_handler; /**< Callback for handling received configuration from WolkAbout IoT
+                                                      Platform. @see parameter_handler_t*/
+
+    details_synchronization_handler_t details_synchronization_handler; /**< Callback for handling received details
+configuration from WolkAbout IoT Platform. @see attribute_handler_t*/
 
     char device_key[DEVICE_KEY_SIZE];                       /**<  Authentication parameters for WolkAbout IoT Platform. Obtained as a result of device creation on the platform.*/
     char device_password[DEVICE_PASSWORD_SIZE];             /**<  Authentication parameters for WolkAbout IoT Platform. Obtained as a result of device creation on the platform.*/
 
     parser_t parser;
 
-    const char** actuator_references;
-    uint32_t num_actuator_references;
+    persistence_t persistence;
 
     bool is_keep_alive_enabled;
     unsigned long millis_last_ping;
@@ -124,22 +141,14 @@ struct _wolk_ctx_t {
     bool is_connected;
     bool pong_received;
 
-    persistence_t persistence;
-
     unsigned long epoch_time;                                    /**< Epoch time in milliseconds, is updated on every ping but can be updated manually by calling wolk_update_epoch()
                                                             Since this is updated by receiving the value from the platform, wolk_process must also be called*/
 };
 
-
+//TODO: continue
 /**
  * @brief Initializes WolkAbout IoT Platform connector context
  * @param ctx Context
- *
- * @param actuation_handler function pointer to 'actuation_handler_t' implementation
- * @param actuator_status_provider function pointer to 'actuator_status_provider_t' implementation
- *
- * @param configuration_handler function pointer to 'configuration_handler_t' implementation
- * @param configuration_provider function pointer to 'configuration_provider_t' implementation
  *
  * @param device_key Device key provided by WolkAbout IoT Platform upon device
  * creation
@@ -148,18 +157,14 @@ struct _wolk_ctx_t {
  * @param client MQQT Client
  * @param server MQQT Server
  * @param port Port to connect to
- * @param actuator_references Array of strings containing references of
- * actuators that device possess
- * @param num_actuator_references Number of actuator references contained in
- * actuator_references
  * 
  * @return Error code
  */
-WOLK_ERR_T wolk_init(wolk_ctx_t* ctx, actuation_handler_t actuation_handler, actuator_status_provider_t actuator_status_provider,
-                    configuration_handler_t configuration_handler, configuration_provider_t configuration_provider,
-                    const char* device_key, const char* device_password, PubSubClient *client, 
-                    const char *server, int port, const char** actuator_references,
-                    uint32_t num_actuator_references);
+WOLK_ERR_T wolk_init(wolk_ctx_t* ctx,
+                    const char* device_key, const char* device_password, PubSubClient *client, const char *server, int port,
+                    outbound_mode_t outbound_mode, feed_handler_t feed_handler,
+                    parameter_handler_t parameter_handler,
+                    details_synchronization_handler_t details_synchronization_handler);
 /**
  * @brief Initializes persistence mechanism with in-memory implementation
  *
@@ -193,11 +198,7 @@ WOLK_ERR_T wolk_init_custom_persistence(wolk_ctx_t* ctx, persistence_push_t push
 /**
  * @brief Connect to WolkAbout IoT Platform
  *
- *  1. Context must be initialized via wolk_init(wolk_ctx_t* ctx, actuation_handler_t actuation_handler, actuator_status_provider_t actuator_status_provider,
- *                   configuration_handler_t configuration_handler, configuration_provider_t configuration_provider,
- *                   const char* device_key, const char* device_password, PubSubClient *client, 
- *                   const char *server, int port, const char** actuator_references,
- *                   uint32_t num_actuator_references)
+ *  1. Context must be initialized via wolk_init()
  *  2. Persistence must be initialized using
  *      wolk_initialize_in_memory_persistence(wolk_ctx_t *ctx, void* storage,
  * uint16_t num_elements, bool wrap) or
@@ -220,7 +221,7 @@ WOLK_ERR_T wolk_disconnect (wolk_ctx_t *ctx);
 
 /**
  * @brief Must be called periodically to keep the connection to the WolkAbout IoT
- * platform alive, obtain and perform actuation requests. It also serves as a diagnostic tool
+ * platform alive, obtain and perform feeds. It also serves as a diagnostic tool
  * for the MQTT client, printing it's state when an error occurs.
  * Client state will be -3 if the connection is lost and -4 if the broker can't be reached. 
  *
@@ -230,99 +231,61 @@ WOLK_ERR_T wolk_disconnect (wolk_ctx_t *ctx);
  */
 WOLK_ERR_T wolk_process (wolk_ctx_t *ctx);
 
-/** @brief Add string reading
- *
- *  @param ctx library context
- *  @param reference Sensor reference
- *  @param value Sensor value
- *  @param utc_time UTC time. If unable to retrieve UTC set 0
- *
- *  @return Error code
- */
-WOLK_ERR_T wolk_add_string_sensor_reading(wolk_ctx_t *ctx,const char *reference,const char *value, uint32_t utc_time);
-
-/** @brief Add multi-value string reading
- *
- *  @param ctx Context
- *  @param reference Sensor reference
- *  @param values Sensor values
- *  @param values_size Number of sensor dimensions
- *  @param utc_time UTC time of sensor value acquisition [seconds]
- *
- *  @return Error code
- */
-WOLK_ERR_T wolk_add_multi_value_string_sensor_reading(wolk_ctx_t* ctx, const char* reference,
-                                                      const char (*values)[READING_SIZE], uint16_t values_size,
-                                                      uint32_t utc_time);
-/** @brief Add numeric reading
- *
- *  @param ctx Context
- *  @param reference Sensor reference
- *  @param value Sensor value
- *  @param utc_time UTC time of sensor value acquisition [seconds]
- *
- *  @return Error code
- */
-WOLK_ERR_T wolk_add_numeric_sensor_reading(wolk_ctx_t *ctx,const char *reference,double value, uint32_t utc_time);
-
-/**
- * @brief Add multi-value numeric reading
+/** @brief Add string feed
  *
  * @param ctx Context
- * @param reference Sensor reference
- * @param values Sensor values
- * @param values_size Number of sensor dimensions
- * @param utc_time UTC time of sensor value acquisition [seconds]
+ * @param reference Feed reference
+ * @param feeds Feed values, one or more values organized as value:utc pairs. Value is char pointer. Utc time has to
+ * be in milliseconds.
+ * @param number_of_feeds Number of feeds that is captured
+ *
+ *  @return Error code
+ */
+WOLK_ERR_T wolk_add_string_feed(wolk_ctx_t* ctx, const char* reference, wolk_string_feeds_t* feeds,
+                                size_t number_of_feeds);
+
+/**
+ * @brief Add numeric feeds
+ *
+ * @param ctx Context
+ * @param reference Feed reference
+ * @param feeds Feed values, one or more values organized as value:utc pairs. Value is double. Utc time has to be in
+ * milliseconds.
+ * @param number_of_feeds Number of feeds that is captured
  *
  * @return Error code
  */
-WOLK_ERR_T wolk_add_multi_value_numeric_sensor_reading(wolk_ctx_t* ctx, const char* reference, double* values,
-                                                       uint16_t values_size, uint32_t utc_time);
-/** @brief Add bool reading
- *
- *  @param ctx Context
- *  @param reference Sensor reference
- *  @param value Sensor value
- *  @param utc_time UTC time of sensor value acquisition [seconds]
- *
- *  @return Error code
- */
-WOLK_ERR_T wolk_add_bool_sensor_reading(wolk_ctx_t *ctx,const char *reference,bool value, uint32_t utc_time);
+WOLK_ERR_T wolk_add_numeric_feed(wolk_ctx_t* ctx, const char* reference, wolk_numeric_feeds_t* feeds,
+                                 size_t number_of_feeds);
 
 /**
- * @brief Add multi-value bool reading
+ * @brief Add multi-value numeric feed. For feeds that has more than one numeric number associated as value, like
+ * location is. Max number of numeric values is define with FEEDS_MAX_NUMBER from size_definition
  *
  * @param ctx Context
- * @param reference Sensor reference
- * @param values Sensor values
- * @param values_size Number of sensor dimensions
- * @param utc_time UTC time of sensor value acquisition [seconds]
+ * @param reference Feed reference
+ * @param values Feed values
+ * @param value_size Number of numeric values limited by FEEDS_MAX_NUMBER
+ * @param utc_time UTC time of feed value acquisition [miliseconds]
  *
  * @return Error code
  */
-WOLK_ERR_T wolk_add_multi_value_bool_sensor_reading(wolk_ctx_t* ctx, const char* reference, bool* values,
-                                                    uint16_t values_size, uint32_t utc_time);
+WOLK_ERR_T wolk_add_multi_value_numeric_feed(wolk_ctx_t* ctx, const char* reference, double* values,
+                                             uint16_t value_size, uint64_t utc_time);
 
 /**
- * @brief Obtains actuator status via actuator_status_provider_t and publishes
- * it. If actuator status can not be published, it is persisted.
+ * @brief Add bool feed
  *
  * @param ctx Context
- * @param reference Actuator reference
+ * @param reference Feed reference
+ * @param feeds Feed values, one or more values organized as value:utc pairs. Value is boolean. Utc time has to be in
+ * milliseconds.
+ * @param number_of_feeds Number of feeds that is captured
  *
  * @return Error code
  */
-WOLK_ERR_T wolk_publish_actuator_status (wolk_ctx_t *ctx,const char *reference);
- 
- /**
- *@brief Obtains configuration via configuration_provider and publishes it.
- * If configuration can not be published, it is persisted.
- *
- *@param ctx Context
- *
- *@return Error code
- */
-WOLK_ERR_T wolk_publish_configuration(wolk_ctx_t* ctx);
+WOLK_ERR_T wolk_add_bool_feeds(wolk_ctx_t* ctx, const char* reference, wolk_boolean_feeds_t* feeds,
+                               size_t number_of_feeds);
 
 /**
  * @brief Publish accumulated sensor readings, and alarms

@@ -14,26 +14,29 @@
  * limitations under the License.
  */
 
-#include "actuator_status.h"
-#include "wolk_utils.h"
+#ifndef PARAMETER_H
+#define PARAMETER_H
 
-#include <string.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-void actuator_status_init(actuator_status_t* actuator_status, char* value, actuator_state_t state)
-{
-    /* Sanity check */
-    WOLK_ASSERT(strlen(value) < READING_SIZE);
+#include "utility/size_definitions.h"
 
-    strcpy(&actuator_status->value[0], value);
-    actuator_status->state = state;
+#include <stdbool.h>
+#include <stddef.h>
+
+typedef struct {
+    char name[PARAMETER_TYPE_SIZE];
+    char value[PARAMETER_VALUE_SIZE];
+} parameter_t;
+
+void parameter_init(parameter_t* parameter_message, char* name, char* value);
+
+void parameter_set_value(parameter_t* parameter_message, char* buffer);
+
+#ifdef __cplusplus
 }
+#endif
 
-char* actuator_status_get_value(actuator_status_t* actuator_status)
-{
-    return actuator_status->value;
-}
-
-actuator_state_t actuator_status_get_state(actuator_status_t* actuator_status)
-{
-    return actuator_status->state;
-}
+#endif

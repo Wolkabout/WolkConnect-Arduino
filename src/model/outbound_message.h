@@ -14,29 +14,25 @@
  * limitations under the License.
  */
 
-#ifndef CONFIGURATION_ITEM_H
-#define CONFIGURATION_ITEM_H
+#ifndef OUTBOUND_MESSAGE_H
+#define OUTBOUND_MESSAGE_H
+
+#include "utility/size_definitions.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include "size_definitions.h"
-
-#include <stddef.h>
-#include <stdbool.h>
-
 typedef struct {
-    char name[CONFIGURATION_REFERENCE_SIZE];
-    char value[CONFIGURATION_VALUE_SIZE];
-} configuration_item_t;
+    char topic[TOPIC_SIZE];
+    char payload[PAYLOAD_SIZE];
+} outbound_message_t;
 
-void configuration_item_init(configuration_item_t* configuration_item, char* name, char* value);
+void outbound_message_init(outbound_message_t* outbound_message, const char* topic, const char* payload);
 
-char* configuration_item_get_name(configuration_item_t* configuration_item);
+char* outbound_message_get_topic(outbound_message_t* outbound_message);
 
-char* configuration_item_get_value(configuration_item_t* configuration_item);
-void configuration_item_set_value(configuration_item_t* configuration_item, char* buffer);
+char* outbound_message_get_payload(outbound_message_t* outbound_message);
 
 #ifdef __cplusplus
 }

@@ -14,74 +14,60 @@
  * limitations under the License.
  */
 
-#include "utility/actuator_command.h"
 #include "WolkConn.h"
-#include "utility/parser.h"
+#include "protocol/parser.h"
 #include "MQTTClient.h"
 #include "utility/wolk_utils.h"
-#include "utility/outbound_message.h"
-#include "utility/outbound_message_factory.h"
+#include "model/outbound_message.h"
+#include "model/outbound_message_factory.h"
 
 #include <stdarg.h>
 #include <string.h>
 #include <unistd.h>
 #include <stdio.h>
 
-#define BOOL_FALSE "false"
-#define BOOL_TRUE "true"
+#define BOOL_FALSE          "false"
+#define BOOL_TRUE           "true"
 
-#define READINGS_PATH "readings/"
+#define LASTWILL_TOPIC      "lastwill/"
+#define LASTWILL_MESSAGE    "Gone offline"
+#define QOS_LEVEL           1
 
-#define ACTUATORS_STATUS_TOPIC "d2p/actuator_status/"
-#define ACTUATORS_SET_TOPIC "p2d/actuator_set/"
-
-#define LASTWILL_TOPIC "lastwill/"
-#define LASTWILL_MESSAGE "Gone offline"
-
-#define PONG "pong/"
-#define EPOCH_WAIT 60000
+#define PONG                "pong/"
+#define EPOCH_WAIT          60000
 
 const unsigned long ping_interval = 60000;
 
-static const char* CONFIGURATION_SET_TOPIC = "p2d/configuration_set/";
-
 static WOLK_ERR_T _ping_keep_alive(wolk_ctx_t* ctx);
 
+static WOLK_ERR_T subscribe_to(wolk_ctx_t* ctx, char* direction, char* message_type);
+static WOLK_ERR_T receive(wolk_ctx_t* ctx);
 static WOLK_ERR_T _subscribe (wolk_ctx_t *ctx, const char *topic);
 static WOLK_ERR_T _publish (wolk_ctx_t *ctx, char *topic, char *readings);
-static void callback(void *wolk, char* topic, byte* payload, unsigned int length);
+static void callback(void *wolk, char* topic, byte* payload, unsigned int length); //TODO: questionable
 
-static void _handle_actuator_command(wolk_ctx_t* ctx, actuator_command_t* actuator_command);
-static void _handle_configuration_command(wolk_ctx_t* ctx, configuration_command_t* configuration_command);
+static bool is_wolk_initialized(wolk_ctx_t* ctx);
+
+static void handle_feeds(wolk_ctx_t* ctx, feed_t* feeds, size_t number_of_feeds);
+//TODO
+// static void handle_parameter_message(wolk_ctx_t* ctx, parameter_t* parameter_message, size_t number_of_parameters);
+// static void handle_utc_command(wolk_ctx_t* ctx, utc_command_t* utc);
+// static void handle_details_synchronization_message(wolk_ctx_t* ctx, feed_registration_t* feeds, size_t number_of_feeds,
+//                                                    attribute_t* attributes, size_t number_of_attributes);
+// static void handle_error_message(wolk_ctx_t* ctx, char* error);
 
 static char *_double_to_string(double input, signed char width, unsigned char precision, char *output);
 
-char *_double_to_string(double input, signed char width, unsigned char precision, char *output) {
+static char *_double_to_string(double input, signed char width, unsigned char precision, char *output) {
     sprintf(output, "%*.*f", width, precision, input);
     return output;
 }
 
-WOLK_ERR_T wolk_init_in_memory_persistence(wolk_ctx_t* ctx, void* storage, uint32_t size, bool wrap)
-{
-    in_memory_persistence_init(storage, size, wrap);
-    persistence_init(&ctx->persistence, in_memory_persistence_push, in_memory_persistence_peek,
-                     in_memory_persistence_pop, in_memory_persistence_is_empty);
-    return W_FALSE;
-}
-
-WOLK_ERR_T wolk_init_custom_persistence(wolk_ctx_t* ctx, persistence_push_t push, persistence_peek_t peek,
-                                        persistence_pop_t pop, persistence_is_empty_t is_empty)
-{
-    persistence_init(&ctx->persistence, push, peek, pop, is_empty);
-
-    return W_FALSE;
-}
-
-WOLK_ERR_T wolk_init(wolk_ctx_t* ctx, actuation_handler_t actuation_handler, actuator_status_provider_t actuator_status_provider,
-                    configuration_handler_t configuration_handler, configuration_provider_t configuration_provider,
-                    const char* device_key, const char* device_password, PubSubClient *client, 
-                    const char *server, int port, const char** actuator_references,
-                    uint32_t num_actuator_references)
+WOLK_ERR_T wolk_init(wolk_ctx_t* ctx,
+                    const char* device_key, const char* device_password, PubSubClient *client, const char *server, int port,
+                    outbound_mode_t outbound_mode, feed_handler_t feed_handler,
+                    parameter_handler_t parameter_handler,
+                    details_synchronization_handler_t details_synchronization_handler)
 {
     /* Sanity check */
 
@@ -93,16 +79,6 @@ WOLK_ERR_T wolk_init(wolk_ctx_t* ctx, actuation_handler_t actuation_handler, act
 
     WOLK_ASSERT(protocol == PROTOCOL_SINGLE);
 
-    if (num_actuator_references > 0 && (actuation_handler == NULL || actuator_status_provider == NULL)) {
-        WOLK_ASSERT(false);
-        return W_TRUE;
-    }
-    if ((configuration_handler != NULL && configuration_provider == NULL)
-        || (configuration_handler == NULL && configuration_provider != NULL)) {
-        WOLK_ASSERT(false);
-        return W_TRUE;
-    }
-
     ctx->mqtt_client = client;
     ctx->mqtt_client->setServer(server, port);
     ctx->mqtt_client->setCallback(callback);
@@ -113,14 +89,8 @@ WOLK_ERR_T wolk_init(wolk_ctx_t* ctx, actuation_handler_t actuation_handler, act
     memset (ctx->device_password, 0, DEVICE_PASSWORD_SIZE);
     strcpy (ctx->device_password, device_password);
 
-    ctx->actuation_handler = actuation_handler;
-    ctx->actuator_status_provider = actuator_status_provider;
-
-    ctx->configuration_handler = configuration_handler;
-    ctx->configuration_provider = configuration_provider;
-
-    ctx->actuator_references = actuator_references;
-    ctx->num_actuator_references = num_actuator_references;
+    ctx->feed_handler = feed_handler;
+    ctx->outbound_mode = outbound_mode;
 
     initialize_parser(&ctx->parser, PARSER_TYPE);
 
@@ -132,16 +102,14 @@ WOLK_ERR_T wolk_init(wolk_ctx_t* ctx, actuation_handler_t actuation_handler, act
     ctx->is_connected = false;
 
     return W_FALSE;
-
 }
 
-WOLK_ERR_T wolk_connect (wolk_ctx_t *ctx)
+WOLK_ERR_T wolk_connect(wolk_ctx_t *ctx)
 {
     /* Sanity check */
     WOLK_ASSERT(ctx->is_initialized == true);
 
     char lastwill_topic[TOPIC_SIZE];
-    char sub_topic[TOPIC_SIZE];
     char client_id[TOPIC_SIZE];
 
     if (ctx->parser.type == PARSER_TYPE)
@@ -155,7 +123,7 @@ WOLK_ERR_T wolk_connect (wolk_ctx_t *ctx)
 
     Serial.println("Attempting MQTT connection...");
     // Attempt to connect
-    if (ctx->mqtt_client->connect(client_id, ctx->device_key, ctx->device_password, lastwill_topic, NULL, NULL, LASTWILL_MESSAGE))
+    if (ctx->mqtt_client->connect(client_id, ctx->device_key, ctx->device_password, lastwill_topic, QOS_LEVEL, false, LASTWILL_MESSAGE))
     {
         Serial.println("connected!");
         ctx->is_connected = true;
@@ -165,64 +133,35 @@ WOLK_ERR_T wolk_connect (wolk_ctx_t *ctx)
         Serial.print("failed with error code ");
         Serial.println(ctx->mqtt_client->state());
         ctx->is_connected = false;
+        return W_TRUE;
     }
 
-    char pub_topic[TOPIC_SIZE];
-    char topic_buf[TOPIC_SIZE];
-    int i;
-    if (ctx->parser.type == PARSER_TYPE)
-    {
-        for (i = 0; i < ctx->num_actuator_references ; i++)
-        {
-            const char* str = ctx->actuator_references[i];
-            memset (pub_topic, 0, TOPIC_SIZE);
+    /* Subscribe to topics */
+    int result = subscribe_to(ctx, ctx->parser.P2D_TOPIC, ctx->parser.FEED_VALUES_MESSAGE_TOPIC);
+    // TODO
+    // subscribe_to(ctx, ctx->parser.SYNC_TIME_TOPIC);
 
-            strcpy(pub_topic,ACTUATORS_SET_TOPIC);
-            strcat(pub_topic,"d/");
-            strcat(pub_topic,ctx->device_key);
-            strcat(pub_topic,"/r/");
-            strcat(pub_topic,str);
+    return result;
+}
 
-            if (_subscribe (ctx, pub_topic) != W_FALSE)
-            {
-                return W_TRUE;
-            }
-        }
-        memset(topic_buf, '\0', TOPIC_SIZE);
-        strcpy(&topic_buf[0], CONFIGURATION_SET_TOPIC);
-        strcat(&topic_buf[0], "d/");
-        strcat(&topic_buf[0], ctx->device_key);
+WOLK_ERR_T wolk_disconnect(wolk_ctx_t *ctx)
+{
+    /* Sanity check */
+    WOLK_ASSERT(ctx->is_initialized == true);
 
-        if (_subscribe(ctx, topic_buf) != W_FALSE) 
-        {
-         return W_TRUE;
-        }
+    char lastwill_topic[TOPIC_SIZE];
 
-        memset(topic_buf, '\0', TOPIC_SIZE);
-        strcpy(&topic_buf[0], PONG);
-        strcat(&topic_buf[0], "d/");
-        strcat(&topic_buf[0], ctx->device_key);
+    memset (lastwill_topic, 0, TOPIC_SIZE);
+    strcpy (lastwill_topic, LASTWILL_TOPIC);
+    strcat (lastwill_topic, ctx->device_key);
 
-        if (_subscribe(ctx, topic_buf) != W_FALSE) 
-        {
-         return W_TRUE;
-        }
-    }  
-
-    for (i = 0; i < ctx->num_actuator_references; ++i) 
-    {
-        const char* reference = ctx->actuator_references[i];
-
-        wolk_publish_actuator_status(ctx, reference);
-    }
-
-    configuration_command_t configuration_command;
-    configuration_command_init(&configuration_command, CONFIGURATION_COMMAND_TYPE_CURRENT);
-    _handle_configuration_command(ctx, &configuration_command);
-
+    ctx->mqtt_client->publish(lastwill_topic, LASTWILL_MESSAGE);
+    ctx->mqtt_client->disconnect();
+    ctx->is_connected = false;
     return W_FALSE;
 }
 
+//TODO: check what to do with this
 void callback(void *wolk, char* topic, byte*payload, unsigned int length)
 {
     wolk_ctx_t *ctx = (wolk_ctx_t *)wolk;
@@ -231,27 +170,7 @@ void callback(void *wolk, char* topic, byte*payload, unsigned int length)
 
     memcpy(payload_str, payload, length);
 
-    if (strstr(topic, ACTUATORS_SET_TOPIC) != NULL)
-    {
-        actuator_command_t actuator_command;
-        const size_t num_deserialized_commands = parser_deserialize_actuator_commands(&ctx->parser, topic, strlen(topic), (char*)payload_str, (size_t)length, &actuator_command, 1);
-        if (num_deserialized_commands != 0) 
-        {
-            _handle_actuator_command(ctx, &actuator_command);
-        }
-        
-    }
-    else if (strstr(topic, CONFIGURATION_SET_TOPIC))
-    {
-        configuration_command_t configuration_command;
-        const size_t num_deserialized_commands = parser_deserialize_configuration_commands(&ctx->parser, (char*)payload_str, (size_t)length, &configuration_command, 1);
-        
-        if (num_deserialized_commands != 0) 
-        {
-            _handle_configuration_command(ctx, &configuration_command);
-        }
-    }
-    else if (strstr(topic, PONG))
+    if (strstr(topic, PONG))
     {
         ctx->pong_received = true;
         uint32_t time;
@@ -260,56 +179,6 @@ void callback(void *wolk, char* topic, byte*payload, unsigned int length)
         value[10] = 0;
         ctx->epoch_time = strtol(value, NULL, 10);
     }
-}
-
-static void _handle_configuration_command(wolk_ctx_t* ctx, configuration_command_t* configuration_command)
-{
-    switch (configuration_command_get_type(configuration_command))
-        {
-        case CONFIGURATION_COMMAND_TYPE_SET:
-            if (ctx->configuration_handler != NULL)
-            {
-                ctx->configuration_handler(configuration_command_get_references(configuration_command),
-                                           configuration_command_get_values(configuration_command),
-                                           configuration_command_get_number_of_items(configuration_command));
-            }
-
-            /* Fallthrough */
-            /* break; */
-
-        case CONFIGURATION_COMMAND_TYPE_CURRENT:
-            wolk_publish_configuration(ctx);
-            break;
-
-        case CONFIGURATION_COMMAND_TYPE_UNKNOWN:
-            break;
-        }
-}
-
-static void _handle_actuator_command(wolk_ctx_t* ctx, actuator_command_t* command)
-{
-
-    switch(actuator_command_get_type(command))
-        {
-            case ACTUATOR_COMMAND_TYPE_SET:
-            if(ctx->actuation_handler != NULL)
-                {
-                    ctx->actuation_handler(actuator_command_get_reference(command), actuator_command_get_value(command));
-                }
-
-            /* Fallthrough */
-            /* break; */
-            case ACTUATOR_COMMAND_TYPE_STATUS:
-                if(ctx->actuator_status_provider != NULL)
-                {
-                    wolk_publish_actuator_status(ctx, actuator_command_get_reference(command));
-                }
-
-            break;
-
-            case ACTUATOR_COMMAND_TYPE_UNKNOWN:
-            break;
-            }
 }
 
 WOLK_ERR_T wolk_process (wolk_ctx_t *ctx)
@@ -333,232 +202,153 @@ WOLK_ERR_T wolk_process (wolk_ctx_t *ctx)
     return W_FALSE;
 }
 
-
-WOLK_ERR_T wolk_add_string_sensor_reading(wolk_ctx_t *ctx,const char *reference,const char *value, uint32_t utc_time)
+WOLK_ERR_T wolk_init_in_memory_persistence(wolk_ctx_t* ctx, void* storage, uint32_t size, bool wrap)
 {
-    /* Sanity check */
-    WOLK_ASSERT(ctx->is_initialized == true);
-
-    manifest_item_t string_sensor;
-    manifest_item_init(&string_sensor,(char *) reference, READING_TYPE_SENSOR, DATA_TYPE_STRING);
-
-    reading_t reading;
-    reading_init(&reading, &string_sensor);
-    reading_set_data(&reading, value);
-    reading_set_rtc(&reading, utc_time);
-
-    outbound_message_t outbound_message;
-    outbound_message_make_from_readings(&ctx->parser, ctx->device_key, &reading, 1, &outbound_message);
-
-    return persistence_push(&ctx->persistence, &outbound_message) ? W_FALSE : W_TRUE;
+    in_memory_persistence_init(storage, size, wrap);
+    persistence_init(&ctx->persistence, in_memory_persistence_push, in_memory_persistence_peek,
+                     in_memory_persistence_pop, in_memory_persistence_is_empty);
+    return W_FALSE;
 }
 
-WOLK_ERR_T wolk_add_multi_value_string_sensor_reading(wolk_ctx_t* ctx, const char* reference,
-                                                      const char (*values)[READING_SIZE], uint16_t values_size,
-                                                      uint32_t utc_time)
+WOLK_ERR_T wolk_init_custom_persistence(wolk_ctx_t* ctx, persistence_push_t push, persistence_peek_t peek,
+                                        persistence_pop_t pop, persistence_is_empty_t is_empty)
 {
-    /* Sanity check */
-    WOLK_ASSERT(ctx->is_initialized == true);
-    WOLK_ASSERT(READING_DIMENSIONS > 1);
+    persistence_init(&ctx->persistence, push, peek, pop, is_empty);
 
-    manifest_item_t string_sensor;
-    manifest_item_init(&string_sensor, reference, READING_TYPE_SENSOR, DATA_TYPE_STRING);
-    manifest_item_set_reading_dimensions_and_delimiter(&string_sensor, values_size, DATA_DELIMITER);
-
-    reading_t reading;
-    reading_init(&reading, &string_sensor);
-    reading_set_rtc(&reading, utc_time);
-
-    for (uint32_t i = 0; i < values_size; ++i) {
-        reading_set_data_at(&reading, values[i], i);
-    }
-
-    outbound_message_t outbound_message;
-    outbound_message_make_from_readings(&ctx->parser, ctx->device_key, &reading, 1, &outbound_message);
-
-    return persistence_push(&ctx->persistence, &outbound_message) ? W_FALSE : W_TRUE;
-
-}
-
-WOLK_ERR_T wolk_add_numeric_sensor_reading(wolk_ctx_t *ctx, const char *reference, double value, uint32_t utc_time)
-{
-    /* Sanity check */
-    WOLK_ASSERT(ctx->is_initialized == true);
-
-    manifest_item_t numeric_sensor;
-    manifest_item_init(&numeric_sensor, (char *)reference, READING_TYPE_SENSOR, DATA_TYPE_NUMERIC);
-
-    char value_str[PAYLOAD_SIZE];
-    memset (value_str, 0, PAYLOAD_SIZE);
-    _double_to_string(value, 4, 2, value_str);
-
-    reading_t reading;
-    reading_init(&reading, &numeric_sensor);
-    reading_set_data(&reading, value_str);
-    reading_set_rtc(&reading, utc_time);
-
-    outbound_message_t outbound_message;
-    outbound_message_make_from_readings(&ctx->parser, ctx->device_key, &reading, 1, &outbound_message);
-    Serial.println(outbound_message.payload);
-    Serial.println(outbound_message.topic);
-
-    return persistence_push(&ctx->persistence, &outbound_message) ? W_FALSE : W_TRUE;
-
-}
-
-WOLK_ERR_T wolk_add_multi_value_numeric_sensor_reading(wolk_ctx_t* ctx, const char* reference, double* values,
-                                                       uint16_t values_size, uint32_t utc_time)
-{
-    /* Sanity check */
-    WOLK_ASSERT(ctx->is_initialized == true);
-    WOLK_ASSERT(READING_DIMENSIONS > 1);
-
-    manifest_item_t numeric_sensor;
-    manifest_item_init(&numeric_sensor, reference, READING_TYPE_SENSOR, DATA_TYPE_NUMERIC);
-    manifest_item_set_reading_dimensions_and_delimiter(&numeric_sensor, values_size, DATA_DELIMITER);
-    
-    reading_t reading;
-    reading_init(&reading, &numeric_sensor);
-    reading_set_rtc(&reading, utc_time);
-
-    for(uint32_t i = 0; i < values_size; i++)
-    {
-        char value_str[PAYLOAD_SIZE];
-        memset (value_str, 0, PAYLOAD_SIZE);
-        _double_to_string(values[i], 4, 2, value_str);
-
-        reading_set_data_at(&reading, value_str, i);
-    }
-
-    outbound_message_t outbound_message;
-    outbound_message_make_from_readings(&ctx->parser, ctx->device_key, &reading, 1, &outbound_message);
-
-    return persistence_push(&ctx->persistence, &outbound_message) ? W_FALSE : W_TRUE;
+    return W_FALSE;
 }
 
 
-WOLK_ERR_T wolk_add_bool_sensor_reading(wolk_ctx_t *ctx,const char *reference,bool value, uint32_t utc_time)
+WOLK_ERR_T wolk_add_string_feed(wolk_ctx_t* ctx, const char* reference, wolk_string_feeds_t* feeds,
+                                size_t number_of_feeds)
 {
     /* Sanity check */
-    WOLK_ASSERT(ctx->is_initialized == true);
+    WOLK_ASSERT(is_wolk_initialized(ctx));
+    WOLK_ASSERT(is_wolk_initialized(reference));
+    WOLK_ASSERT(is_wolk_initialized(feeds));
+    WOLK_ASSERT(is_wolk_initialized(number_of_feeds));
+    WOLK_ASSERT(number_of_feeds > FEEDS_MAX_NUMBER);
 
-    manifest_item_t bool_sensor;
-    manifest_item_init(&bool_sensor, (char *)reference, READING_TYPE_SENSOR, DATA_TYPE_BOOLEAN);
+    feed_t feed;
+    feed_initialize(&feed, number_of_feeds, reference);
 
-    reading_t reading;
-    reading_init(&reading, &bool_sensor);
-    if (value == true)
-    {
-        reading_set_data(&reading, BOOL_TRUE);
-    } else
-    {
-        reading_set_data(&reading, BOOL_FALSE);
-    }
-    reading_set_rtc(&reading, utc_time);
-
-    outbound_message_t outbound_message;
-    outbound_message_make_from_readings(&ctx->parser, ctx->device_key, &reading, 1, &outbound_message);
-
-    return persistence_push(&ctx->persistence, &outbound_message) ? W_FALSE : W_TRUE;
-
-}
-
-WOLK_ERR_T wolk_add_multi_value_bool_sensor_reading(wolk_ctx_t* ctx, const char* reference, bool* values,
-                                                    uint16_t values_size, uint32_t utc_time)
-{
-    /* Sanity check */
-    WOLK_ASSERT(ctx->is_initialized == true);
-    WOLK_ASSERT(READING_DIMENSIONS > 1);
-
-    manifest_item_t string_sensor;
-    manifest_item_init(&string_sensor, reference, READING_TYPE_SENSOR, DATA_TYPE_STRING);
-    manifest_item_set_reading_dimensions_and_delimiter(&string_sensor, values_size, DATA_DELIMITER);
-
-    reading_t reading;
-    reading_init(&reading, &string_sensor);
-    reading_set_rtc(&reading, utc_time);
-
-    for (uint32_t i = 0; i < values_size; ++i) {
-        reading_set_data_at(&reading, BOOL_TO_STR(values[i]), i);
-    }
-
-    outbound_message_t outbound_message;
-    outbound_message_make_from_readings(&ctx->parser, ctx->device_key, &reading, 1, &outbound_message);
-
-    return persistence_push(&ctx->persistence, &outbound_message) ? W_FALSE : W_TRUE;
-
-}
-
-WOLK_ERR_T wolk_publish_actuator_status(wolk_ctx_t* ctx, const char* reference)
-{
-    /* Sanity check */
-    WOLK_ASSERT(_is_wolk_initialized(ctx));
-
-    if (ctx->actuator_status_provider != NULL) {
-        actuator_status_t actuator_status = ctx->actuator_status_provider(reference);
-
-        outbound_message_t outbound_message;
-        if (!outbound_message_make_from_actuator_status(&ctx->parser, ctx->device_key, &actuator_status, reference,
-                                                        &outbound_message)) {
+    for (size_t i = 0; i < number_of_feeds; ++i) {
+        if (feeds->utc_time < 1000000000000 && feeds->utc_time != 0) // Unit ms and zero is valid value
+        {
+            Serial.println("Failed UTC attached to feed. It has to be in ms!\n");
             return W_TRUE;
         }
-        if (_publish(ctx, outbound_message.topic, outbound_message.payload) != W_FALSE) {
-            return persistence_push(&ctx->persistence, &outbound_message) ? W_FALSE : W_TRUE;
-        }
+
+        feed_set_data_at(&feed, feeds->value, i);
+        feed_set_utc(&feed, feeds->utc_time);
+
+        feeds++;
     }
 
-    return W_FALSE;
+    outbound_message_t outbound_message = {0};
+    outbound_message_make_from_feeds(&ctx->parser, ctx->device_key, &feed, STRING, number_of_feeds, 1,
+                                     &outbound_message);
+
+    return persistence_push(&ctx->persistence, &outbound_message) ? W_FALSE : W_TRUE;
 }
 
-WOLK_ERR_T wolk_publish_configuration(wolk_ctx_t* ctx)
+WOLK_ERR_T wolk_add_numeric_feed(wolk_ctx_t* ctx, const char* reference, wolk_numeric_feeds_t* feeds,
+                                 size_t number_of_feeds)
 {
     /* Sanity check */
-    WOLK_ASSERT(_is_wolk_initialized(ctx));
+    WOLK_ASSERT(is_wolk_initialized(ctx));
+    WOLK_ASSERT(is_wolk_initialized(reference));
+    WOLK_ASSERT(is_wolk_initialized(feeds));
+    WOLK_ASSERT(is_wolk_initialized(number_of_feeds));
+    WOLK_ASSERT(number_of_feeds > FEEDS_MAX_NUMBER);
 
-    if (ctx->configuration_provider != NULL) 
+    char value_string[FEED_ELEMENT_SIZE] = "";
+    feed_t feed;
+    feed_initialize(&feed, number_of_feeds, reference);
+
+    for (size_t i = 0; i < number_of_feeds; ++i) {
+        if (feeds->utc_time < 1000000000000 && feeds->utc_time != 0) // Unit ms and zero is valid value
         {
-            char references[CONFIGURATION_ITEMS_SIZE][CONFIGURATION_REFERENCE_SIZE];
-            char values[CONFIGURATION_ITEMS_SIZE][CONFIGURATION_VALUE_SIZE];
-
-            const size_t num_configuration_items =
-                ctx->configuration_provider(&references[0], &values[0], CONFIGURATION_ITEMS_SIZE);
-            if (num_configuration_items == 0) 
-            {
-                return W_TRUE;
-            }
-
-            outbound_message_t outbound_message;
-            if (!outbound_message_make_from_configuration(&ctx->parser, ctx->device_key, references, values,
-                                                          num_configuration_items, &outbound_message)) 
-            {
-                return W_TRUE;
-            }
-
-            if(_publish(ctx, outbound_message.topic, outbound_message.payload) != W_FALSE)
-            {
-                return persistence_push(&ctx->persistence, &outbound_message) ? W_FALSE : W_TRUE;
-            }
-
-            return W_FALSE;
+            Serial.println("Failed UTC attached to feed. It has to be in ms!\n");
+            return W_TRUE;
         }
-        return W_TRUE;
+
+        if (!snprintf(value_string, FEED_ELEMENT_SIZE, "%2f", feeds->value)) {
+            return W_TRUE;
+        }
+
+        feed_set_data_at(&feed, value_string, i);
+        feed_set_utc(&feed, feeds->utc_time);
+        Serial.println(value_string);
+
+        feeds++;
+    }
+
+    outbound_message_t outbound_message = {0};
+    outbound_message_make_from_feeds(&ctx->parser, ctx->device_key, &feed, NUMERIC, number_of_feeds, 1, &outbound_message);
+
+    return persistence_push(&ctx->persistence, &outbound_message) ? W_FALSE : W_TRUE;
 }
 
-WOLK_ERR_T wolk_disconnect(wolk_ctx_t *ctx)
+WOLK_ERR_T wolk_add_multi_value_numeric_feed(wolk_ctx_t* ctx, const char* reference, double* values,
+                                             uint16_t value_size, uint64_t utc_time)
 {
     /* Sanity check */
-    WOLK_ASSERT(ctx->is_initialized == true);
+    WOLK_ASSERT(is_wolk_initialized(ctx));
+    WOLK_ASSERT(value_size > FEEDS_MAX_NUMBER);
 
-    char lastwill_topic[TOPIC_SIZE];
+    if (utc_time < 1000000000000 && utc_time != 0) // Unit ms and zero is valid value
+    {
+        Serial.println("Failed UTC attached to feed. It has to be in ms!\n");
+        return W_TRUE;
+    }
 
-    memset (lastwill_topic, 0, TOPIC_SIZE);
-    strcpy (lastwill_topic, LASTWILL_TOPIC);
-    strcat (lastwill_topic, ctx->device_key);
+    feed_t feed;
+    feed_initialize(&feed, 1, reference); // one feed consisting of N numeric values
+    feed_set_utc(&feed, utc_time);
 
-    ctx->mqtt_client->publish(lastwill_topic, LASTWILL_MESSAGE);
-    ctx->mqtt_client->disconnect();
-    ctx->is_connected = false;
-    return W_FALSE;
+    char value_string_representation[FEED_ELEMENT_SIZE] = "";
+    for (size_t i = 0; i < value_size; ++i) {
+        if (!snprintf(value_string_representation, FEED_ELEMENT_SIZE, "%f", values[i])) {
+            return W_TRUE;
+        }
+
+        feed_set_data_at(&feed, value_string_representation, i);
+    }
+
+    outbound_message_t outbound_message = {0};
+    outbound_message_make_from_feeds(&ctx->parser, ctx->device_key, &feed, VECTOR, 1, value_size, &outbound_message);
+
+    return persistence_push(&ctx->persistence, &outbound_message) ? W_FALSE : W_TRUE;
+}
+
+WOLK_ERR_T wolk_add_bool_feeds(wolk_ctx_t* ctx, const char* reference, wolk_boolean_feeds_t* feeds,
+                               size_t number_of_feeds)
+{
+    /* Sanity check */
+    WOLK_ASSERT(is_wolk_initialized(ctx));
+
+    feed_t feed;
+    feed_initialize(&feed, number_of_feeds, reference);
+
+    for (size_t i = 0; i < number_of_feeds; ++i) {
+        if (feeds->utc_time < 1000000000000 && feeds->utc_time != 0) // Unit ms and zero is valid value
+        {
+            Serial.println("Failed UTC attached to feed. It has to be in ms!\n");
+            return W_TRUE;
+        }
+
+        feed_set_data_at(&feed, BOOL_TO_STR(feeds->value), i);
+        feed_set_utc(&feed, feeds->utc_time);
+
+        feeds++;
+    }
+
+    outbound_message_t outbound_message = {0};
+    outbound_message_make_from_feeds(&ctx->parser, ctx->device_key, &feed, BOOLEAN, number_of_feeds, 1,
+                                     &outbound_message);
+
+    return persistence_push(&ctx->persistence, &outbound_message) ? W_FALSE : W_TRUE;
 }
 
 WOLK_ERR_T _publish (wolk_ctx_t *ctx, char *topic, char *readings)
@@ -567,12 +357,6 @@ WOLK_ERR_T _publish (wolk_ctx_t *ctx, char *topic, char *readings)
     {
         return W_TRUE;
     }
-    return W_FALSE;
-}
-
-WOLK_ERR_T _subscribe (wolk_ctx_t *ctx, const char *topic)
-{
-    ctx->mqtt_client->subscribe(topic);
     return W_FALSE;
 }
 
@@ -587,7 +371,6 @@ WOLK_ERR_T wolk_disable_keep_alive(wolk_ctx_t* ctx)
 
 static WOLK_ERR_T _ping_keep_alive(wolk_ctx_t* ctx)
 {
-
     if (!ctx->is_keep_alive_enabled) {
         return W_FALSE;
     }
@@ -674,4 +457,33 @@ WOLK_ERR_T wolk_update_epoch(wolk_ctx_t* ctx)
 uint64_t wolk_request_timestamp(wolk_ctx_t* ctx)
 {
     return ctx->epoch_time;
+}
+
+WOLK_ERR_T _subscribe (wolk_ctx_t *ctx, const char *topic)
+{
+    ctx->mqtt_client->subscribe(topic);
+    return W_FALSE;
+}
+
+static WOLK_ERR_T subscribe_to(wolk_ctx_t* ctx, char* direction, char* message_type)
+{
+    char topic[TOPIC_SIZE] = "";
+
+    if (ctx->parser.type == PARSER_TYPE)
+    {
+        memset(topic, '\0', TOPIC_SIZE);
+        strcpy(&topic[0], direction);
+        strcat(&topic[0], "/");
+        strcat(&topic[0], ctx->device_key);
+        strcat(&topic[0], "/");
+        strcat(&topic[0], message_type);
+
+        if (_subscribe(ctx, topic) != W_FALSE) 
+        {
+         return W_TRUE;
+        }
+    }
+    Serial.println(topic);
+
+    return W_FALSE;
 }
