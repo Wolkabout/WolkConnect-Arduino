@@ -31,21 +31,9 @@
 extern "C" {
 #endif
 
-bool outbound_message_feed_registration(parser_t* parser, const char* device_key, feed_registration_t* feed,
-                                        size_t number_of_feeds, outbound_message_t* outbound_message);
-
-bool outbound_message_feed_removal(parser_t* parser, const char* device_key, feed_registration_t* feed,
-                                   size_t number_of_feeds, outbound_message_t* outbound_message);
-
 size_t outbound_message_make_from_feeds(parser_t* parser, const char* device_key, feed_t* feeds, data_type_t type,
                                         size_t feeds_number, size_t feeds_element_size,
                                         outbound_message_t* outbound_message);
-
-bool outbound_message_pull_feed_values(parser_t* parser, const char* device_key, outbound_message_t* outbound_message);
-
-bool outbound_message_synchronize_time(parser_t* parser, const char* device_key, outbound_message_t* outbound_message);
-bool outbound_message_details_synchronize(parser_t* parser, const char* device_key,
-                                          outbound_message_t* outbound_message);
 
 bool outbound_message_make_from_keep_alive_message(parser_t* parser, const char* device_key,
                                                    outbound_message_t* outbound_message);

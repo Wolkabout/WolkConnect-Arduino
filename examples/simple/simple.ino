@@ -1,4 +1,3 @@
-// #include <WiFi101.h>
 #include <WiFi.h>
 
 #include "WolkConn.h"

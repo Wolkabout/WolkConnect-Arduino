@@ -37,7 +37,7 @@ void feed_clear(feed_t* feed)
 void feed_set_data(feed_t* feed, const char** data)
 {
     for (size_t i = 0; i < feed->size; ++i) {
-        WOLK_ASSERT(strlen(data[i]) < READING_SIZE);
+        WOLK_ASSERT(strlen(data[i]) < FEED_ELEMENT_SIZE);
 
         strcpy(feed->data[i], data[i]);
     }
@@ -46,7 +46,7 @@ void feed_set_data(feed_t* feed, const char** data)
 void feed_set_data_at(feed_t* feed, const char* data, size_t data_position)
 {
     /* Sanity check */
-    WOLK_ASSERT(strlen(data) < READING_SIZE);
+    WOLK_ASSERT(strlen(data) < FEED_ELEMENT_SIZE);
 
     strcpy(feed->data[data_position], data);
 }

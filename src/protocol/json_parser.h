@@ -76,7 +76,6 @@ bool json_deserialize_details_synchronization(char* buffer, size_t buffer_size, 
                                               size_t* number_of_attributes);
 
 bool json_serialize_keep_alive_message(const char* device_key, outbound_message_t* outbound_message);
-bool json_deserialize_pong(char* buffer, size_t buffer_size, char* timestamp);
 
 #ifdef __cplusplus
 }

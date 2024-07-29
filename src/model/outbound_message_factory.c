@@ -43,50 +43,11 @@ size_t outbound_message_make_from_feeds(parser_t* parser, const char* device_key
     return num_serialized;
 }
 
-
-bool outbound_message_feed_registration(parser_t* parser, const char* device_key, feed_registration_t* feed,
-                                        size_t number_of_feeds, outbound_message_t* outbound_message)
-{
-    /* Sanity check */
-    WOLK_ASSERT(parser);
-    WOLK_ASSERT(device_key);
-    WOLK_ASSERT(feed);
-    WOLK_ASSERT(outbound_message);
-    return parser_serialize_feed_registration(parser, device_key, feed, number_of_feeds, outbound_message);
-}
-bool outbound_message_feed_removal(parser_t* parser, const char* device_key, feed_registration_t* feed,
-                                   size_t number_of_feeds, outbound_message_t* outbound_message)
-{
-    /* Sanity check */
-    WOLK_ASSERT(parser);
-    WOLK_ASSERT(device_key);
-    WOLK_ASSERT(feed);
-    WOLK_ASSERT(outbound_message);
-    return parser_serialize_feed_removal(parser, device_key, feed, number_of_feeds, outbound_message);
-}
-
-bool outbound_message_pull_feed_values(parser_t* parser, const char* device_key, outbound_message_t* outbound_message)
-{
-    WOLK_ASSERT(parser);
-    WOLK_ASSERT(device_key);
-
-    return parser_serialize_pull_feed_values(parser, device_key, outbound_message);
-}
-
 bool outbound_message_synchronize_time(parser_t* parser, const char* device_key, outbound_message_t* outbound_message)
 {
     WOLK_ASSERT(parser);
     WOLK_ASSERT(device_key);
     return parser_serialize_sync_time(parser, device_key, outbound_message);
-}
-
-bool outbound_message_details_synchronize(parser_t* parser, const char* device_key,
-                                          outbound_message_t* outbound_message)
-{
-    WOLK_ASSERT(parser);
-    WOLK_ASSERT(device_key);
-
-    return parser_serialize_details_synchronization(parser, device_key, outbound_message);
 }
 
 bool outbound_message_make_from_keep_alive_message(parser_t* parser, const char* device_key,
