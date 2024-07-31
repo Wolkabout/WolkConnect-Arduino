@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 WolkAbout Technology s.r.o.
+ * Copyright 2024 WolkAbout Technology s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,8 @@
  * limitations under the License.
  */
 
-#include "outbound_message.h"
-#include "wolk_utils.h"
-
-#include <string.h>
+#include "model/outbound_message.h"
+#include "utility/wolk_utils.h"
 
 void outbound_message_init(outbound_message_t* outbound_message, const char* topic, const char* payload)
 {

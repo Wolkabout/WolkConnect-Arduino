@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 WolkAbout Technology s.r.o.
+ * Copyright 2024 WolkAbout Technology s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,9 @@
 #ifndef PERSISTENCE_H
 #define PERSISTENCE_H
 
-#include "outbound_message.h"
-
-#include <stdbool.h>
-#include <stddef.h>
+#include "model/outbound_message.h"
+#include "model/outbound_message.h"
+#include "utility/wolk_utils.h"
 
 #ifdef __cplusplus
 extern "C" {

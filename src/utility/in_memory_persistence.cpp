@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 WolkAbout Technology s.r.o.
+ * Copyright 2024 WolkAbout Technology s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,7 @@
  */
 
 #include "in_memory_persistence.h"
-#include "circular_buffer.h"
-#include "outbound_message.h"
-#include "wolk_utils.h"
 
-#include <stdbool.h>
-#include <stdint.h>
 
 static circular_buffer_t buffer;
 

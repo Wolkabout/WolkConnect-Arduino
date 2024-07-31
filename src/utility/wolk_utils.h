@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 WolkAbout Technology s.r.o.
+ * Copyright 2024 WolkAbout Technology s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,14 @@
  * limitations under the License.
  */
 
-#ifndef UTILS_H
-#define UTILS_H
+#ifndef WOLK_UTILS_H
+#define WOLK_UTILS_H
+
+#include <assert.h>
 
 #define WOLK_UNUSED(x) ((void)x)
-#define WOLK_ASSERT(x)
+#define WOLK_ASSERT(__e) ((__e) ? (void)0 : __assert_func (__FILE__, __LINE__, \
+       __ASSERT_FUNC, #__e))
 
 #define WOLK_ARRAY_LENGTH(x) (sizeof(x) / sizeof((x)[0]))
 

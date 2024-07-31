@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 WolkAbout Technology s.r.o.
+ * Copyright 2024 WolkAbout Technology s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,7 @@
  */
 
 #include "WolkQueue.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+
 
 QUEUE_ERR_T wolk_queue_init (wolk_queue *ctx)
 {
