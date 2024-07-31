@@ -26,7 +26,7 @@ List of compatible hardware is driven by [PubSubClient](https://pubsubclient.kno
 WolkConnect-Arduino is transportation layer agnostic which means it is up to the user of the library to
 provide socket to WolkAbout IoT platform.
 
-Provided examples are made for Genuino MKR1000. Porting to other Arduino boards is done by replacing MKR1000 WiFi library with a library that fits the selected board.
+Provided examples are made for ESP32 boards.
 
 Supported protocol(s):
 * WOLKABOUT PROTOCOL

@@ -1,3 +1,4 @@
+/* NOT VERIFIED WITH THE NEW PROTOCOL*/
 #include <ESP8266WiFi.h>
 #include <WiFiClientSecure.h>
 #include <time.h>
@@ -11,6 +12,9 @@ const char *device_key = "device_key";
 const char *device_password = "device_password";
 const char* hostname = "api-demo.wolkabout.com";
 int portno = 8883;
+
+/* Example variables*/
+wolk_numeric_feeds_t temperature = {0};
 
 /* WolkConnect-Arduino Connector context */
 static wolk_ctx_t wolk;
@@ -45,11 +49,12 @@ void setup_wifi() {
   Serial.println(WiFi.localIP());
 }
 
-void reconnect_to_platform()
+bool reconnect_to_platform()
 {
+  Serial.println("Reconnecting to platform...");
   setup_wifi();
   
-  wolk_connect(&wolk);
+  return wolk_connect(&wolk);
 }
 
 void setup() {
@@ -82,16 +87,22 @@ void setup() {
     }
   }
   
-  wolk_init(&wolk, NULL, NULL, NULL, NULL,
-            device_key, device_password, &client, hostname, portno, NULL, NULL);
-
+  wolk_init(&wolk, device_key, device_password, &client, hostname, portno, PUSH, NULL, NULL);
   wolk_init_in_memory_persistence(&wolk, &outbound_messages, sizeof(outbound_messages), false);
 
-  wolk_connect(&wolk);
-
-  delay(1000);
+  if(wolk_connect(&wolk))
+  {
+    while(reconnect_to_platform())
+    {
+      delay(5000);
+    }
+  }
   
-  wolk_add_numeric_sensor_reading(&wolk, "T", 23.4, 0);
+  temperature.value = 23.4;
+  if(wolk_add_numeric_feed(&wolk, "T", &temperature, 1))
+  {
+    Serial.println("Failed to serialise reading!");
+  }
 
   wolk_publish(&wolk);
 
