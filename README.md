@@ -16,11 +16,11 @@
                                                                                                        
 ```
 # IMPORTANT
-**Compatible up to WolkAbout Platform 21.GA version.**
+**Compatible from WolkAbout Platform 22.GA version.**
 
 ----
 # WolkConnect-Arduino
-WolkAbout Arduino Connector library for connecting IP based Arduino devices to [WolkAbout IoT platform](https://demo.wolkabout.com/#/login).
+WolkAbout Arduino Connector library for connecting IP based Arduino devices to WolkAbout IoT platform instance.
 List of compatible hardware is driven by [PubSubClient](https://pubsubclient.knolleary.net/) Arduino library.
 
 WolkConnect-Arduino is transportation layer agnostic which means it is up to the user of the library to
@@ -35,6 +35,7 @@ Prerequisite
 ------
 Following libraries are required in order to run WolkConnect-Arduino examples
 
+  * WiFi arduino library for supporting ESP32 chipset
   * WiFi101 library, available in [Library Manager](https://www.arduino.cc/en/Guide/Libraries).
   * WolkConnect library, available in [Library Manager](https://www.arduino.cc/en/Guide/Libraries).
   Alternatively you can import it as a .zip library in the Arduino IDE.
@@ -45,13 +46,13 @@ Example Usage
 **Initialize WolkConnect-Arduino Connector**
 
 Create a device on WolkAbout IoT Platform by using the *Simple example* device type that is available on the platform. 
-This device type fits `SimpleExample.ino` and demonstrates the periodic sending of a temperature sensor reading.
+This device type fits `simple.ino` and demonstrates the periodic sending of a temperature sensor reading.
 
 ```c
 static const char *device_key = "device_key";
 static const char *password_key = "password_key";
 
-static const char* hostname = "api-demo.wolkabout.com";
+static const char* hostname = "platform-instance-url";
 static int portno = 1883;
 
 WiFiClient espClient;
@@ -61,17 +62,13 @@ PubSubClient client(espClient);
 **Initialize the context**
 ```c
 wolk_init(&wolk                 //ctx Context
-          NULL,                 //function pointer to 'actuation_handler_t' implementation
-          NULL,                 //function pointer to 'actuator_status_provider_t' implementation
-          NULL,                 //function pointer to 'configuration_handler_t' implementation
-          NULL,                 //function pointer to 'configuration_provider_t' implementation
           device_key,           //Device key provided by WolkAbout IoT Platform upon device creation
           device_password,      //Device password provided by WolkAbout IoT Platform device upon device creation
           &client,              //MQQT Client
           hostname,             //MQQT Server
           portno,               //Port to connect to
-          NULL,                 //Array of strings containing references of actuators that device possess
-          NULL);                //Number of actuator references contained in actuator_references
+          PUSH,                 //Device outbound mode - see outbound_mode_t
+          NULL);                //Feeds handler        - see feed_handler_t
 ```
 **Initialize in-memory persistence**
 ```c
@@ -88,15 +85,16 @@ wolk_connect(&wolk);
 
 **Adding sensor readings:**
 ```c
-wolk_add_numeric_sensor_reading(&wolk, "T", 23.4, 0);
+wolk_numeric_feeds_t feed = {0};
+feed.value = 23;
+wolk_add_numeric_feed(&wolk, "T", &feed, 1)
 ```
 **Data publish strategy:**
 
-In between adding data and publishing, data is stored in an user-defined buffer passed via persistence functions (along with the unpublished
-actuations and configurations, which are rare but they could be in there if you have network issues).
+In between adding feeds and publishing, feeds are stored in an user-defined buffer passed via persistence functions.
 The buffer stores an array of outbound_message_t which is 320 bytes in length.
 
-Stored sensor readings are pushed to WolkAbout IoT platform on demand by calling:
+Stored feeds are pushed to WolkAbout IoT platform on demand by calling:
 ```c
 wolk_publish(&wolk);
 ```
@@ -108,7 +106,7 @@ and it must to be called periodically.
 ```c
 wolk_process(&wolk);
 ```
-**Getting the epoch:**
+**Getting the epoch:** TODO
 
 Epoch time is stored in the wolk_ctx_t structure field named epoch_time and it's value is updated on every pong received.
 Optionally, you can update it by calling wolk_update_epoch(). Processing must be periodically called as this information is 
@@ -127,10 +125,6 @@ while (!(wolk.pong_received)) {
 ```c
 wolk_disconnect(&wolk)
 ```
-
-**Additional functionality**
-
-WolkConnect-Arduino library has integrated additional features which can perform full WolkAbout IoT platform potential. Read more about full feature set example [HERE](https://github.com/Wolkabout/WolkConnect-Arduino/tree/master/examples/full_feature_set).
 
 # Important note
 

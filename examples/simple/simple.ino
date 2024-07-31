@@ -18,22 +18,20 @@
 #include "WolkConn.h"
 #include "MQTTClient.h"
 
-// const char* ssid = "guest";
-// const char* wifi_pass = "g3tm3int0";
-const char* ssid = "stankovic-old-house";
-const char* wifi_pass = "dopsin11";
+const char* ssid = "";
+const char* wifi_pass = "";
 
-const char *device_key = "wcaarduino";
-const char *device_password = "VJ87PSEMD3";
-const char* hostname = "showcase.wolkabout.com";
-int portno = 2883; //unsecure
+const char *device_key = "device_key";
+const char *device_password = "password_key";
+const char* hostname = "wolkabout-platform-instance";
+int portno = 8883;
 
 /* WolkConnect-Arduino Connector context */
 static wolk_ctx_t wolk;
 outbound_message_t outbound_messages[STORE_SIZE];
 
-int counter = 0;
-wolk_numeric_feeds_t feed = {0};
+int loop_counter = 0;
+wolk_numeric_feeds_t temperature = {0};
 
 WiFiClient espClient;
 PubSubClient client(espClient);
@@ -71,7 +69,6 @@ void setup() {
   neopixelWrite(38, 0, 0, RGB_BRIGHTNESS); // Blue
 
   wolk_init(&wolk, device_key, device_password, &client, hostname, portno, PUSH, NULL, NULL);
-
   wolk_init_in_memory_persistence(&wolk, &outbound_messages, sizeof(outbound_messages), false);
 
   if(wolk_connect(&wolk))
@@ -86,18 +83,18 @@ void setup() {
 }
 
 void loop() {
-  counter += 1;
-  if(counter > 5)
+  loop_counter ++;
+  if(loop_counter > 5)
   {
     neopixelWrite(38, RGB_BRIGHTNESS, 0, 0); // Green
     Serial.println("Sending to platform!");
-    feed.value = random(300);
-    if(wolk_add_numeric_feed(&wolk, "N", &feed, 1))
+    temperature.value = random(300);
+    if(wolk_add_numeric_feed(&wolk, "T", &temperature, 1))
     {
       Serial.println("Failed to serialise reading!");
     }
     wolk_publish(&wolk);
-    counter = 0;
+    loop_counter = 0;
     neopixelWrite(38, 0, 0, 0); // Black (Off)
   }
   delay(1000);
