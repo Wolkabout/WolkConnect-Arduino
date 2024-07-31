@@ -23,15 +23,16 @@ const char* wifi_pass = "";
 
 const char *device_key = "device_key";
 const char *device_password = "password_key";
-const char* hostname = "wolkabout-platform-instance";
+const char* hostname = "wolkabout-platform-instance-url";
 int portno = 8883;
+
+/* Example variables*/
+int loop_counter = 0;
+wolk_numeric_feeds_t temperature = {0};
 
 /* WolkConnect-Arduino Connector context */
 static wolk_ctx_t wolk;
 outbound_message_t outbound_messages[STORE_SIZE];
-
-int loop_counter = 0;
-wolk_numeric_feeds_t temperature = {0};
 
 WiFiClient espClient;
 PubSubClient client(espClient);

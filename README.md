@@ -52,8 +52,8 @@ This device type fits `simple.ino` and demonstrates the periodic sending of a te
 static const char *device_key = "device_key";
 static const char *password_key = "password_key";
 
-static const char* hostname = "platform-instance-url";
-static int portno = 1883;
+static const char* hostname = "wolkabout-platform-instance-url";
+static int portno = 8883;
 
 WiFiClient espClient;
 PubSubClient client(espClient);
@@ -68,7 +68,8 @@ wolk_init(&wolk                 //ctx Context
           hostname,             //MQQT Server
           portno,               //Port to connect to
           PUSH,                 //Device outbound mode - see outbound_mode_t
-          NULL);                //Feeds handler        - see feed_handler_t
+          NULL,                 //Feeds handler        - see feed_handler_t
+          NULL);                //Error handler        - see error_handler_t
 ```
 **Initialize in-memory persistence**
 ```c
