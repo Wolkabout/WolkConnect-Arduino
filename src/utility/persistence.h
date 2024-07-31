@@ -18,9 +18,8 @@
 #define PERSISTENCE_H
 
 #include "model/outbound_message.h"
-
-#include <stdbool.h>
-#include <stddef.h>
+#include "model/outbound_message.h"
+#include "utility/wolk_utils.h"
 
 #ifdef __cplusplus
 extern "C" {

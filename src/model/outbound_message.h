@@ -17,6 +17,8 @@
 #ifndef OUTBOUND_MESSAGE_H
 #define OUTBOUND_MESSAGE_H
 
+#include <string.h>
+
 #include "utility/size_definitions.h"
 
 #ifdef __cplusplus

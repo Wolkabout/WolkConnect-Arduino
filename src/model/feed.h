@@ -17,11 +17,11 @@
 #ifndef FEED_H
 #define FEED_H
 
+#include <string.h>
+
 #include "utility/size_definitions.h"
 #include "utility/wolk_utils.h"
 #include "utility/wolk_types.h"
-
-#include <string.h>
 
 #ifdef __cplusplus
 extern "C" {

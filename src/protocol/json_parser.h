@@ -17,13 +17,16 @@
 #ifndef JSON_PARSER_H
 #define JSON_PARSER_H
 
+#include <stdbool.h>
+#include <stdio.h>
+#include <string.h>
+
 #include "model/feed.h"
 #include "model/outbound_message.h"
 #include "model/utc_command.h"
-
-#include <stdbool.h>
-#include <stddef.h>
-#include <stdint.h>
+#include "utility/size_definitions.h"
+#include "utility/jsmn.h"
+#include "utility/wolk_utils.h"
 
 #ifdef __cplusplus
 extern "C" {

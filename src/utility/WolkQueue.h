@@ -21,6 +21,10 @@
 extern "C" {
 #endif
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 /**
  * @brief WOLK_ERR_T Boolean used for error handling in Queue module
  */

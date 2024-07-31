@@ -15,12 +15,7 @@
  */
 
 #include "in_memory_persistence.h"
-#include "circular_buffer.h"
-#include "model/outbound_message.h"
-#include "wolk_utils.h"
 
-#include <stdbool.h>
-#include <stdint.h>
 
 static circular_buffer_t buffer;
 

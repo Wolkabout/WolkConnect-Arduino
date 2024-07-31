@@ -17,8 +17,6 @@
 #include "model/outbound_message.h"
 #include "utility/wolk_utils.h"
 
-#include <string.h>
-
 void outbound_message_init(outbound_message_t* outbound_message, const char* topic, const char* payload)
 {
     /* Sanity check */

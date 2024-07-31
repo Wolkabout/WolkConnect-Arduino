@@ -15,14 +15,6 @@
  */
 
 #include "protocol/parser.h"
-#include "protocol/json_parser.h"
-#include "utility/wolk_utils.h"
-
-#include <stdbool.h>
-#include <stddef.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <string.h>
 
 
 void initialize_parser(parser_t* parser, parser_type_t parser_type)

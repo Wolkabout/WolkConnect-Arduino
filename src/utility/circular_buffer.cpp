@@ -16,10 +16,6 @@
 
 #include "circular_buffer.h"
 
-#include <stdbool.h>
-#include <stdint.h>
-#include <string.h>
-
 static void increase_pointer(uint32_t* pointer, uint32_t storage_size)
 {
     if ((*pointer) == (storage_size - 1)) {

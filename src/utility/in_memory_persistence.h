@@ -22,9 +22,10 @@ extern "C" {
 #endif
 
 #include "model/outbound_message.h"
+#include "model/outbound_message.h"
+#include "utility/circular_buffer.h"
+#include "utility/wolk_utils.h"
 
-#include <stdbool.h>
-#include <stdint.h>
 
 void in_memory_persistence_init(void* storage, uint32_t num_elements, bool wrap);
 

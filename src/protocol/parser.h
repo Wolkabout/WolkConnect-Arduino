@@ -17,10 +17,12 @@
 #ifndef PARSER_H
 #define PARSER_H
 
-#include "model/outbound_message.h"
-#include "utility/wolk_types.h"
 #include "model/feed.h"
 #include "model/utc_command.h"
+#include "model/outbound_message.h"
+#include "utility/wolk_utils.h"
+#include "utility/wolk_types.h"
+#include "protocol/json_parser.h"
 
 #ifdef __cplusplus
 extern "C" {

@@ -14,12 +14,8 @@
  * limitations under the License.
  */
 
-#include "persistence.h"
-#include "model/outbound_message.h"
-#include "wolk_utils.h"
+#include "utility/persistence.h"
 
-#include <stdbool.h>
-#include <stddef.h>
 
 void persistence_init(persistence_t* persistence, persistence_push_t push, persistence_peek_t peek,
                       persistence_pop_t pop, persistence_is_empty_t is_empty)

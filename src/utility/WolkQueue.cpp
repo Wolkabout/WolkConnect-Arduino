@@ -15,9 +15,7 @@
  */
 
 #include "WolkQueue.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+
 
 QUEUE_ERR_T wolk_queue_init (wolk_queue *ctx)
 {

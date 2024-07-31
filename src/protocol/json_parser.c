@@ -15,16 +15,6 @@
  */
 
 #include "protocol/json_parser.h"
-#include "utility/size_definitions.h"
-#include "utility/jsmn.h"
-#include "utility/wolk_utils.h"
-
-#include <stdbool.h>
-#include <stddef.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
 #define JSON_TOKEN_SIZE FEEDS_MAX_NUMBER
 #define UTC_MILLISECONDS_LENGTH 14
