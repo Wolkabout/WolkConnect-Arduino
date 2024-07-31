@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 WolkAbout Technology s.r.o.
+ * Copyright 2024 WolkAbout Technology s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
  */
 
 #include "model/feed.h"
-
 
 void feed_initialize(feed_t* feed, uint16_t feed_size, const char* reference)
 {
@@ -51,15 +50,10 @@ void feed_set_data_at(feed_t* feed, const char* data, size_t data_position)
     strcpy(feed->data[data_position], data);
 }
 
-char** feed_get_data(feed_t* feed)
-{
-    // return feed->data;
-}
-
 char* feed_get_data_at(feed_t* feed, size_t data_position)
 {
     /* Sanity check */
-    WOLK_ASSERT(data_position < feed->manifest_item.data_dimensions);
+    WOLK_ASSERT(data_position < FEEDS_MAX_NUMBER);
 
     return feed->data[data_position];
 }

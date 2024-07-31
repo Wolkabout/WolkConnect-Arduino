@@ -18,31 +18,32 @@
  *@brief Header file with library function descriptions 
  */
 
-#ifndef WOLK_H
-#define WOLK_H
+#ifndef WOLKCONN_H
+#define WOLKCONN_H
 /** @cond */
 #include "MQTTClient.h"
-#include "utility/WolkQueue.h"
-#include "protocol/parser.h"
-#include "utility/size_definitions.h"
+
+#include "model/feed.h"
 #include "model/outbound_message.h"
 #include "model/outbound_message_factory.h"
-#include "utility/wolk_utils.h"
-#include "model/parameter.h"
-
+#include "model/utc_command.h"
 #include "utility/in_memory_persistence.h"
 #include "utility/persistence.h"
-#include "model/feed.h"
+#include "utility/size_definitions.h"
+#include "utility/wolk_utils.h"
+#include "utility/WolkQueue.h"
+#include "protocol/parser.h"
 
-#include "Arduino.h"
-
-#include <stdbool.h>
-#include <stdint.h>
-#include <stdlib.h>
-/** @endcond */
 #ifdef __cplusplus
 extern "C" {
 #endif
+/** @endcond */
+
+#define LASTWILL_TOPIC      "lastwill/"
+#define LASTWILL_MESSAGE    "Gone offline"
+#define QOS_LEVEL           1
+
+const unsigned long ping_interval = 60000;
 
 /**
  * @brief WOLK_ERR_T Boolean used for error handling in Wolk connection module
@@ -66,7 +67,7 @@ typedef struct wolk_numeric_feeds_t {
  * @brief  WolkAbout IoT Platform string feed type.
  */
 typedef struct wolk_string_feeds_t {
-    char* value;
+    char value[FEED_ELEMENT_SIZE];
     uint64_t utc_time;
 } wolk_string_feeds_t;
 
@@ -79,9 +80,8 @@ typedef struct wolk_boolean_feeds_t {
 } wolk_boolean_feeds_t;
 
 typedef feed_t wolk_feed_t;
-typedef feed_registration_t wolk_feed_registration_t;
-typedef parameter_t wolk_parameter_t;
-typedef attribute_t wolk_attribute_t;
+
+typedef struct _wolk_ctx_t wolk_ctx_t;
 
 /**
  * @brief Declaration of feed value handler.
@@ -91,26 +91,9 @@ typedef attribute_t wolk_attribute_t;
  */
 typedef void (*feed_handler_t)(wolk_feed_t* feeds, size_t number_of_feeds);
 
-/**
- * @brief Declaration of parameter handler.
- *
- * @param parameter_message Parameters received as name:value pairs from WolkAbout IoT Platform.
- * @param number_of_parameters number of received parameters
+/*
  */
-typedef void (*parameter_handler_t)(wolk_parameter_t* parameter_message, size_t number_of_parameters);
-
-/**
- * @brief Declaration of details synchronization handler. It will be called as a response on the
- * wolk_details_synchronization() call. It will give list of the all feeds and attributes from the platform.
- *
- * @param parameter_message Parameters received as name:value pairs from WolkAbout IoT Platform.
- * @param number_of_parameters number of received parameters
- */
-typedef void (*details_synchronization_handler_t)(wolk_feed_registration_t* feeds, size_t number_of_received_feeds,
-                                                  wolk_attribute_t* attributes, size_t number_of_received_attributes);
-
-
-typedef struct _wolk_ctx_t wolk_ctx_t;
+typedef void (*error_handler_t)(wolk_ctx_t* ctx, char* error);
 
 struct _wolk_ctx_t {
     int sock;
@@ -120,12 +103,8 @@ struct _wolk_ctx_t {
 
     feed_handler_t feed_handler; /**< Callback for handling incoming feeds from WolkAbout IoT Platform.
                                               @see feed_handler_t*/
-
-    parameter_handler_t parameter_handler; /**< Callback for handling received configuration from WolkAbout IoT
-                                                      Platform. @see parameter_handler_t*/
-
-    details_synchronization_handler_t details_synchronization_handler; /**< Callback for handling received details
-configuration from WolkAbout IoT Platform. @see attribute_handler_t*/
+    error_handler_t error_handler;/* Callback for handling incoming errors from WolkAbout IoT Platform.
+                                              @see error_handler_t*/
 
     char device_key[DEVICE_KEY_SIZE];                       /**<  Authentication parameters for WolkAbout IoT Platform. Obtained as a result of device creation on the platform.*/
     char device_password[DEVICE_PASSWORD_SIZE];             /**<  Authentication parameters for WolkAbout IoT Platform. Obtained as a result of device creation on the platform.*/
@@ -145,7 +124,6 @@ configuration from WolkAbout IoT Platform. @see attribute_handler_t*/
                                                             Since this is updated by receiving the value from the platform, wolk_process must also be called*/
 };
 
-//TODO: continue
 /**
  * @brief Initializes WolkAbout IoT Platform connector context
  * @param ctx Context
@@ -162,38 +140,7 @@ configuration from WolkAbout IoT Platform. @see attribute_handler_t*/
  */
 WOLK_ERR_T wolk_init(wolk_ctx_t* ctx,
                     const char* device_key, const char* device_password, PubSubClient *client, const char *server, int port,
-                    outbound_mode_t outbound_mode, feed_handler_t feed_handler,
-                    parameter_handler_t parameter_handler,
-                    details_synchronization_handler_t details_synchronization_handler);
-/**
- * @brief Initializes persistence mechanism with in-memory implementation
- *
- * @param ctx Context
- * @param storage Address to start of the memory which will be used by
- * persistence mechanism
- * @param size Size of memory in bytes
- * @param wrap If storage is full overwrite oldest item when pushing new item
- *
- * @return Error code
- */
-WOLK_ERR_T wolk_init_in_memory_persistence(wolk_ctx_t* ctx, void* storage, uint32_t size, bool wrap);
-/**
- * @brief Initializes persistence mechanism with custom implementation
- *
- * @param ctx Context
- * @param push Function pointer to 'push' implemenation
- * @param peek Function pointer to 'peek' implementation
- * @param pop Function pointer to 'pop' implementation
- * @param is_empty Function pointer to 'is empty' implementation
- *
- * @return Error code
- *
- * @see persistence.h for signatures of methods to be implemented, and
- * implementation contract
- */
-WOLK_ERR_T wolk_init_custom_persistence(wolk_ctx_t* ctx, persistence_push_t push, persistence_peek_t peek,
-                                        persistence_pop_t pop, persistence_is_empty_t is_empty);
-
+                    outbound_mode_t outbound_mode, feed_handler_t feed_handler, error_handler_t error_handler);
 
 /**
  * @brief Connect to WolkAbout IoT Platform
@@ -297,6 +244,35 @@ WOLK_ERR_T wolk_add_bool_feeds(wolk_ctx_t* ctx, const char* reference, wolk_bool
 WOLK_ERR_T wolk_publish(wolk_ctx_t* ctx);
 
 /**
+ * @brief Initializes persistence mechanism with in-memory implementation
+ *
+ * @param ctx Context
+ * @param storage Address to start of the memory which will be used by
+ * persistence mechanism
+ * @param size Size of memory in bytes
+ * @param wrap If storage is full overwrite oldest item when pushing new item
+ *
+ * @return Error code
+ */
+WOLK_ERR_T wolk_init_in_memory_persistence(wolk_ctx_t* ctx, void* storage, uint32_t size, bool wrap);
+/**
+ * @brief Initializes persistence mechanism with custom implementation
+ *
+ * @param ctx Context
+ * @param push Function pointer to 'push' implemenation
+ * @param peek Function pointer to 'peek' implementation
+ * @param pop Function pointer to 'pop' implementation
+ * @param is_empty Function pointer to 'is empty' implementation
+ *
+ * @return Error code
+ *
+ * @see persistence.h for signatures of methods to be implemented, and
+ * implementation contract
+ */
+WOLK_ERR_T wolk_init_custom_persistence(wolk_ctx_t* ctx, persistence_push_t push, persistence_peek_t peek,
+                                        persistence_pop_t pop, persistence_is_empty_t is_empty);
+
+/**
  * @brief Disables internal keep alive mechanism
  *
  * @param ctx Context
@@ -306,14 +282,14 @@ WOLK_ERR_T wolk_publish(wolk_ctx_t* ctx);
 WOLK_ERR_T wolk_disable_keep_alive(wolk_ctx_t* ctx);
 
 /**
- * @brief Requests the epoch time from the platform and awaits reply.
+ * @brief Requests device time synchronization with the platform clock and awaits reply.
  *  If the reply did not arrive within 60 seconds it returns W_TRUE.
  * 
  * @param ctx Context
  *
  * @return Error code
  */
-WOLK_ERR_T wolk_update_epoch(wolk_ctx_t* ctx);
+WOLK_ERR_T wolk_time_sync(wolk_ctx_t* ctx);
 
 /**
  * @brief Get last received UTC from platform
@@ -322,7 +298,7 @@ WOLK_ERR_T wolk_update_epoch(wolk_ctx_t* ctx);
  *
  * @return UTC in miliseconds
  */
-uint64_t wolk_request_timestamp(wolk_ctx_t* ctx);
+uint64_t wolk_get_timestamp(wolk_ctx_t* ctx);
 
 #ifdef __cplusplus
 }

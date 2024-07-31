@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 WolkAbout Technology s.r.o.
+ * Copyright 2024 WolkAbout Technology s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
  */
 
 #include "model/outbound_message_factory.h"
-
 
 size_t outbound_message_make_from_feeds(parser_t* parser, const char* device_key, feed_t* feeds, data_type_t type,
                                         size_t feeds_number, size_t feeds_element_size,
@@ -58,6 +57,5 @@ bool outbound_message_make_from_keep_alive_message(parser_t* parser, const char*
     WOLK_ASSERT(device_key);
     WOLK_ASSERT(outbound_message);
 
-    // return parser_serialize_keep_alive_message(parser, device_key, outbound_message);
-    return true;
+    return parser_serialize_keep_alive_message(parser, device_key, outbound_message);
 }

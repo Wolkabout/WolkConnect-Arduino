@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 WolkAbout Technology s.r.o.
+ * Copyright 2024 WolkAbout Technology s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,66 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 #include "WolkConn.h"
-#include "protocol/parser.h"
-#include "MQTTClient.h"
-#include "utility/wolk_utils.h"
-#include "model/outbound_message.h"
-#include "model/outbound_message_factory.h"
 
-#include <stdarg.h>
-#include <string.h>
-#include <unistd.h>
-#include <stdio.h>
-
-#define BOOL_FALSE          "false"
-#define BOOL_TRUE           "true"
-
-#define LASTWILL_TOPIC      "lastwill/"
-#define LASTWILL_MESSAGE    "Gone offline"
-#define QOS_LEVEL           1
-
-#define EPOCH_WAIT          60000
-
-const unsigned long ping_interval = 60000;
-
+static void callback(void *wolk, char* topic, byte* payload, unsigned int length);
+static bool is_wolk_initialized(wolk_ctx_t* ctx);
+static WOLK_ERR_T _subscribe (wolk_ctx_t *ctx, const char *topic);
+static WOLK_ERR_T subscribe_to(wolk_ctx_t* ctx, char* direction, char* message_type);
+static WOLK_ERR_T _publish (wolk_ctx_t *ctx, char *topic, char *feeds);
 static WOLK_ERR_T _ping_keep_alive(wolk_ctx_t* ctx);
 
-static WOLK_ERR_T subscribe_to(wolk_ctx_t* ctx, char* direction, char* message_type);
-static WOLK_ERR_T receive(wolk_ctx_t* ctx);
-static WOLK_ERR_T _subscribe (wolk_ctx_t *ctx, const char *topic);
-static WOLK_ERR_T _publish (wolk_ctx_t *ctx, char *topic, char *feeds);
-static void callback(void *wolk, char* topic, byte* payload, unsigned int length);
-
-static bool is_wolk_initialized(wolk_ctx_t* ctx);
-
-static void handle_feeds(wolk_ctx_t* ctx, feed_t* feeds, size_t number_of_feeds);
-//TODO
-// static void handle_utc_command(wolk_ctx_t* ctx, utc_command_t* utc);
-// static void handle_details_synchronization_message(wolk_ctx_t* ctx, feed_registration_t* feeds, size_t number_of_feeds,
-//                                               attribute_t* attributes, size_t number_of_attributes);
 static void handle_feeds(wolk_ctx_t* ctx, feed_t* feeds, size_t number_of_feeds);
 static void handle_error_message(wolk_ctx_t* ctx, char* error);
+static void handle_utc_command(wolk_ctx_t* ctx, utc_command_t* utc);
 
 static char *_double_to_string(double input, signed char width, unsigned char precision, char *output);
 
 
 WOLK_ERR_T wolk_init(wolk_ctx_t* ctx,
                     const char* device_key, const char* device_password, PubSubClient *client, const char *server, int port,
-                    outbound_mode_t outbound_mode, feed_handler_t feed_handler,
-                    parameter_handler_t parameter_handler,
-                    details_synchronization_handler_t details_synchronization_handler)
+                    outbound_mode_t outbound_mode, feed_handler_t feed_handler, error_handler_t error_handler)
 {
     /* Sanity check */
-
     WOLK_ASSERT(device_key != NULL);
     WOLK_ASSERT(device_password != NULL);
-
     WOLK_ASSERT(strlen(device_key) < DEVICE_KEY_SIZE);
     WOLK_ASSERT(strlen(device_password) < DEVICE_PASSWORD_SIZE);
-
-    WOLK_ASSERT(protocol == PROTOCOL_SINGLE);
 
     ctx->mqtt_client = client;
     ctx->mqtt_client->setServer(server, port);
@@ -85,6 +50,7 @@ WOLK_ERR_T wolk_init(wolk_ctx_t* ctx,
     strcpy (ctx->device_password, device_password);
 
     ctx->feed_handler = feed_handler;
+    ctx->error_handler = error_handler;
     ctx->outbound_mode = outbound_mode;
 
     initialize_parser(&ctx->parser, PARSER_TYPE);
@@ -122,8 +88,7 @@ WOLK_ERR_T wolk_connect(wolk_ctx_t *ctx)
     {
         Serial.println("connected!");
         ctx->is_connected = true;
-    } 
-    else 
+    } else 
     {
         Serial.print("failed with error code ");
         Serial.println(ctx->mqtt_client->state());
@@ -132,12 +97,20 @@ WOLK_ERR_T wolk_connect(wolk_ctx_t *ctx)
     }
 
     /* Subscribe to topics */
-    int result = subscribe_to(ctx, ctx->parser.P2D_TOPIC, ctx->parser.FEED_VALUES_MESSAGE_TOPIC);
-    // TODO: parse response
-    result = subscribe_to(ctx, ctx->parser.P2D_TOPIC, ctx->parser.SYNC_TIME_TOPIC);
-    result = subscribe_to(ctx, ctx->parser.P2D_TOPIC, ctx->parser.ERROR_TOPIC);
+    if(subscribe_to(ctx, ctx->parser.P2D_TOPIC, ctx->parser.FEED_VALUES_MESSAGE_TOPIC))
+    {
+        return W_TRUE;
+    }
+    if(subscribe_to(ctx, ctx->parser.P2D_TOPIC, ctx->parser.SYNC_TIME_TOPIC))
+    {
+        return W_TRUE;
+    }
+    if(subscribe_to(ctx, ctx->parser.P2D_TOPIC, ctx->parser.ERROR_TOPIC))
+    {
+        return W_TRUE;
+    }
 
-    return result;
+    return W_FALSE;
 }
 
 WOLK_ERR_T wolk_disconnect(wolk_ctx_t *ctx)
@@ -157,38 +130,6 @@ WOLK_ERR_T wolk_disconnect(wolk_ctx_t *ctx)
     return W_FALSE;
 }
 
-// This is platform receive section
-void callback(void *wolk, char* topic, byte*payload, unsigned int length)
-{
-    wolk_ctx_t *ctx = (wolk_ctx_t *)wolk;
-    char payload_str[PAYLOAD_SIZE];
-    memset (payload_str, 0, PAYLOAD_SIZE);
-
-    memcpy(payload_str, payload, length);
-
-    if(strstr(topic, ctx->parser.P2D_TOPIC) != NULL)
-    {
-        if(strstr(topic, ctx->parser.FEED_VALUES_MESSAGE_TOPIC) != NULL)
-        {
-            feed_t feeds_received[FEED_ELEMENT_SIZE];
-            const size_t number_of_deserialized_feeds =
-                parser_deserialize_feeds_message(&ctx->parser, (char*)payload, (size_t)length, feeds_received);
-            if (number_of_deserialized_feeds != 0) {
-                handle_feeds(ctx, feeds_received, number_of_deserialized_feeds);
-            }
-        } else if(strstr(topic, ctx->parser.SYNC_TIME_TOPIC) != NULL)
-        {
-            //TODO handle
-        } else if(strstr(topic, ctx->parser.ERROR_TOPIC) != NULL)
-        {
-            //TODO handle: when action can't be taken by platform here will be posted feedback
-        }
-    } else
-    {
-        Serial.println("Received topic is not exepcted direction \"P2D\"!");
-    }
-}
-
 WOLK_ERR_T wolk_process (wolk_ctx_t *ctx)
 {
     /* Sanity check */
@@ -203,7 +144,6 @@ WOLK_ERR_T wolk_process (wolk_ctx_t *ctx)
         return W_TRUE;
     }
 
-    // TODO: use RTC as ping
     if (_ping_keep_alive(ctx) != W_FALSE) {
         return W_TRUE;
     }
@@ -211,32 +151,16 @@ WOLK_ERR_T wolk_process (wolk_ctx_t *ctx)
     return W_FALSE;
 }
 
-WOLK_ERR_T wolk_init_in_memory_persistence(wolk_ctx_t* ctx, void* storage, uint32_t size, bool wrap)
-{
-    in_memory_persistence_init(storage, size, wrap);
-    persistence_init(&ctx->persistence, in_memory_persistence_push, in_memory_persistence_peek,
-                     in_memory_persistence_pop, in_memory_persistence_is_empty);
-    return W_FALSE;
-}
-
-WOLK_ERR_T wolk_init_custom_persistence(wolk_ctx_t* ctx, persistence_push_t push, persistence_peek_t peek,
-                                        persistence_pop_t pop, persistence_is_empty_t is_empty)
-{
-    persistence_init(&ctx->persistence, push, peek, pop, is_empty);
-
-    return W_FALSE;
-}
-
-
 WOLK_ERR_T wolk_add_string_feed(wolk_ctx_t* ctx, const char* reference, wolk_string_feeds_t* feeds,
                                 size_t number_of_feeds)
 {
     /* Sanity check */
     WOLK_ASSERT(is_wolk_initialized(ctx));
-    WOLK_ASSERT(is_wolk_initialized(reference));
-    WOLK_ASSERT(is_wolk_initialized(feeds));
-    WOLK_ASSERT(is_wolk_initialized(number_of_feeds));
-    WOLK_ASSERT(number_of_feeds > FEEDS_MAX_NUMBER);
+    if(number_of_feeds > FEEDS_MAX_NUMBER || number_of_feeds <= 0)
+    {
+        Serial.println("Can't serialised feeds!");
+        return W_TRUE; 
+    }
 
     feed_t feed;
     feed_initialize(&feed, number_of_feeds, reference);
@@ -266,10 +190,11 @@ WOLK_ERR_T wolk_add_numeric_feed(wolk_ctx_t* ctx, const char* reference, wolk_nu
 {
     /* Sanity check */
     WOLK_ASSERT(is_wolk_initialized(ctx));
-    WOLK_ASSERT(is_wolk_initialized(reference));
-    WOLK_ASSERT(is_wolk_initialized(feeds));
-    WOLK_ASSERT(is_wolk_initialized(number_of_feeds));
-    WOLK_ASSERT(number_of_feeds > FEEDS_MAX_NUMBER);
+    if(number_of_feeds > FEEDS_MAX_NUMBER || number_of_feeds <= 0)
+    {
+        Serial.println("Can't serialised feeds!");
+        return W_TRUE; 
+    }
 
     char value_string[FEED_ELEMENT_SIZE] = "";
     feed_t feed;
@@ -304,7 +229,11 @@ WOLK_ERR_T wolk_add_multi_value_numeric_feed(wolk_ctx_t* ctx, const char* refere
 {
     /* Sanity check */
     WOLK_ASSERT(is_wolk_initialized(ctx));
-    WOLK_ASSERT(value_size > FEEDS_MAX_NUMBER);
+    if(value_size > FEEDS_MAX_NUMBER || value_size <= 0)
+    {
+        Serial.println("Can't serialised feeds!");
+        return W_TRUE; 
+    }
 
     if (utc_time < 1000000000000 && utc_time != 0) // Unit ms and zero is valid value
     {
@@ -336,6 +265,11 @@ WOLK_ERR_T wolk_add_bool_feeds(wolk_ctx_t* ctx, const char* reference, wolk_bool
 {
     /* Sanity check */
     WOLK_ASSERT(is_wolk_initialized(ctx));
+    if(number_of_feeds > FEEDS_MAX_NUMBER || number_of_feeds <= 0)
+    {
+        Serial.println("Can't serialised feeds!");
+        return W_TRUE; 
+    }
 
     feed_t feed;
     feed_initialize(&feed, number_of_feeds, reference);
@@ -358,50 +292,6 @@ WOLK_ERR_T wolk_add_bool_feeds(wolk_ctx_t* ctx, const char* reference, wolk_bool
                                      &outbound_message);
 
     return persistence_push(&ctx->persistence, &outbound_message) ? W_FALSE : W_TRUE;
-}
-
-WOLK_ERR_T _publish (wolk_ctx_t *ctx, char *topic, char *feeds)
-{
-    if(!(ctx->mqtt_client->publish(topic, feeds)))
-    {
-        return W_TRUE;
-    }
-    return W_FALSE;
-}
-
-WOLK_ERR_T wolk_disable_keep_alive(wolk_ctx_t* ctx)
-{
-    /* Sanity check */
-    WOLK_ASSERT(ctx);
-
-    ctx->is_keep_alive_enabled = false;
-    return W_FALSE;
-}
-
-//TODO
-static WOLK_ERR_T _ping_keep_alive(wolk_ctx_t* ctx)
-{
-    if (!ctx->is_keep_alive_enabled) {
-        return W_FALSE;
-    }
-
-    unsigned long currentMillis = millis();
- 
-    if(currentMillis - ctx->millis_last_ping > ping_interval) {
-
-        ctx->millis_last_ping = currentMillis;
-
-        outbound_message_t outbound_message;
-        outbound_message_make_from_keep_alive_message(&ctx->parser, ctx->device_key, &outbound_message);
-    
-        if (_publish(ctx, outbound_message.topic, outbound_message.payload) != W_FALSE) {
-            return W_TRUE;
-        }
-
-        return W_FALSE;
-    }
-
-    return W_FALSE;
 }
 
 WOLK_ERR_T wolk_publish(wolk_ctx_t* ctx)
@@ -430,43 +320,110 @@ WOLK_ERR_T wolk_publish(wolk_ctx_t* ctx)
     return W_FALSE;
 }
 
-WOLK_ERR_T wolk_update_epoch(wolk_ctx_t* ctx)
+WOLK_ERR_T wolk_init_in_memory_persistence(wolk_ctx_t* ctx, void* storage, uint32_t size, bool wrap)
+{
+    in_memory_persistence_init(storage, size, wrap);
+    persistence_init(&ctx->persistence, in_memory_persistence_push, in_memory_persistence_peek,
+                     in_memory_persistence_pop, in_memory_persistence_is_empty);
+    return W_FALSE;
+}
+
+WOLK_ERR_T wolk_init_custom_persistence(wolk_ctx_t* ctx, persistence_push_t push, persistence_peek_t peek,
+                                        persistence_pop_t pop, persistence_is_empty_t is_empty)
+{
+    persistence_init(&ctx->persistence, push, peek, pop, is_empty);
+
+    return W_FALSE;
+}
+
+WOLK_ERR_T wolk_disable_keep_alive(wolk_ctx_t* ctx)
+{
+    /* Sanity check */
+    WOLK_ASSERT(ctx);
+
+    ctx->is_keep_alive_enabled = false;
+    return W_FALSE;
+}
+
+WOLK_ERR_T wolk_time_sync(wolk_ctx_t* ctx)
 {
     WOLK_ASSERT(ctx->is_connected == true);
 
     outbound_message_t outbound_message;
-
-    outbound_message_make_from_keep_alive_message(&ctx->parser, ctx->device_key, &outbound_message);
+    outbound_message_synchronize_time(&ctx->parser, ctx->device_key, &outbound_message);
 
     if (_publish(ctx, outbound_message.topic, outbound_message.payload) != W_FALSE) {
         return W_TRUE;
     }
 
-    delay(100);
-
-    unsigned long currentMillis = millis();
-
-    while (millis() - currentMillis < EPOCH_WAIT) {
-        wolk_process(ctx);
-        digitalWrite(LED_BUILTIN, HIGH);
-        // if(ctx->pong_received){
-        //     digitalWrite(LED_BUILTIN, LOW);
-        //     wolk_disconnect(ctx);
-        //     return W_FALSE;
-        // }
-    }
-
-    Serial.println("Epoch time not received");
-
     return W_TRUE;
 }
 
-uint64_t wolk_request_timestamp(wolk_ctx_t* ctx)
+uint64_t wolk_get_timestamp(wolk_ctx_t* ctx)
 {
     return ctx->epoch_time;
 }
 
-WOLK_ERR_T _subscribe (wolk_ctx_t *ctx, const char *topic)
+// This is platform receive section
+static void callback(void *wolk, char* topic, byte*payload, unsigned int length)
+{
+    wolk_ctx_t *ctx = (wolk_ctx_t *)wolk;
+    char payload_str[PAYLOAD_SIZE];
+
+    memset (payload_str, 0, PAYLOAD_SIZE);
+    if(length > PAYLOAD_SIZE)
+    {
+        Serial.println("Received payload length can't be proccessed!");
+        return; 
+    }
+    memcpy(payload_str, payload, length);
+
+    if(strstr(topic, ctx->parser.P2D_TOPIC) != NULL)
+    {
+        Serial.println("P2D message received.");
+        if(strstr(topic, ctx->parser.FEED_VALUES_MESSAGE_TOPIC) != NULL)
+        {
+            // TODO: FIX: don't parse well multi feeds
+            Serial.println("FEED VALUE message received.");
+            feed_t feeds_received[FEED_ELEMENT_SIZE];
+            const size_t number_of_deserialized_feeds = 
+                parser_deserialize_feeds_message(&ctx->parser, (char*)payload_str, (size_t)length, feeds_received);
+            if (number_of_deserialized_feeds != 0) {
+                handle_feeds(ctx, feeds_received, number_of_deserialized_feeds);
+            }
+        } else if(strstr(topic, ctx->parser.SYNC_TIME_TOPIC) != NULL)
+        {
+            Serial.println("UTC received.");
+            utc_command_t utc_command;
+            const size_t num_deserialized_commands =
+                parser_deserialize_time(&ctx->parser, (char*)payload_str, (size_t)length, &utc_command);
+            if (num_deserialized_commands != 0) {
+                handle_utc_command(ctx, &utc_command);
+            }
+        } else if(strstr(topic, ctx->parser.ERROR_TOPIC) != NULL)
+        {
+            Serial.println("ERROR received.");
+            if (length != 0) {
+                handle_error_message(ctx, (char*)payload_str);
+            }
+        } else{
+            Serial.println("Uknown message received.");
+        }
+    } else
+    {
+        Serial.println("Received topic is not exepcted direction \"P2D\"!");
+    }
+}
+
+static bool is_wolk_initialized(wolk_ctx_t* ctx)
+{
+    /* Sanity Check */
+    WOLK_ASSERT(ctx);
+
+    return ctx->is_initialized && persistence_is_initialized(&ctx->persistence);
+}
+
+static WOLK_ERR_T _subscribe (wolk_ctx_t *ctx, const char *topic)
 {
     ctx->mqtt_client->subscribe(topic);
     return W_FALSE;
@@ -495,6 +452,40 @@ static WOLK_ERR_T subscribe_to(wolk_ctx_t* ctx, char* direction, char* message_t
     return W_FALSE;
 }
 
+static WOLK_ERR_T _publish (wolk_ctx_t *ctx, char *topic, char *feeds)
+{
+    if(!(ctx->mqtt_client->publish(topic, feeds)))
+    {
+        return W_TRUE;
+    }
+    return W_FALSE;
+}
+
+static WOLK_ERR_T _ping_keep_alive(wolk_ctx_t* ctx)
+{
+    if (!ctx->is_keep_alive_enabled) {
+        return W_FALSE;
+    }
+
+    unsigned long currentMillis = millis();
+ 
+    if(currentMillis - ctx->millis_last_ping > ping_interval) {
+
+        ctx->millis_last_ping = currentMillis;
+
+        outbound_message_t outbound_message;
+        outbound_message_make_from_keep_alive_message(&ctx->parser, ctx->device_key, &outbound_message);
+    
+        if (_publish(ctx, outbound_message.topic, outbound_message.payload) != W_FALSE) {
+            return W_TRUE;
+        }
+
+        return W_FALSE;
+    }
+
+    return W_FALSE;
+}
+
 static void handle_feeds(wolk_ctx_t* ctx, feed_t* feeds, size_t number_of_feeds)
 {
     /* Sanity Check */
@@ -503,6 +494,25 @@ static void handle_feeds(wolk_ctx_t* ctx, feed_t* feeds, size_t number_of_feeds)
     if (ctx->feed_handler != NULL) {
         ctx->feed_handler(feeds, number_of_feeds);
     }
+}
+
+static void handle_error_message(wolk_ctx_t* ctx, char* error)
+{
+    WOLK_UNUSED(ctx);
+    WOLK_UNUSED(error);
+
+    if (ctx->error_handler != NULL) {
+        ctx->error_handler(ctx, error);
+    }
+}
+
+static void handle_utc_command(wolk_ctx_t* ctx, utc_command_t* utc)
+{
+    /* Sanity check */
+    WOLK_ASSERT(ctx);
+    WOLK_ASSERT(utc);
+
+    ctx->epoch_time = utc_command_get(utc);
 }
 
 static char *_double_to_string(double input, signed char width, unsigned char precision, char *output) {

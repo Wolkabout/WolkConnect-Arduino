@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 WolkAbout Technology s.r.o.
+ * Copyright 2024 WolkAbout Technology s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,21 @@
  * limitations under the License.
  */
 
-#ifndef WOLKCONNECTOR_C_UTC_COMMAND_H
-#define WOLKCONNECTOR_C_UTC_COMMAND_H
+#ifndef UTC_COMMAND_H
+#define UTC_COMMAND_H
 
-#include <stdint.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef struct {
-    uint64_t utc;
+    unsigned long utc;
 } utc_command_t;
 
-uint64_t utc_command_get(utc_command_t* utc_command);
+unsigned long utc_command_get(utc_command_t* utc_command);
 
-#endif // WOLKCONNECTOR_C_UTC_COMMAND_H
+#ifdef __cplusplus
+}
+#endif
+
+#endif // UTC_COMMAND_H

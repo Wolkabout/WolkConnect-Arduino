@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 WolkAbout Technology s.r.o.
+ * Copyright 2024 WolkAbout Technology s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef COMMON_H
-#define COMMON_H
+#ifndef SIZE_DEFINITIONS_H
+#define SIZE_DEFINITIONS_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -30,12 +30,12 @@ enum {
     /* Topic root path size */
     TOPIC_DIRECTION_SIZE = 4,
     /* Topic branch size */
-    TOPIC_MESSAGE_TYPE_SIZE = 64,
+    TOPIC_MESSAGE_TYPE_SIZE = 32,
     /* Maximum number of characters in topic string */
     TOPIC_SIZE = TOPIC_DIRECTION_SIZE + DEVICE_KEY_SIZE + TOPIC_MESSAGE_TYPE_SIZE,
 
     /* Maximum number of bytes in payload string */
-    PAYLOAD_SIZE = 512,
+    PAYLOAD_SIZE = 64,//256
 
     /* Maximum size of MQTT header, inherit from dependency */
     MQTT_HEADER_SIZE = 72,
@@ -43,9 +43,9 @@ enum {
     MQTT_PACKET_SIZE = PAYLOAD_SIZE + TOPIC_SIZE + MQTT_HEADER_SIZE,
 
     /* Maximum number of characters in a single feed */
-    FEED_ELEMENT_SIZE = 64,
+    FEED_ELEMENT_SIZE = 16, //64
     /* Maximum number of feeds*/
-    FEEDS_MAX_NUMBER = 32,
+    FEEDS_MAX_NUMBER = 8,//32
 
     /* Maximum number of characters in reference string */
     REFERENCE_SIZE = 64,
@@ -57,14 +57,6 @@ enum {
     ITEM_FEED_TYPE_SIZE = 5,
     /* Maximum number of characters in type string */
     ITEM_DATA_TYPE_SIZE = 32,
-
-    /* Maximum number of characters in parameter type string */
-    PARAMETER_TYPE_SIZE = 32,
-    /* Maximum number of characters in parameter value */
-    PARAMETER_VALUE_SIZE = FEED_ELEMENT_SIZE,
-
-    /* Maximum number of characters in attribute value */
-    ATTRIBUTE_VALUE_SIZE = FEED_ELEMENT_SIZE,
 
     /* Number of batches in which data will be published */
     PUBLISH_BATCH_SIZE = 50,

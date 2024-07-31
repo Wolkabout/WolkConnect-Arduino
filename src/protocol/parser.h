@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 WolkAbout Technology s.r.o.
+ * Copyright 2024 WolkAbout Technology s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,13 +20,7 @@
 #include "model/outbound_message.h"
 #include "utility/wolk_types.h"
 #include "model/feed.h"
-#include "model/attribute.h"
 #include "model/utc_command.h"
-#include "model/parameter.h"
-
-#include <stdbool.h>
-#include <stddef.h>
-#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -70,14 +64,11 @@ size_t parser_deserialize_feeds_message(parser_t* parser, char* buffer, size_t b
 /**** Feed ****/
 
 /**** Utility ****/
-bool parser_deserialize_time(parser_t* parser, char* buffer, size_t buffer_size, utc_command_t* utc_command);
-
 bool parser_create_topic(parser_t* parser, char direction[TOPIC_DIRECTION_SIZE], char device_key[DEVICE_KEY_SIZE],
                          char message_type[TOPIC_MESSAGE_TYPE_SIZE], char topic[TOPIC_SIZE]);
-
+bool parser_serialize_keep_alive_message(parser_t* parser, const char* device_key, outbound_message_t* outbound_message);
 bool parser_serialize_sync_time(parser_t* parser, const char* device_key, outbound_message_t* outbound_message);
-bool parser_serialize_details_synchronization(parser_t* parser, const char* device_key,
-                                              outbound_message_t* outbound_message);
+bool parser_deserialize_time(parser_t* parser, char* buffer, size_t buffer_size, utc_command_t* utc_command);
 /**** Utility ****/
 #ifdef __cplusplus
 }

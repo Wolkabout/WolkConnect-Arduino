@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 WolkAbout Technology s.r.o.
+ * Copyright 2024 WolkAbout Technology s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,6 +40,8 @@ void initialize_parser(parser_t* parser, parser_type_t parser_type)
         parser->create_topic = json_create_topic;
 
         parser->serialize_keep_alive_message = json_serialize_keep_alive_message;
+        parser->serialize_sync_time = json_serialize_sync_time;
+        parser->deserialize_time = json_deserialize_time;
 
         strncpy(parser->P2D_TOPIC, JSON_P2D_TOPIC, TOPIC_MESSAGE_TYPE_SIZE);
         strncpy(parser->D2P_TOPIC, JSON_D2P_TOPIC, TOPIC_MESSAGE_TYPE_SIZE);
@@ -92,4 +94,14 @@ bool parser_is_initialized(parser_t* parser)
 size_t parser_deserialize_feeds_message(parser_t* parser, char* buffer, size_t buffer_size, feed_t* readings_received)
 {
     return parser->deserialize_feeds_value_message(buffer, buffer_size, readings_received);
+}
+
+bool parser_serialize_sync_time(parser_t* parser, const char* device_key, outbound_message_t* outbound_message)
+{
+    return parser->serialize_sync_time(device_key, outbound_message);
+}
+
+bool parser_deserialize_time(parser_t* parser, char* buffer, size_t buffer_size, utc_command_t* utc_command)
+{
+    return parser->deserialize_time(buffer, buffer_size, utc_command);
 }

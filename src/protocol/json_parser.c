@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 WolkAbout Technology s.r.o.
+ * Copyright 2024 WolkAbout Technology s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -86,13 +86,13 @@ size_t json_deserialize_feeds_value_message(char* buffer, size_t buffer_size, fe
     jsmntok_t tokens[JSON_TOKEN_SIZE];
 
     jsmn_init(&parser);
-    int parser_result = jsmn_parse(&parser, buffer, buffer_size, tokens, WOLK_ARRAY_LENGTH(tokens));
+    int parser_result = jsmn_parse(&parser, buffer, buffer_size, &tokens[0], WOLK_ARRAY_LENGTH(tokens));
 
     /* Received JSON must be valid, and top level element must be array */
     if (parser_result < 1 || tokens[0].type != JSMN_ARRAY || parser_result >= (int)WOLK_ARRAY_LENGTH(tokens)) {
         return false;
     }
-
+    //TODO: problem can't serialized mulitple
     for (int i = 1; i < parser_result; ++i) { // at 1st position expects json object; 0 position is json array
         if (tokens[i].type == JSMN_OBJECT) {
             // object equals feed
@@ -118,12 +118,12 @@ size_t json_deserialize_feeds_value_message(char* buffer, size_t buffer_size, fe
                         }
                         // get value
                         j++; // move one position to select value, regardless it's json type: PRIMITIVE or STRING
-                        //TODO
-                        // if (snprintf(feeds_received->data, WOLK_ARRAY_LENGTH(feeds_received->data[0]), "%.*s",
-                        //              tokens[j].end - tokens[j].start, buffer + tokens[j].start)
-                        //     >= (int)WOLK_ARRAY_LENGTH(feeds_received->data[0])) {
-                        //     return false;
-                        // }
+                        //TODO: dont understand!
+                        if (snprintf(feeds_received->data[j], WOLK_ARRAY_LENGTH(feeds_received->data[0]), "%.*s",
+                                     tokens[j].end - tokens[j].start, buffer + tokens[j].start)
+                            >= (int)WOLK_ARRAY_LENGTH(feeds_received->data[0])) {
+                            return false;
+                        }
                     }
                 }
             }

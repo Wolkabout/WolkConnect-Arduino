@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 WolkAbout Technology s.r.o.
+ * Copyright 2024 WolkAbout Technology s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,9 +21,6 @@
 #include "utility/wolk_utils.h"
 #include "utility/wolk_types.h"
 
-#include <stdbool.h>
-#include <stddef.h>
-#include <stdint.h>
 #include <string.h>
 
 #ifdef __cplusplus
@@ -52,7 +49,6 @@ void feed_initialize(feed_t* feed, uint16_t feed_size, const char* reference);
 void feed_clear(feed_t* feed);
 
 void feed_set_data(feed_t* feed, const char** data);
-char** feed_get_data(feed_t* feed);
 
 void feed_set_data_at(feed_t* feed, const char* data, size_t data_position);
 char* feed_get_data_at(feed_t* feed, size_t data_position);
