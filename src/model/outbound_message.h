@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 WolkAbout Technology s.r.o.
+ * Copyright 2024 WolkAbout Technology s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,26 +14,30 @@
  * limitations under the License.
  */
 
-#include "actuator_status.h"
-#include "wolk_utils.h"
+#ifndef OUTBOUND_MESSAGE_H
+#define OUTBOUND_MESSAGE_H
 
 #include <string.h>
 
-void actuator_status_init(actuator_status_t* actuator_status, char* value, actuator_state_t state)
-{
-    /* Sanity check */
-    WOLK_ASSERT(strlen(value) < READING_SIZE);
+#include "utility/size_definitions.h"
 
-    strcpy(&actuator_status->value[0], value);
-    actuator_status->state = state;
-}
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-char* actuator_status_get_value(actuator_status_t* actuator_status)
-{
-    return actuator_status->value;
-}
+typedef struct {
+    char topic[TOPIC_SIZE];
+    char payload[PAYLOAD_SIZE];
+} outbound_message_t;
 
-actuator_state_t actuator_status_get_state(actuator_status_t* actuator_status)
-{
-    return actuator_status->state;
+void outbound_message_init(outbound_message_t* outbound_message, const char* topic, const char* payload);
+
+char* outbound_message_get_topic(outbound_message_t* outbound_message);
+
+char* outbound_message_get_payload(outbound_message_t* outbound_message);
+
+#ifdef __cplusplus
 }
+#endif
+
+#endif

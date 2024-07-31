@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 WolkAbout Technology s.r.o.
+ * Copyright 2024 WolkAbout Technology s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,16 @@
  * limitations under the License.
  */
 
-#ifndef QUEUE_H
-#define QUEUE_H
+#ifndef WOLKQUEUE_H
+#define WOLKQUEUE_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 /**
  * @brief WOLK_ERR_T Boolean used for error handling in Queue module
@@ -41,7 +45,6 @@ typedef unsigned char QUEUE_BOOL_T;
 
 typedef struct _wolk_queue wolk_queue;
 typedef struct _wolk_queue_elem wolk_queue_elem;
-
 
 struct _wolk_queue_elem {
 
